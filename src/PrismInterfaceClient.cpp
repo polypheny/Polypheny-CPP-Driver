@@ -3,7 +3,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <boost/asio.hpp>
 
 namespace Communication {
 
