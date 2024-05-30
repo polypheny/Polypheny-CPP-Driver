@@ -9,10 +9,14 @@ namespace Connection {
     class Connection {
     private:
         Communication::PrismInterfaceClient prism_interface_client;
+        ConnectionProperties connection_properties;
     public:
         Connection(const ConnectionProperties &connection_properties);
 
         Connection(const std::string &host, const std::string &user, const std::string &password);
+
+        Communication::PrismInterfaceClient get_prism_interface_client() const;
+        ConnectionProperties get_connection_properties() const;
 
         Cursor get_cursor();
     };

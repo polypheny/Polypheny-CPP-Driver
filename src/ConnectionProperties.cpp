@@ -6,10 +6,10 @@ namespace Connection {
                                                uint16_t port,
                                                const std::string &username,
                                                const std::string &password,
-                                               const std::string &default_namespace,
+                                               const std::string &default_nspace,
                                                bool is_auto_commit)
             : host(host), port(port), username(username), password(password),
-              default_namespace(default_namespace), is_auto_commit(is_auto_commit) {}
+              default_namespace(default_nspace), is_auto_commit(is_auto_commit) {}
 
     std::string ConnectionProperties::get_host() const {
         return host;
@@ -47,8 +47,8 @@ namespace Connection {
         return default_namespace;
     }
 
-    void ConnectionProperties::set_default_namespace(const std::string &default_namespace) {
-        this->default_namespace = default_namespace;
+    void ConnectionProperties::set_default_namespace(const std::string &default_nspace) {
+        this->default_namespace = default_nspace;
     }
 
     bool ConnectionProperties::get_is_auto_commit() const {

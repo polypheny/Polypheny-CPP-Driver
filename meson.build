@@ -50,7 +50,9 @@ src_polypheny = files(
     'src/library.cpp',
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
-    'src/ConnectionProperties.cpp'
+    'src/ConnectionProperties.cpp',
+    'src/Connection.cpp',
+    'src/Cursor.cpp'
 )
 
 library('polypheny-cpp-library',

@@ -15,8 +15,15 @@ namespace Connection {
     }
 
     Cursor Connection::get_cursor() {
-        // Return a cursor object
-        return Cursor();
+        return Cursor(this);
+    }
+
+    Communication::PrismInterfaceClient Connection::get_prism_interface_client() const {
+        return prism_interface_client;
+    }
+
+    ConnectionProperties Connection::get_connection_properties() const {
+        return connection_properties;
     }
 
 }
