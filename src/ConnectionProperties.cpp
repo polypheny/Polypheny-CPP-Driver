@@ -1,15 +1,17 @@
 #include "ConnectionProperties.h"
 
+#include <utility>
+
 namespace Connection {
 
-    ConnectionProperties::ConnectionProperties(const std::string &host,
+    ConnectionProperties::ConnectionProperties(std::string host,
                                                uint16_t port,
-                                               const std::string &username,
-                                               const std::string &password,
-                                               const std::string &default_nspace,
+                                               std::string username,
+                                               std::string password,
+                                               std::string default_nspace,
                                                bool is_auto_commit)
-            : host(host), port(port), username(username), password(password),
-              default_namespace(default_nspace), is_auto_commit(is_auto_commit) {}
+            : host(std::move(host)), port(port), username(std::move(username)), password(std::move(password)),
+              default_namespace(std::move(default_nspace)), is_auto_commit(is_auto_commit) {}
 
     std::string ConnectionProperties::get_host() const {
         return host;
