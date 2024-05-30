@@ -12,7 +12,7 @@
 
 #include "BigDecimal.h"
 #include "Interval.h"
-#include "ProtoValue.pb.h"
+#include "value.pb.h"
 
 namespace Types {
 

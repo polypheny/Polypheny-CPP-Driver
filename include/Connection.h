@@ -3,6 +3,7 @@
 
 #include "ConnectionProperties.h"
 #include "../src/PrismInterfaceClient.h"
+#include "src/Cursor.h"
 
 namespace Connection {
 
@@ -16,9 +17,13 @@ namespace Connection {
         Connection(const std::string &host, const std::string &user, const std::string &password);
 
         Communication::PrismInterfaceClient get_prism_interface_client() const;
+
         ConnectionProperties get_connection_properties() const;
 
         Cursor get_cursor();
+
+        static ConnectionProperties
+        build_connection_properties(const std::string &host, const std::string &username, const std::string &password);
     };
 
 } // Connection

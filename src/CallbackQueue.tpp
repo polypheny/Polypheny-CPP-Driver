@@ -3,8 +3,8 @@
 namespace Communication {
 
     template <typename T>
-    CallbackQueue<T>::CallbackQueue(std::function<T(const org::polypheny::prism::Response&)> response)
-            : extract_response(std::move(response)), b_is_completed(false) {}
+    CallbackQueue<T>::CallbackQueue(std::function<T&(const org::polypheny::prism::Response &)> response_extractor)
+            : extract_response(std::move(response_extractor)), b_is_completed(false) {}
 
     template <typename T>
     void CallbackQueue<T>::await_completion() {

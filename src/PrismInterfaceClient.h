@@ -11,14 +11,13 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "../include/org/polypheny/prism/protointerface.pb.h"
-#include "../include/org/polypheny/prism/connection_responses.pb.h"
-#include "../include/org/polypheny/prism/statement_responses.pb.h"
-
 #include "CallbackQueue.h"
 #include "Transport.h"
 #include "PlainTransport.h"
 #include "ConnectionProperties.h"
+#include "statement_responses.pb.h"
+#include "connection_responses.pb.h"
+#include "protointerface.pb.h"
 
 namespace Communication {
 
@@ -50,7 +49,7 @@ namespace Communication {
         void handle_unexpected_exception(const std::exception_ptr &exception);
 
     public:
-        PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties);
+        explicit PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties);
 
         ~PrismInterfaceClient();
 
@@ -61,7 +60,7 @@ namespace Communication {
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
-                                          CallbackQueue<org::polypheny::prism::Response> &callback_queue);
+                                          CallbackQueue<org::polypheny::prism::StatementResponse> &callback_queue);
 
         void commit_transaction(uint32_t timeout_millis);
 
@@ -73,7 +72,7 @@ namespace Communication {
 
         org::polypheny::prism::Frame fetch_result(uint32_t statement_id, uint32_t fetch_size, uint32_t timeout_millis);
 
-        void send_message(org::polypheny::prism::Request &request);
+        void send_message(const org::polypheny::prism::Request &request);
 
         org::polypheny::prism::Response receive_message();
 
@@ -81,7 +80,7 @@ namespace Communication {
         wait_for_completion(std::future<org::polypheny::prism::Response> &future, uint32_t timeout_millis);
 
         org::polypheny::prism::Response
-        complete_synchronously(org::polypheny::prism::Request &request, uint32_t timeout_millis);
+        complete_synchronously(const org::polypheny::prism::Request &request, uint32_t timeout_millis);
 
         void close();
     };

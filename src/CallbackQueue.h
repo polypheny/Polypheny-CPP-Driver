@@ -6,14 +6,14 @@
 #include <condition_variable>
 #include <functional>
 #include <stdexcept>
-#include "../src/generated/org/polypheny/prism/protointerface.pb.h"
+#include "protointerface.pb.h"
 
 namespace Communication {
 
     template<typename T>
     class CallbackQueue {
     public:
-        explicit CallbackQueue(std::function<T(const org::polypheny::prism::Response &)> response);
+        explicit CallbackQueue(std::function<T&(const org::polypheny::prism::Response &)> response_extractor);
 
         void await_completion();
 
@@ -33,7 +33,7 @@ namespace Communication {
         std::condition_variable is_completed;
         bool b_is_completed = false;
         std::queue<T> message_queue;
-        std::function<T(const org::polypheny::prism::Response &)> extract_response;
+        std::function<T&(const org::polypheny::prism::Response &)> extract_response;
         std::exception_ptr propagated_exception;
     };
 

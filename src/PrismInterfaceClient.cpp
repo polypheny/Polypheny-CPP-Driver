@@ -1,4 +1,9 @@
 #include "PrismInterfaceClient.h"
+#include "protointerface.pb.h"
+#include "connection_requests.pb.h"
+#include "connection_responses.pb.h"
+#include "statement_requests.pb.h"
+#include "statement_responses.pb.h"
 #include <stdexcept>
 #include <iostream>
 #include <thread>
@@ -57,7 +62,7 @@ namespace Communication {
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
                                                                  std::string statement,
-                                                                 CallbackQueue<org::polypheny::prism::Response> &callback_queue) {
+                                                                 CallbackQueue<org::polypheny::prism::StatementResponse> &callback_queue) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner = outer.mutable_execute_unparameterized_statement_request();
@@ -67,7 +72,6 @@ namespace Communication {
         callback_queues.emplace(outer.id(), std::move(callback_queue));
         send_message(outer);
     }
-
 
 
     void PrismInterfaceClient::commit_transaction(uint32_t timeout_millis) {
@@ -110,7 +114,7 @@ namespace Communication {
         return complete_synchronously(outer, timeout_millis).frame();
     }
 
-    void PrismInterfaceClient::send_message(org::polypheny::prism::Request &request) {
+    void PrismInterfaceClient::send_message(const org::polypheny::prism::Request &request) {
         if (is_closed) {
             throw std::runtime_error("Connection is closed");
         }
@@ -221,7 +225,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::Response
-    PrismInterfaceClient::complete_synchronously(const rg::polypheny::prism::Request &request,
+    PrismInterfaceClient::complete_synchronously(const org::polypheny::prism::Request &request,
                                                  uint32_t timeout_millis) {
         std::promise<org::polypheny::prism::Response> promise;
         std::future<org::polypheny::prism::Response> future = promise.get_future();
