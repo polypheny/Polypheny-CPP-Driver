@@ -6,6 +6,7 @@
 #include <map>
 #include "TypedValues.h"
 #include "Connection.h"
+#include "Result.h"
 
 namespace Connection {
 
