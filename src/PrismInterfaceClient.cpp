@@ -1,4 +1,4 @@
-#include "../include/PrismInterfaceClient.h"
+#include "PrismInterfaceClient.h"
 #include <stdexcept>
 #include <iostream>
 #include <thread>
@@ -8,16 +8,11 @@ namespace Communication {
 
     const std::string PlainTransport::VERSION = "plain-v1@polypheny.com";
 
-    PrismInterfaceClient::PrismInterfaceClient(std::string host, uint16_t port,
-                                               std::map <std::string, std::string> parameters) {
-        std::string transport_type = parameters.emplace(TRANSPORT_PARAMETER_KEY, DEFAULT_TRANSPORT_TYPE).first->second;
-        if (transport_type != DEFAULT_TRANSPORT_TYPE) {
-            throw std::runtime_error(
-                    "Transport types other than " + std::string(DEFAULT_TRANSPORT_TYPE) + " are not supported yet.");
-        }
-        transport = std::make_shared<PlainTransport>(host, port);
+    PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
+        transport = std::make_shared<PlainTransport>(connection_properties.get_host(),
+                                                     connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
-        connect(parameters, DEFAULT_TIMEOUT_MILLIS);
+        connect(connection_properties, DEFAULT_TIMEOUT_MILLIS);
     }
 
     PrismInterfaceClient::~PrismInterfaceClient() {
@@ -28,13 +23,16 @@ namespace Communication {
     }
 
     org::polypheny::prism::ConnectionResponse
-    PrismInterfaceClient::connect(const std::map <std::string, std::string> &parameters, uint32_t timeout_millis) {
+    PrismInterfaceClient::connect(const Connection::ConnectionProperties &connection_properties,
+                                  uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ConnectionRequest *inner = outer.mutable_connection_request();
         inner->set_major_api_version(MAJOR_API_VERSION);
         inner->set_minor_api_version(MINOR_API_VERSION);
-        set_connection_properties(parameters, inner->mutable_connection_properties());
+        org::polypheny::prism::ConnectionProperties *properties_message = inner->mutable_connection_properties();
+        properties_message->set_namespace_name(connection_properties.get_default_namespace());
+        properties_message->set_is_auto_commit(connection_properties.get_is_auto_commit());
         org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer,
                                                                                     timeout_millis).connection_response();
         if (!response.is_compatible()) {
@@ -47,27 +45,6 @@ namespace Communication {
                     client_api_version);
         }
         return response;
-    }
-
-    void PrismInterfaceClient::set_connection_properties(const std::map <std::string, std::string> &parameters,
-                                                         org::polypheny::prism::ConnectionProperties *properties_message) {
-        auto it = parameters.find(NAMESPACE_PARAMETER_KEY);
-        if (it != parameters.end()) {
-            properties_message->set_namespace_name(it->second);
-        }
-        it = parameters.find(AUTOCOMMIT_PARAMETER_KEY);
-        if (it == parameters.end()) {
-            return;
-        }
-        if (it->second == "true") {
-            properties_message->set_is_auto_commit(true);
-            return;
-        }
-        if (it->second == "false") {
-            properties_message->set_is_auto_commit(false);
-            return;
-        }
-        return; //TODO: throw on illegal value
     }
 
     void PrismInterfaceClient::disconnect(uint32_t timeout_millis) {
@@ -178,7 +155,7 @@ namespace Communication {
     }
 
     void PrismInterfaceClient::complete_callback(const org::polypheny::prism::Response &response,
-                                                 std::promise <org::polypheny::prism::Response> &callback) {
+                                                 std::promise<org::polypheny::prism::Response> &callback) {
         if (response.last()) {
             callbacks.erase(response.id());
         }
@@ -206,7 +183,7 @@ namespace Communication {
     }
 
     void PrismInterfaceClient::handle_connection_closure(const std::exception &exception) {
-        std::lock_guard <std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
         is_closed = true;
         for (auto &[id, callback]: callbacks) {
             callback.set_exception(std::make_exception_ptr(exception));
@@ -217,7 +194,7 @@ namespace Communication {
     }
 
     void PrismInterfaceClient::handle_unexpected_exception(const std::exception_ptr &exception) {
-        std::lock_guard <std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
         is_closed = true;
         for (auto &[id, callback]: callbacks) {
             callback.set_exception(exception);
@@ -229,7 +206,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::Response
-    PrismInterfaceClient::wait_for_completion(std::future <org::polypheny::prism::Response> &future,
+    PrismInterfaceClient::wait_for_completion(std::future<org::polypheny::prism::Response> &future,
                                               uint32_t timeout_millis) {
         if (timeout_millis == 0) {
             return future.get();
@@ -244,10 +221,10 @@ namespace Communication {
     org::polypheny::prism::Response
     PrismInterfaceClient::complete_synchronously(const rg::polypheny::prism::Request &request,
                                                  uint32_t timeout_millis) {
-        std::promise <org::polypheny::prism::Response> promise;
-        std::future <org::polypheny::prism::Response> future = promise.get_future();
+        std::promise<org::polypheny::prism::Response> promise;
+        std::future<org::polypheny::prism::Response> future = promise.get_future();
         {
-            std::lock_guard <std::mutex> lock(mutex);
+            std::lock_guard<std::mutex> lock(mutex);
             callbacks[request.id()] = std::move(promise);
         }
 
