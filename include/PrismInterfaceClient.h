@@ -11,9 +11,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "../src/generated/org/polypheny/prism/protointerface.pb.h"
-#include "../src/generated/org/polypheny/prism/connection_responses.pb.h"
-#include "../src/generated/org/polypheny/prism/statement_responses.pb.h"
+#include "../include/org/polypheny/prism/protointerface.pb.h"
+#include "../include/org/polypheny/prism/connection_responses.pb.h"
+#include "../include/org/polypheny/prism/statement_responses.pb.h"
 
 #include "CallbackQueue.h"
 #include "Transport.h"
