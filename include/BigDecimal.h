@@ -7,18 +7,21 @@
 
 #include "NativeType.h"
 #include <cstdint>
+#include <vector>
 #include <string>
 
 namespace Types {
     class BigDecimal : public NativeType {
     private:
         uint32_t scale;
-        std::string unscaled_value;
+        std::vector<uint8_t> unscaled_value;
 
     public:
-        BigDecimal(uint32_t scale, std::string unscaledValue);
+        BigDecimal(uint32_t scale, std::vector<uint8_t> unscaled_value);
+
         uint32_t get_scale() const;
-        const std::string& get_unscaled_value() const;
+
+        const std::vector<uint8_t> &get_unscaled_value() const;
     };
 
 } // Types
