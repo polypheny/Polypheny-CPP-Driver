@@ -49,7 +49,8 @@ inc_polypheny = include_directories('include')
 src_polypheny = files(
     'src/library.cpp',
     'src/PlainTransport.cpp',
-    'src/PrismInterfaceClient.cpp'
+    'src/PrismInterfaceClient.cpp',
+    'src/ConnectionProperties.cpp'
 )
 
 library('polypheny-cpp-library',
