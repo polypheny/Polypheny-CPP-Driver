@@ -7,6 +7,7 @@ add_project_link_arguments('-lm', language: 'cpp')
 # Dependencies
 dep_protobuf = dependency('protobuf', required: false)
 
+# Compile prism api
 protoc = find_program('protoc', required: false)
 
 if not protoc.found() or not dep_protobuf.found()
