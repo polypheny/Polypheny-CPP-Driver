@@ -20,7 +20,7 @@ namespace Connection {
                              uint16_t port = 7659,
                              const std::string &username = "pa",
                              const std::string &password = "pa",
-                             const std::string &default_namespace = "public",
+                             const std::string &default_nspace = "public",
                              bool is_auto_commit = true);
 
 
@@ -42,7 +42,7 @@ namespace Connection {
 
         std::string get_default_namespace() const;
 
-        void set_default_namespace(const std::string &default_namespace);
+        void set_default_namespace(const std::string &default_nspace);
 
         bool get_is_auto_commit() const;
 
