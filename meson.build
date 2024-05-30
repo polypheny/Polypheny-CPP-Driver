@@ -2,14 +2,26 @@ project('Polypheny-CPP-Driver', 'cpp', version: '1.0.0')
 add_project_arguments('-Wall', '-Wextra', language: 'cpp')
 add_project_link_arguments('-lm', language: 'cpp')
 
-protobuf_version = '3.23.4'
+protobuf_version = '3.14.4'
+protobuf_enforce_exact_match = false
 
-dep_protobuf = dependency('protobuf', version: protobuf_version, required: true)
+dep_protobuf = dependency('protobuf', version: protobuf_version, required: false)
+if not dep_protobuf.found()
+    dep_protobuf = declare_dependency(
+        include_directories: include_directories('/snap/protobuf/current/include'),
+        link_args: ['-L/snap/protobuf/current/lib', '-lprotobuf']
+    )
+    warning('Using Snap fallback for Protobuf.')
+endif
 
 protoc = find_program('protoc', required: true)
 protoc_version = run_command(protoc, '--version').stdout().strip().split()[-1]
-if protoc_version != protobuf_version
-    error('protoc version (@0@) does not match protobuf version (@1@)'.format(protoc_version, protobuf_version))
+
+message('Protobuf version: ' + protobuf_version)
+message('protoc version: ' + protoc_version)
+
+if protobuf_enforce_exact_match and protoc_version != protobuf_version
+    error('protoc version (' + protoc_version + ') does not match protobuf version (' + protobuf_version + ')')
 endif
 
 gen_prism = generator(protoc,
@@ -47,12 +59,18 @@ src_prism = gen_prism.process(prism_files)
 inc_polypheny = include_directories('include')
 
 src_polypheny = files(
+    'src/BigDecimal.cpp',
+    'src/Connection.cpp',
+    'src/ConnectionProperties.cpp',
+    'src/Cursor.cpp',
+    'src/Document.cpp',
+    'src/Interval.cpp',
     'src/library.cpp',
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
-    'src/ConnectionProperties.cpp',
-    'src/Connection.cpp',
-    'src/Cursor.cpp'
+    'src/ProtoUtils.cpp',
+    'src/Result.cpp',
+    'src/TypedValue.cpp'
 )
 
 library('polypheny-cpp-library',
