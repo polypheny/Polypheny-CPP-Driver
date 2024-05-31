@@ -25,6 +25,7 @@ namespace Types {
         uint32_t get_scale() const;
 
         const std::vector<uint8_t> &get_unscaled_value() const;
+        org::polypheny::prism::ProtoBigDecimal serialize() const;
     };
 
 } // Types

@@ -44,14 +44,14 @@ namespace Types {
         Representation value;
         org::polypheny::prism::ProtoValue serialized;
         bool is_serialized;
-
-        org::polypheny::prism::ProtoValue serialize();
         void deserialize();
 
     public:
         TypedValue();
         ~TypedValue();
         TypedValue(const org::polypheny::prism::ProtoValue &proto_value);
+
+        org::polypheny::prism::ProtoValue serialize() const;
 
         bool is_null() const;
 

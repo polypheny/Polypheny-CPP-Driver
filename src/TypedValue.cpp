@@ -25,9 +25,61 @@ namespace Types {
         }
     }
 
-    org::polypheny::prism::ProtoValue TypedValue::serialize() {
-        // Placeholder implementation
-        return {};
+    org::polypheny::prism::ProtoValue TypedValue::serialize() const {
+        org::polypheny::prism::ProtoValue proto_value;
+        switch (value_case) {
+            case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
+                proto_value.mutable_boolean()->set_boolean(value.boolean_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInteger:
+                proto_value.mutable_integer()->set_integer(value.integer_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kLong:
+                proto_value.mutable_long_()->set_long_(value.bigint_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
+                *proto_value.mutable_big_decimal() = value.big_decimal_value.serialize();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
+                proto_value.mutable_float_()->set_float_(value.float_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDouble:
+                proto_value.mutable_double_()->set_double_(value.double_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDate:
+                *proto_value.mutable_date() = Utils::ProtoUtils::date_to_proto(value.date_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTime:
+                *proto_value.mutable_time() = Utils::ProtoUtils::time_to_proto(value.time_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTimestamp:
+                *proto_value.mutable_timestamp() = Utils::ProtoUtils::timestamp_to_proto(value.timestamp_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
+                *proto_value.mutable_interval() = value.interval_value.serialize();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kString:
+                proto_value.mutable_string()->set_string(value.varchar_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
+                proto_value.mutable_binary()->set_binary(Utils::ProtoUtils::vector_to_string(value.binary_value));
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kList:
+                *proto_value.mutable_list() = Utils::ProtoUtils::list_to_proto(value.list_value);
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
+                *proto_value.mutable_document() = value.document_value.serialize();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kFile:
+                proto_value.mutable_file()->set_binary(Utils::ProtoUtils::vector_to_string(value.binary_value));
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kNull:
+                proto_value.mutable_null();
+                break;
+            default:
+                throw std::runtime_error("Encountered unknown data type");
+        }
+        return proto_value;
     }
 
     void TypedValue::deserialize() {

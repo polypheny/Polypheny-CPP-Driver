@@ -4,7 +4,7 @@ namespace Types {
 
     BigDecimal::BigDecimal(const org::polypheny::prism::ProtoBigDecimal &value) : unscaled_value(
             Utils::ProtoUtils::string_to_vector(value.unscaled_value())),
-                                                                            scale(value.scale()) {
+                                                                                  scale(value.scale()) {
         {}
     }
 
@@ -17,5 +17,12 @@ namespace Types {
 
     const std::vector<uint8_t> &BigDecimal::get_unscaled_value() const {
         return unscaled_value;
+    }
+
+    org::polypheny::prism::ProtoBigDecimal BigDecimal::serialize() const {
+        org::polypheny::prism::ProtoBigDecimal proto_big_decimal;
+        *proto_big_decimal.mutable_unscaled_value() = Utils::ProtoUtils::vector_to_string(unscaled_value);
+        proto_big_decimal.set_scale(scale);
+        return proto_big_decimal;
     }
 } // Types
