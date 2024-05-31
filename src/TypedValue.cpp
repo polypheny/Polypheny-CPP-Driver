@@ -69,7 +69,7 @@ namespace Types {
                 value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.binary().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList:
-                value.list = Utils::ProtoUtils::proto_to_list(serialized.list().values());
+                value.list = Utils::ProtoUtils::proto_to_list(serialized.list());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
                 value.document_value = Types::Document(serialized.document());
