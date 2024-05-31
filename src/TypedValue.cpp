@@ -69,19 +69,19 @@ namespace Types {
                 value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.binary().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList:
-                value.list = Utils::ProtoUtils::proto_to_list(serialized.list());
+                value.list_value = Utils::ProtoUtils::proto_to_list(serialized.list());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
                 value.document_value = Types::Document(serialized.document());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
-                value.file_value = Types::File(serialized.file());
+                // TODO: we currently represent files the same way as binaries. with the introduction of streaming we might implement a custom file type which automatically fetches more data if required.
+                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.file().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 break;
             default:
-                // Handle unexpected cases
-                break;
+                throw std::runtime_error("Encountered unknown data type");
         }
     }
 
