@@ -2,8 +2,7 @@
 #define POLYPHENY_CPP_DRIVER_CURSOR_H
 
 #include <string>
-#include <vector>
-#include <map>
+#include <functional>
 #include "TypedValue.h"
 #include "Connection.h"
 #include "Result.h"
@@ -14,47 +13,25 @@ namespace Connection {
 
     class Cursor {
     private:
-        Connection *connection;
         int32_t statement_id;
         bool is_statement_id_set;
+        Connection& connection;
 
         void reset_statement();
 
+        static Results::Result &get_result_from_frame(org::polypheny::prism::Frame &frame);
+
         std::function<org::polypheny::prism::StatementResponse &(
-                const org::polypheny::prism::Response &)> response_extractor =
-                [](const org::polypheny::prism::Response &response) -> org::polypheny::prism::StatementResponse & {
-                    return response.statement_response();
-                };
+                const org::polypheny::prism::Response &)> response_extractor;
 
     public:
-        explicit Cursor(Connection* connection);
+        Cursor(Connection& connection);
 
-        Results::Result execute(const std::string &language, const std::string &statement, const std::string &nspace);
+        Results::Result &execute(const std::string &language, const std::string &statement, const std::string &nspace);
 
-        Results::Result execute(const std::string &language, const std::string &statement);
-
-        Results::Result execute(const std::string &language, const std::string &statement, const std::string &nspace,
-                                const std::vector<TypedValues> &parameters);
-
-        Results::Result
-        execute(const std::string &language, const std::string &statement, const std::vector<TypedValues> &parameters);
-
-        Results::Result execute(const std::string &language, const std::string &statement, const std::string &nspace,
-                                const std::map<std::string, TypedValues> &parameters);
-
-        Results::Result execute(const std::string &language, const std::string &statement,
-                                const std::map<std::string, TypedValues> &parameters);
-
-        Cursor(Connection *pConnection);
-
-        Cursor(Connection *pConnection);
-
-        Cursor(Connection *pConnection);
-
-        Results::Result execute(const std::string &language, const std::string &statement, const std::string &nspace,
-                                const std::vector<TypedValues> &params);
+        Results::Result &execute(const std::string &language, const std::string &statement);
     };
 
-} // Connection
+} // namespace Connection
 
-#endif //POLYPHENY_CPP_DRIVER_CURSOR_H
+#endif // POLYPHENY_CPP_DRIVER_CURSOR_H
