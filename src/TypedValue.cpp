@@ -31,7 +31,59 @@ namespace Types {
     }
 
     void TypedValue::deserialize() {
-        // Placeholder implementation
+        switch (value_case) {
+            case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
+                value.boolean_value = serialized.boolean().boolean();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInteger:
+                value.integer_value = serialized.integer().integer();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kLong:
+                value.bigint_value = serialized.long_().long_();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
+                value.big_decimal_value = Types::BigDecimal(serialized.big_decimal());
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
+                value.float_value = serialized.float_().float_();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDouble:
+                value.double_value = serialized.double_().double_();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDate:
+                value.date_value = Utils::ProtoUtils::proto_to_date(serialized.date());
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTime:
+                value.time_value = Utils::ProtoUtils::proto_to_time(serialized.time())
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTimestamp:
+                value.timestamp_value = Utils::ProtoUtils::proto_to_timestamp(serialized.timestamp());
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
+                value.interval_value = Types::Interval(serialized.interval());
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kString:
+                // Handle kString case
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
+                // Handle kBinary case
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kNull:
+                // Handle kNull case
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kList:
+                // Handle kList case
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
+                // Handle kDocument case
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kFile:
+                // Handle kFile case
+                break;
+            default:
+                // Handle unexpected cases
+                break;
+        }
     }
 
     bool TypedValue::is_null() const {

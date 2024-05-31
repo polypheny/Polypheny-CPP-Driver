@@ -5,6 +5,10 @@
 #include "Interval.h"
 
 namespace Types {
+    Interval::Interval(const org::polypheny::prism::ProtoInterval &value) : months(value.months()), milliseconds(value.milliseconds()) {
+
+    }
+
     Interval::Interval(uint64_t months, uint64_t milliseconds)
             : months(months), milliseconds(milliseconds) {}
 
