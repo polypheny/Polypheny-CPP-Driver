@@ -10,11 +10,11 @@
 
 namespace Types {
 
-    class Document : public std::unordered_map<std::string, TypedValue> {
+    class Document {
     public:
         Document();
 
-        Document(const ProtoDocument &document);
+        explicit Document(const ProtoDocument &document);
 
         ProtoDocument serialize() const;
     };
