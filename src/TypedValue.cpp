@@ -4,7 +4,13 @@
 
 #include "TypedValue.h"
 
+#include <utility>
+
 namespace Types {
+    TypedValue::TypedValue(org::polypheny::prism::ProtoValue proto_value) : serialized(std::move(proto_value)),
+                                                                            is_serialized(true),
+                                                                            value_case(proto_value.value_case()) {
+    }
 
     TypedValue::~TypedValue() {
         switch (value_case) {

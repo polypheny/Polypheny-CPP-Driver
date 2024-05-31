@@ -2,6 +2,8 @@
 
 namespace Types {
 
+    Document::Document() = default;
+
     Document::Document(const org::polypheny::prism::ProtoDocument &document) {
         for (const auto &entry: document.entries()) {
             if (entry.has_key() && entry.key().has_string()) {

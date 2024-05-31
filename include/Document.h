@@ -13,7 +13,7 @@ namespace Types {
 
     class Document : public NativeType  {
     public:
-        Document();
+        Document() = default;
 
         explicit Document(const org::polypheny::prism::ProtoDocument &document);
 
@@ -32,8 +32,6 @@ namespace Types {
         size_t erase(const std::string &key);
 
         size_t count(const std::string &key) const;
-
-        std::unordered_map<std::string, TypedValue>::iterator find(const std::string &key);
 
         std::unordered_map<std::string, TypedValue>::const_iterator find(const std::string &key) const;
 
