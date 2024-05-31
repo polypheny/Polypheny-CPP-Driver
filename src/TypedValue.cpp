@@ -15,10 +15,10 @@ namespace Types {
                 value.interval_value.~Interval();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                value.varchar_value.~basic_string();
+                value.varchar_value.std::~basic_string();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                value.binary_value.~vector<uint8_t>();
+                value.binary_value.std::~vector<uint8_t>();
                 break;
             default:
                 break;
