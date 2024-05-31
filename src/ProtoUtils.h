@@ -26,7 +26,7 @@ namespace Utils {
 
         static std::chrono::system_clock::time_point proto_to_date(const org::polypheny::prism::ProtoDate& date);
 
-        static void proto_to_list(const google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> &field);
+        static void proto_to_list(const org::polypheny::prism::ProtoList &list);
     };
 } // Utils
 

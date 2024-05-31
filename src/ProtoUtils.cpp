@@ -15,22 +15,24 @@ namespace Utils {
         return {vector.begin(), vector.end()};
     }
 
-    std::chrono::system_clock::time_point ProtoUtils::proto_to_timestamp(const org::polypheny::prism::ProtoTimestamp& timestamp) {
+    std::chrono::system_clock::time_point
+    ProtoUtils::proto_to_timestamp(const org::polypheny::prism::ProtoTimestamp &timestamp) {
         return std::chrono::system_clock::time_point(std::chrono::milliseconds(timestamp.timestamp()));
     }
 
-    std::chrono::system_clock::time_point ProtoUtils::proto_to_date(const org::polypheny::prism::ProtoDate& date) {
+    std::chrono::system_clock::time_point ProtoUtils::proto_to_date(const org::polypheny::prism::ProtoDate &date) {
         uint64_t millis_since_epoch = date.date() * MILLIS_PER_DAY;
         return std::chrono::system_clock::time_point(std::chrono::milliseconds(millis_since_epoch));
     }
 
-    std::chrono::milliseconds ProtoUtils::proto_to_time(const org::polypheny::prism::ProtoTime& time) {
+    std::chrono::milliseconds ProtoUtils::proto_to_time(const org::polypheny::prism::ProtoTime &time) {
         return std::chrono::milliseconds(time.time());
     }
 
-    std::list<TypedValue> proto_to_list(const google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> &values) {
+    std::list<TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list) {
+        google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> values = list.values();
         std::list<TypedValue> result;
-        for (const auto& value : values) {
+        for (const org::polypheny::prism::ProtoValue &value: values) {
             result.emplace_back(value);
         }
         return result;
