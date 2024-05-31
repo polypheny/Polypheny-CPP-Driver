@@ -5,7 +5,6 @@
 #ifndef POLYPHENY_CPP_DRIVER_TYPEDVALUE_H
 #define POLYPHENY_CPP_DRIVER_TYPEDVALUE_H
 
-#include <stdfloat>
 #include <chrono>
 #include <vector>
 #include <list>
@@ -21,8 +20,8 @@ namespace Types {
         int32_t integer_value;
         int64_t bigint_value;
         Types::BigDecimal big_decimal_value;
-        float32_t float_value;
-        float64_t double_value;
+        float float_value; // TODO: we could use fixe width floats from stdfloat here. This would require c++23
+        double double_value; // TODO: we could use fixe width floats from stdfloat here. This would require c++23
         std::chrono::system_clock::time_point date_value;
         std::chrono::milliseconds time_value;
         std::chrono::system_clock::time_point timestamp_value;
