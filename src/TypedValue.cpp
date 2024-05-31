@@ -63,22 +63,21 @@ namespace Types {
                 value.interval_value = Types::Interval(serialized.interval());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                // Handle kString case
+                value.varchar_value = serialized.string().string();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                // Handle kBinary case
-                break;
-            case org::polypheny::prism::ProtoValue::ValueCase::kNull:
-                // Handle kNull case
+                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.binary().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList:
-                // Handle kList case
+                value.list = Utils::ProtoUtils::proto_to_list(serialized.list().values());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
-                // Handle kDocument case
+                value.document_value = Types::Document(serialized.document());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
-                // Handle kFile case
+                value.file_value = Types::File(serialized.file());
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 break;
             default:
                 // Handle unexpected cases
@@ -175,10 +174,9 @@ namespace Types {
     }
 
     std::unique_ptr<TypedValue> TypedValue::from_list(const std::list<TypedValue> &values) {
-        // Placeholder implementation
         auto tv = std::make_unique<TypedValue>();
+        tv->value.list_value = values;
         tv->value_case = org::polypheny::prism::ProtoValue::ValueCase::kList;
-        // Assign value.list_value = values (requires actual implementation)
         return tv;
     }
 

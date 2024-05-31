@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstdint>
 #include "value.pb.h"
+#include"TypedValue.h"
 
 namespace Utils {
 
@@ -24,6 +25,8 @@ namespace Utils {
         static std::chrono::milliseconds proto_to_time(const org::polypheny::prism::ProtoTime& time);
 
         static std::chrono::system_clock::time_point proto_to_date(const org::polypheny::prism::ProtoDate& date);
+
+        static void proto_to_list(const google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> &field);
     };
 } // Utils
 

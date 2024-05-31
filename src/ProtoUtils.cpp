@@ -28,5 +28,13 @@ namespace Utils {
         return std::chrono::milliseconds(time.time());
     }
 
+    std::list<TypedValue> proto_to_list(const google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> &values) {
+        std::list<TypedValue> result;
+        for (const auto& value : values) {
+            result.emplace_back(value);
+        }
+        return result;
+    }
+
 
 }
