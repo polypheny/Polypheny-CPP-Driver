@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include "value.pb.h"
+#include "ProtoUtils.h"
 
 namespace Types {
     class BigDecimal : public NativeType {
@@ -17,6 +19,7 @@ namespace Types {
         std::vector<uint8_t> unscaled_value;
 
     public:
+        BigDecimal(org::polypheny::prism::ProtoValue& proto_value);
         BigDecimal(uint32_t scale, std::vector<uint8_t> unscaled_value);
 
         uint32_t get_scale() const;
