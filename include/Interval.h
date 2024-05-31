@@ -10,7 +10,7 @@
 #include <string>
 
 namespace Types {
-    class Interval {
+    class Interval : public NativeType  {
     private:
         uint64_t months;
         uint64_t milliseconds;

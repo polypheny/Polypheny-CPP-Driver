@@ -7,10 +7,11 @@
 #include "protointerface.pb.h"
 #include "ProtoUtils.h"
 #include "value.pb.h"
+#include "NativeType.h"
 
 namespace Types {
 
-    class Document {
+    class Document : public NativeType  {
     public:
         Document();
 
