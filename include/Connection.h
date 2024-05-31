@@ -11,16 +11,15 @@ namespace Connection {
     private:
         Communication::PrismInterfaceClient prism_interface_client;
         ConnectionProperties connection_properties;
+        std::list<Cursor> cursors;
     public:
-        Connection(const ConnectionProperties &connection_properties);
+        Connection(ConnectionProperties &connection_properties);
 
         Connection(const std::string &host, const std::string &user, const std::string &password);
 
-        Communication::PrismInterfaceClient get_prism_interface_client() const;
+        const Communication::PrismInterfaceClient &get_prism_interface_client() const;
 
-        ConnectionProperties get_connection_properties() const;
-
-        Cursor get_cursor();
+        const ConnectionProperties &get_connection_properties() const;
 
         static ConnectionProperties
         build_connection_properties(const std::string &host, const std::string &username, const std::string &password);

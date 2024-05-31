@@ -2,7 +2,7 @@
 
 namespace Connection {
 
-    Connection::Connection(const ConnectionProperties &connection_properties)
+    Connection::Connection(ConnectionProperties &connection_properties)
             : prism_interface_client(connection_properties) {
     }
 
@@ -20,16 +20,12 @@ namespace Connection {
         return connection_properties;
     }
 
-
-    Cursor Connection::get_cursor() {
-        return Cursor(this);
-    }
-
-    Communication::PrismInterfaceClient Connection::get_prism_interface_client() const {
+    const Communication::PrismInterfaceClient &Connection::get_prism_interface_client() const {
         return prism_interface_client;
     }
 
-    ConnectionProperties Connection::get_connection_properties() const {
+    const ConnectionProperties &Connection::get_connection_properties() const {
         return connection_properties;
     }
+
 }
