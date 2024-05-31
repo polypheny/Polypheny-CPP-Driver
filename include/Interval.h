@@ -14,7 +14,7 @@ namespace Types {
         uint64_t months;
         uint64_t milliseconds;
 
-        std::string plural(long count, const std::string &word) const;
+        static std::string plural(long count, const std::string &word);
 
     public:
         Interval(uint64_t months, uint64_t milliseconds);
