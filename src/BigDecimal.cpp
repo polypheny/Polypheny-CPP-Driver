@@ -19,10 +19,10 @@ namespace Types {
         return unscaled_value;
     }
 
-    org::polypheny::prism::ProtoBigDecimal BigDecimal::serialize() const {
-        org::polypheny::prism::ProtoBigDecimal proto_big_decimal;
-        *proto_big_decimal.mutable_unscaled_value() = Utils::ProtoUtils::vector_to_string(unscaled_value);
-        proto_big_decimal.set_scale(scale);
+    std::unique_ptr<org::polypheny::prism::ProtoBigDecimal> BigDecimal::serialize() const {
+        auto proto_big_decimal = std::make_unique<org::polypheny::prism::ProtoBigDecimal>();
+        *proto_big_decimal->mutable_unscaled_value() = Utils::ProtoUtils::vector_to_string(unscaled_value);
+        proto_big_decimal->set_scale(scale);
         return proto_big_decimal;
     }
 } // Types

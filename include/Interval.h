@@ -27,7 +27,7 @@ namespace Types {
 
         bool equals(const Interval &other) const;
 
-        org::polypheny::prism::ProtoInterval serialize() const;
+        std::unique_ptr<org::polypheny::prism::ProtoInterval> serialize() const;
 
         friend std::ostream & operator<<(std::ostream& os, const Interval& interval);
     };

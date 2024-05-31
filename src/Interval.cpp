@@ -35,10 +35,10 @@ namespace Types {
         return os;
     }
 
-    org::polypheny::prism::ProtoInterval Interval::serialize() const {
-        org::polypheny::prism::ProtoInterval proto_interval;
-        proto_interval.set_milliseconds(milliseconds);
-        proto_interval.set_months(months);
+    std::unique_ptr<org::polypheny::prism::ProtoInterval> Interval::serialize() const {
+        auto proto_interval = std::make_unique<org::polypheny::prism::ProtoInterval>();
+        proto_interval->set_milliseconds(milliseconds);
+        proto_interval->set_months(months);
         return proto_interval;
     }
 } // Types
