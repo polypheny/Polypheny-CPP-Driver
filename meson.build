@@ -57,6 +57,7 @@ src_prism = gen_prism.process(prism_files)
 # inc_prism = include_directories('.')
 
 inc_polypheny = include_directories('include')
+inc_src_polypheny = include_directories('src')
 
 src_polypheny = files(
     'src/BigDecimal.cpp',
@@ -75,5 +76,5 @@ src_polypheny = files(
 library('polypheny-cpp-library',
         src_polypheny + src_prism,
         dependencies : [dep_protobuf],
-        include_directories : [inc_polypheny]
+        include_directories : [inc_polypheny, inc_src_polypheny]
 )
