@@ -29,14 +29,17 @@ namespace Utils {
 
         static std::list<TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list);
 
-        static org::polypheny::prism::ProtoTimestamp
+        static std::unique_ptr<org::polypheny::prism::ProtoTimestamp>
         timestamp_to_proto(const std::chrono::system_clock::time_point &timestamp);
 
-        static org::polypheny::prism::ProtoDate date_to_proto(const std::chrono::system_clock::time_point &date);
+        static std::unique_ptr<org::polypheny::prism::ProtoDate>
+        date_to_proto(const std::chrono::system_clock::time_point &date);
 
-        static org::polypheny::prism::ProtoTime time_to_proto(const std::chrono::milliseconds &time);
+        static std::unique_ptr<org::polypheny::prism::ProtoTime> time_to_proto(const std::chrono::milliseconds &time);
 
-        static org::polypheny::prism::ProtoList list_to_proto(const std::list<TypedValue> &typed_values);
+        static std::unique_ptr<org::polypheny::prism::ProtoList>
+        list_to_proto(const std::list<TypedValue> &typed_values);
+
     };
 } // Utils
 
