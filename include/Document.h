@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include "TypedValue.h"
-#include "ProtoValue.pb.h"
+#include "protointerface.pb.h"
 #include "ProtoUtils.h"
 
 namespace Types {
