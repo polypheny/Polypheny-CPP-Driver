@@ -17,7 +17,7 @@ namespace Types {
 
         explicit Document(const org::polypheny::prism::ProtoDocument &document);
 
-        org::polypheny::prism::ProtoDocument serialize() const;
+        std::unique_ptr<org::polypheny::prism::ProtoDocument> serialize() const;
 
         TypedValue &operator[](const std::string &key);
 
