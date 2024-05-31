@@ -16,7 +16,7 @@ namespace Types {
         return milliseconds;
     }
 
-    std::string Interval::plural(long count, const std::string &word) const {
+    std::string Interval::plural(long count, const std::string &word) {
         return std::to_string(count) + " " + (count != 1 ? word + "s" : word);
     }
 
@@ -25,7 +25,7 @@ namespace Types {
     }
 
     std::ostream &operator<<(std::ostream &os, const Interval &interval) {
-        os << plural(interval.get_months(), "month") + " " + plural(interval.get_milliseconds(), "millisecond");
+        os << Interval::plural(interval.get_months(), "month") + " " + Interval::plural(interval.get_milliseconds(), "millisecond");
         return os;
     }
 } // Types
