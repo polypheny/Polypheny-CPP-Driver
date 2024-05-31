@@ -43,13 +43,13 @@ namespace Types {
         org::polypheny::prism::ProtoValue::ValueCase value_case;
         Representation value;
         org::polypheny::prism::ProtoValue serialized;
-        bool is_serialized;
+        bool is_serialized{};
         void deserialize();
 
     public:
-        TypedValue();
+        TypedValue() = default;
         ~TypedValue();
-        TypedValue(const org::polypheny::prism::ProtoValue &proto_value);
+        TypedValue(org::polypheny::prism::ProtoValue proto_value);
 
         org::polypheny::prism::ProtoValue serialize() const;
 
