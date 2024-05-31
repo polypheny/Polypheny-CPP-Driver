@@ -6,6 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_INTERVAL_H
 
 #include "NativeType.h"
+#include "value.pb.h"
 #include <string>
 
 namespace Types {
@@ -17,6 +18,7 @@ namespace Types {
         static std::string plural(long count, const std::string &word);
 
     public:
+        Interval(const org::polypheny::prism::ProtoInterval& value);
         Interval(uint64_t months, uint64_t milliseconds);
 
         uint64_t get_months() const;
