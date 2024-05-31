@@ -30,6 +30,7 @@ gen_prism = generator(protoc,
                     '--proto_path=@CURRENT_SOURCE_DIR@/prism/org/polypheny/prism',
                     '--cpp_out=@BUILD_DIR@',
                     '-I=@CURRENT_SOURCE_DIR@/prism',
+                    '--experimental_allow_proto3_optional',
                     '@INPUT@'
                 ]
 )
@@ -69,7 +70,6 @@ src_polypheny = files(
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
     'src/ProtoUtils.cpp',
-    'src/Result.cpp',
     'src/TypedValue.cpp'
 )
 
