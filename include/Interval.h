@@ -15,7 +15,7 @@ namespace Types {
         uint64_t months;
         uint64_t milliseconds;
 
-        static std::string plural(long count, const std::string &word);
+        static std::string plural(uint64_t count, const std::string &word);
 
     public:
         Interval(const org::polypheny::prism::ProtoInterval& value);
@@ -26,6 +26,8 @@ namespace Types {
         uint64_t get_milliseconds() const;
 
         bool equals(const Interval &other) const;
+
+        org::polypheny::prism::ProtoInterval serialize() const;
 
         friend std::ostream & operator<<(std::ostream& os, const Interval& interval);
     };

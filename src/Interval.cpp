@@ -5,7 +5,8 @@
 #include "Interval.h"
 
 namespace Types {
-    Interval::Interval(const org::polypheny::prism::ProtoInterval &value) : months(value.months()), milliseconds(value.milliseconds()) {
+    Interval::Interval(const org::polypheny::prism::ProtoInterval &value) : months(value.months()),
+                                                                            milliseconds(value.milliseconds()) {
 
     }
 
@@ -20,7 +21,7 @@ namespace Types {
         return milliseconds;
     }
 
-    std::string Interval::plural(long count, const std::string &word) {
+    std::string Interval::plural(uint64_t count, const std::string &word) {
         return std::to_string(count) + " " + (count != 1 ? word + "s" : word);
     }
 
@@ -29,7 +30,15 @@ namespace Types {
     }
 
     std::ostream &operator<<(std::ostream &os, const Interval &interval) {
-        os << Interval::plural(interval.get_months(), "month") + " " + Interval::plural(interval.get_milliseconds(), "millisecond");
+        os << Interval::plural(interval.get_months(), "month") + " " +
+              Interval::plural(interval.get_milliseconds(), "millisecond");
         return os;
+    }
+
+    org::polypheny::prism::ProtoInterval Interval::serialize() const {
+        org::polypheny::prism::ProtoInterval proto_interval;
+        proto_interval.set_milliseconds(milliseconds);
+        proto_interval.set_months(months);
+        return proto_interval;
     }
 } // Types
