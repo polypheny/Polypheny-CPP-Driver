@@ -31,6 +31,8 @@ namespace Types {
         Types::Interval interval_value;
         std::string varchar_value;
         std::vector<uint8_t> binary_value;
+        std::list<TypedValue> list_value;
+        Types::Document document_value;
 
         Representation() {}
         ~Representation() {}

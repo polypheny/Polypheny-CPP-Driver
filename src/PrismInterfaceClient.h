@@ -28,7 +28,7 @@ namespace Communication {
         static constexpr int MINOR_API_VERSION = 0;
 
         std::atomic<long> request_id{1};
-        std::shared_ptr<Transport> transport;
+        std::unique_ptr<Transport> transport;
         std::thread response_reader;
         bool is_closed = false;
         bool has_sent_disconnect = false;
