@@ -1,7 +1,3 @@
-//
-// Created by tobi on 30.05.24.
-//
-
 #ifndef POLYPHENY_CPP_DRIVER_BIGDECIMAL_H
 #define POLYPHENY_CPP_DRIVER_BIGDECIMAL_H
 
@@ -13,6 +9,7 @@
 #include "ProtoUtils.h"
 
 namespace Types {
+
     class BigDecimal : public NativeType {
     private:
         uint32_t scale;
@@ -24,10 +21,10 @@ namespace Types {
 
         uint32_t get_scale() const;
 
-        const std::vector<uint8_t> &get_unscaled_value() const;
+        const std::vector<uint8_t>& get_unscaled_value() const;
         std::unique_ptr<org::polypheny::prism::ProtoBigDecimal> serialize() const;
     };
 
-} // Types
+} // namespace Types
 
-#endif //POLYPHENY_CPP_DRIVER_BIGDECIMAL_H
+#endif // POLYPHENY_CPP_DRIVER_BIGDECIMAL_H
