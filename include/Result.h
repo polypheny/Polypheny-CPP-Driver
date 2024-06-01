@@ -22,10 +22,10 @@ namespace Results {
     private:
         ResultType resultType;
 
-        Result(ResultType resultType) : resultType(resultType) {}
+    protected:
+        explicit Result(ResultType resultType) : resultType(resultType) {}
 
-        virtual ~Result() = default;
-
+    public:
         ResultType getResultType() const {
             return resultType;
         }
@@ -39,7 +39,6 @@ namespace Results {
                 throw std::runtime_error("Not a wrapper for " + std::string(typeid(T).name()));
             }
         }
-
     };
 
 } // Results
