@@ -1,4 +1,5 @@
 #include "Document.h"
+#include "value.pb.h"
 
 namespace Types {
     Document::Document(const org::polypheny::prism::ProtoDocument &document) {

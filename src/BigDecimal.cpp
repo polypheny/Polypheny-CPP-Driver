@@ -1,4 +1,6 @@
 #include "BigDecimal.h"
+#include "value.pb.h"
+#include "ProtoUtils.h"
 
 namespace Types {
 

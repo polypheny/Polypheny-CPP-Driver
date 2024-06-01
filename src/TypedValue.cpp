@@ -3,6 +3,10 @@
 //
 
 #include "TypedValue.h"
+#include "BigDecimal.h"
+#include "Document.h"
+#include "Interval.h"
+#include "ProtoUtils.h"
 
 namespace Types {
     TypedValue::TypedValue(org::polypheny::prism::ProtoValue proto_value) : serialized(std::move(proto_value)),

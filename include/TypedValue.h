@@ -8,9 +8,6 @@
 #include <string>
 #include <utility>
 
-#include "BigDecimal.h"
-#include "Document.h"
-#include "Interval.h"
 #include "value.pb.h"
 
 namespace Types {
@@ -18,22 +15,23 @@ namespace Types {
     class BigDecimal;
     class Document;
     class Interval;
+    class TypedValue;
 
     union Representation {
         bool boolean_value;
         int32_t integer_value;
         int64_t bigint_value;
-        BigDecimal big_decimal_value;
+        BigDecimal* big_decimal_value;
         float float_value;
         double double_value;
         std::chrono::system_clock::time_point date_value;
         std::chrono::milliseconds time_value;
         std::chrono::system_clock::time_point timestamp_value;
-        Interval interval_value;
+        Interval* interval_value;
         std::string varchar_value;
         std::vector<uint8_t> binary_value;
-        std::list<Types::TypedValue> list_value;
-        Document document_value;
+        std::list<TypedValue> list_value;
+        Document* document_value;
 
         Representation() {}
 
