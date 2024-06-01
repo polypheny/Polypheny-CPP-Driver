@@ -10,20 +10,28 @@
 
 namespace Communication {
 
+    class ICallbackQueue {
+    public:
+        virtual ~ICallbackQueue() = default;
+        virtual void await_completion() = 0;
+        virtual void on_error(std::exception_ptr exception) = 0;
+        virtual void on_completed() = 0;
+    };
+
     template<typename T>
-    class CallbackQueue {
+    class CallbackQueue : public ICallbackQueue {
     public:
         explicit CallbackQueue(std::function<T&(const org::polypheny::prism::Response &)> response_extractor);
 
-        void await_completion();
+        void await_completion() override;
 
         T take_next();
 
         void on_next(const org::polypheny::prism::Response &message);
 
-        void on_error(std::exception_ptr exception);
+        void on_error(std::exception_ptr exception) override;
 
-        void on_completed();
+        void on_completed() override;
 
     private:
         void throw_received_exception();

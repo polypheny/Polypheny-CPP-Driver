@@ -62,7 +62,7 @@ namespace Communication {
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
                                                                  std::string statement,
-                                                                 CallbackQueue<org::polypheny::prism::StatementResponse> &callback_queue) {
+                                                                 std::unique_ptr<CallbackQueue<org::polypheny::prism::StatementResponse>> callback_queue) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner = outer.mutable_execute_unparameterized_statement_request();
@@ -149,13 +149,10 @@ namespace Communication {
 
                 handle_callback_queue(response);
             }
-        } catch (const boost::system::system_error &e) {
-            if (e.code() == boost::asio::error::eof || e.code() == boost::asio::error::connection_reset) {
-                handle_connection_closure(e);
-            } else {
-                handle_unexpected_exception(std::make_exception_ptr(e));
-            }
-        } catch (...) {
+        } catch (const Errors::ConnectionClosedError &e) {
+            handle_connection_closure(e);
+            handle_unexpected_exception(std::current_exception());
+        } catch (const std::runtime_error &e) {
             handle_unexpected_exception(std::current_exception());
         }
     }
@@ -177,7 +174,8 @@ namespace Communication {
         auto &callback_queue = it->second;
         if (response.has_error_response()) {
             callback_queues.erase(response.id());
-            callback_queue.on_error(std::make_exception_ptr(std::runtime_error(response.error_response().message())));
+            callback_queue.on_error(
+                    std::make_exception_ptr(std::runtime_error(response.error_response().message())));
             return;
         }
 
