@@ -7,8 +7,9 @@
 #include <thread>
 #include <mutex>
 #include <stdexcept>
-#include <vector>   // Include vector header
-#include <cstring>  // Include cstring header for memcpy
+#include <vector>
+#include <cstring>
+#include <ConnectionClosedError.h>
 
 #ifdef _WIN32
 #include <winsock2.h>

@@ -3,18 +3,15 @@
 
 #include <unordered_map>
 #include <string>
-#include "TypedValue.h"
 #include "protointerface.pb.h"
 #include "ProtoUtils.h"
 #include "value.pb.h"
 #include "NativeType.h"
+#include "TypedValue.h"
 
 namespace Types {
     // forward declarations
     class TypedValue;
-}
-
-namespace Types {
 
     class Document : public NativeType {
     public:

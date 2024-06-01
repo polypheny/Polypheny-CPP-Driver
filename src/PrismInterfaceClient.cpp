@@ -62,14 +62,14 @@ namespace Communication {
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
                                                                  std::string statement,
-                                                                 std::unique_ptr<CallbackQueue<org::polypheny::prism::StatementResponse>> callback_queue) {
+                                                                 std::shared_ptr<CallbackQueue<org::polypheny::prism::StatementResponse>> callback_queue) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner = outer.mutable_execute_unparameterized_statement_request();
         inner->set_namespace_name(namespace_name);
         inner->set_language_name(language_name);
         inner->set_statement(statement);
-        callback_queues.emplace(outer.id(), std::move(callback_queue));
+        callback_queues.emplace(outer.id(), callback_queue);
         send_message(outer);
     }
 
@@ -174,15 +174,15 @@ namespace Communication {
         auto &callback_queue = it->second;
         if (response.has_error_response()) {
             callback_queues.erase(response.id());
-            callback_queue.on_error(
+            callback_queue->on_error(
                     std::make_exception_ptr(std::runtime_error(response.error_response().message())));
             return;
         }
 
-        callback_queue.on_next(response);
+        callback_queue->on_next(response);
         if (response.last()) {
             callback_queues.erase(response.id());
-            callback_queue.on_completed();
+            callback_queue->on_completed();
         }
     }
 
@@ -193,7 +193,7 @@ namespace Communication {
             callback.set_exception(std::make_exception_ptr(exception));
         }
         for (auto &[id, callback_queue]: callback_queues) {
-            callback_queue.on_error(std::make_exception_ptr(exception));
+            callback_queue->on_error(std::make_exception_ptr(exception));
         }
     }
 
@@ -204,7 +204,7 @@ namespace Communication {
             callback.set_exception(exception);
         }
         for (auto &[id, callback_queue]: callback_queues) {
-            callback_queue.on_error(exception);
+            callback_queue->on_error(exception);
         }
         std::rethrow_exception(exception);
     }

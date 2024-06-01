@@ -7,8 +7,11 @@
 #include <string>
 #include "value.pb.h"
 #include "ProtoUtils.h"
+#include "TypedValue.h"
 
 namespace Types {
+    // forward declarations
+    class TypedValue;
 
     class BigDecimal : public NativeType {
     private:
@@ -16,12 +19,14 @@ namespace Types {
         std::vector<uint8_t> unscaled_value;
 
     public:
-        BigDecimal(const org::polypheny::prism::ProtoBigDecimal& value);
+        BigDecimal(const org::polypheny::prism::ProtoBigDecimal &value);
+
         BigDecimal(uint32_t scale, std::vector<uint8_t> unscaled_value);
 
         uint32_t get_scale() const;
 
-        const std::vector<uint8_t>& get_unscaled_value() const;
+        const std::vector<uint8_t> &get_unscaled_value() const;
+
         std::unique_ptr<org::polypheny::prism::ProtoBigDecimal> serialize() const;
     };
 

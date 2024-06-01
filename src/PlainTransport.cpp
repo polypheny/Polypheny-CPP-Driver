@@ -67,13 +67,21 @@ namespace Communication {
 
     std::string PlainTransport::receive_message() {
         uint64_t message_length = 0;
-        if (recv(socket_fd, reinterpret_cast<char*>(&message_length), sizeof(message_length), 0) <= 0) {
-            throw std::runtime_error("Failed to receive message length");
+        ssize_t bytes_received = recv(socket_fd, reinterpret_cast<char*>(&message_length), sizeof(message_length), 0);
+
+        if (bytes_received == 0) {
+            throw Errors::ConnectionClosedError("Connection closed while receiving message length");
+        } else if (bytes_received < 0) {
+            throw std::runtime_error("Failed to receive message length: " + std::string(strerror(errno)));
         }
 
         std::string message(message_length, '\0');
-        if (recv(socket_fd, &message[0], message_length, 0) <= 0) {
-            throw std::runtime_error("Failed to receive message");
+        bytes_received = recv(socket_fd, &message[0], message_length, 0);
+
+        if (bytes_received == 0) {
+            throw Errors::ConnectionClosedError("Connection closed while receiving message");
+        } else if (bytes_received < 0) {
+            throw std::runtime_error("Failed to receive message: " + std::string(strerror(errno)));
         }
 
         return message;

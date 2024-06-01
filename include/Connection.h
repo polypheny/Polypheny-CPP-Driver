@@ -2,8 +2,8 @@
 #define POLYPHENY_CPP_DRIVER_CONNECTION_H
 
 #include "ConnectionProperties.h"
-#include "../src/PrismInterfaceClient.h"
-#include "src/Cursor.h"
+#include "PrismInterfaceClient.h"
+#include "Cursor.h"
 
 namespace Connection {
 
@@ -12,17 +12,20 @@ namespace Connection {
         Communication::PrismInterfaceClient prism_interface_client;
         ConnectionProperties connection_properties;
         std::list<Cursor> cursors;
+
+        static ConnectionProperties
+        build_connection_properties(const std::string &host, const std::string &username, const std::string &password);
+
     public:
         Connection(ConnectionProperties &connection_properties);
 
         Connection(const std::string &host, const std::string &user, const std::string &password);
 
-        const Communication::PrismInterfaceClient &get_prism_interface_client() const;
+        Communication::PrismInterfaceClient &get_prism_interface_client();
 
         const ConnectionProperties &get_connection_properties() const;
 
-        static ConnectionProperties
-        build_connection_properties(const std::string &host, const std::string &username, const std::string &password);
+
     };
 
 } // Connection

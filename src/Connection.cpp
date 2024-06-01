@@ -20,7 +20,7 @@ namespace Connection {
         return connection_properties;
     }
 
-    const Communication::PrismInterfaceClient &Connection::get_prism_interface_client() const {
+    Communication::PrismInterfaceClient &Connection::get_prism_interface_client() {
         return prism_interface_client;
     }
 
