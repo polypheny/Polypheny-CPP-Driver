@@ -1,13 +1,11 @@
 #ifndef POLYPHENY_CPP_DRIVER_DOCUMENT_H
 #define POLYPHENY_CPP_DRIVER_DOCUMENT_H
 
+#include "protointerface.pb.h"
+#include "value.pb.h"
 #include <unordered_map>
 #include <string>
-#include "protointerface.pb.h"
-#include "ProtoUtils.h"
-#include "value.pb.h"
 #include "NativeType.h"
-#include "TypedValue.h"
 
 namespace Types {
     // forward declarations

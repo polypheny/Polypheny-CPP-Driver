@@ -6,13 +6,8 @@
 #include <vector>
 #include <string>
 #include "value.pb.h"
-#include "ProtoUtils.h"
-#include "TypedValue.h"
 
 namespace Types {
-    // forward declarations
-    class TypedValue;
-
     class BigDecimal : public NativeType {
     private:
         uint32_t scale;
