@@ -34,7 +34,7 @@ namespace Communication {
         bool has_sent_disconnect = false;
         std::exception_ptr error = nullptr;
         std::map<uint64_t, std::promise<org::polypheny::prism::Response>> callbacks;
-        std::map<uint64_t, std::unique_ptr<ICallbackQueue>> callback_queues;
+        std::map<uint64_t, std::shared_ptr<ICallbackQueue>> callback_queues;
         std::mutex mutex;
 
         void read_responses();
@@ -60,7 +60,7 @@ namespace Communication {
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
-                                          std::unique_ptr<CallbackQueue<org::polypheny::prism::StatementResponse>> callback_queue);
+                                          std::shared_ptr<CallbackQueue<org::polypheny::prism::StatementResponse>> callback_queue);
 
         void commit_transaction(uint32_t timeout_millis);
 

@@ -1,4 +1,4 @@
-project('Polypheny-CPP-Driver', 'cpp', version : '1.0.0')
+project('Polypheny-CPP-Driver', 'cpp', version : '1.0.0', default_options : ['cpp_std=c++17'])
 add_project_arguments('-Wall', '-Wextra', '-w', '-fcompare-debug-second', language : 'cpp')
 add_project_link_arguments('-lm', language : 'cpp')
 

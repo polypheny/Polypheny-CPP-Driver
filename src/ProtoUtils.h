@@ -1,7 +1,3 @@
-//
-// Created by tobi on 30.05.24.
-//
-
 #ifndef POLYPHENY_CPP_DRIVER_PROTOUTILS_H
 #define POLYPHENY_CPP_DRIVER_PROTOUTILS_H
 
@@ -9,8 +5,14 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <memory>
 #include "value.pb.h"
-#include"TypedValue.h"
+#include "TypedValue.h"
+
+namespace Types {
+    // forward declarations
+    class TypedValue;
+}
 
 namespace Utils {
 
@@ -27,7 +29,7 @@ namespace Utils {
 
         static std::chrono::system_clock::time_point proto_to_date(const org::polypheny::prism::ProtoDate &date);
 
-        static std::list<TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list);
+        static std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list);
 
         static std::unique_ptr<org::polypheny::prism::ProtoTimestamp>
         timestamp_to_proto(const std::chrono::system_clock::time_point &timestamp);
@@ -38,9 +40,10 @@ namespace Utils {
         static std::unique_ptr<org::polypheny::prism::ProtoTime> time_to_proto(const std::chrono::milliseconds &time);
 
         static std::unique_ptr<org::polypheny::prism::ProtoList>
-        list_to_proto(const std::list<TypedValue> &typed_values);
+        list_to_proto(const std::list<Types::TypedValue> &typed_values);
 
     };
-} // Utils
 
-#endif //POLYPHENY_CPP_DRIVER_PROTOUTILS_H
+} // namespace Utils
+
+#endif // POLYPHENY_CPP_DRIVER_PROTOUTILS_H
