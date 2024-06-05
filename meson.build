@@ -2,15 +2,21 @@ project('Polypheny-CPP-Driver', 'cpp', version : '1.0.0', default_options : ['cp
 add_project_arguments('-Wall', '-Wextra', '-w', '-fcompare-debug-second', language : 'cpp')
 add_project_link_arguments('-lm', language : 'cpp')
 
+# ========================
+# Protobuf Dependencies
+# ========================
+
 protobuf_version = '3.14.4'
 protobuf_enforce_exact_match = false
 
-dep_protobuf = dependency('protobuf', version : protobuf_version, required : false)
-if not dep_protobuf.found()
-    dep_protobuf = declare_dependency(
+protobuf_dep = dependency('protobuf', version : protobuf_version, required : false)
+is_using_fallback = false
+if not protobuf_dep.found()
+    protobuf_dep = declare_dependency(
         include_directories : include_directories('/snap/protobuf/current/include'),
         link_args : ['-L/snap/protobuf/current/lib', '-lprotobuf']
     )
+    is_using_fallback = true
     warning('Using Snap fallback for Protobuf.')
 endif
 
@@ -24,7 +30,11 @@ if protobuf_enforce_exact_match and protoc_version != protobuf_version
     error('protoc version (' + protoc_version + ') does not match protobuf version (' + protobuf_version + ')')
 endif
 
-gen_prism = generator(protoc,
+# ========================
+# Prism API Compilation
+# ========================
+
+prism_gen = generator(protoc,
                       output : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
                       arguments : [
                           '--proto_path=@CURRENT_SOURCE_DIR@/prism',
@@ -53,13 +63,16 @@ prism_files = files(
     'prism/value.proto'
 )
 
-src_prism = gen_prism.process(prism_files)
-# inc_prism = include_directories('.')
+prism_src = prism_gen.process(prism_files)
 
-inc_polypheny = include_directories('include')
-inc_src_polypheny = include_directories('src')
+# ========================
+# Library and Dependencies
+# ========================
 
-src_polypheny = files(
+polypheny_inc = include_directories('include')
+polypheny_src_inc = include_directories('src')
+
+polypheny_src = files(
     'src/BigDecimal.cpp',
     'src/CallbackQueue.cpp',
     'src/Connection.cpp',
@@ -79,10 +92,35 @@ src_polypheny = files(
     'src/TypedValue.cpp'
 )
 
-dep_pthread = dependency('threads')
+pthread_dep = dependency('threads')
 
-library('polypheny-cpp-library',
-        src_polypheny + src_prism,
-        dependencies : [dep_protobuf, dep_pthread],
-        include_directories : [inc_polypheny, inc_src_polypheny]
+polypheny_cpp_driver_lib = library('polypheny-cpp-library',
+        polypheny_src + prism_src,
+        dependencies : [protobuf_dep, pthread_dep],
+        include_directories : [polypheny_inc, polypheny_src_inc]
 )
+
+# ========================
+# Tests and Dependencies
+# ========================
+
+catch2_subproject = subproject('catch2')
+catch2_dep = catch2_subproject.get_variable('catch2_with_main_dep')
+
+test_src = files(
+    'tests/Init.cpp',
+    'tests/IntervalTest.cpp'
+)
+
+test_exe = executable('runTests',
+                      test_src + polypheny_src + prism_src,
+                      dependencies: [catch2_dep, protobuf_dep, pthread_dep],
+                      include_directories : [polypheny_inc, polypheny_src_inc],
+                      install: true
+)
+
+if is_using_fallback
+    test('runTests', test_exe, env: ['LD_LIBRARY_PATH=/snap/protobuf/current/lib'])
+else
+    test('runTests', test_exe)
+endif
