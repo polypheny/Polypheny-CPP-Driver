@@ -100,6 +100,7 @@ test_src = files(
     'tests/CallbackQueueTest.cpp',
     'tests/ConnectionClosedErrorTest.cpp',
     'tests/ConnectionPropertiesTest.cpp',
+    'tests/DocumentTest.cpp',
 )
 
 test_exe = executable('runTests',

@@ -10,10 +10,10 @@ namespace Types {
         }
     }
 
-    std::unique_ptr<org::polypheny::prism::ProtoDocument> Document::serialize() const {
+    std::unique_ptr<org::polypheny::prism::ProtoDocument> Document::serialize() {
         auto proto_document = std::make_unique<org::polypheny::prism::ProtoDocument>();
         google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoEntry> *proto_entries = proto_document->mutable_entries();
-        for (const auto &entry: entries) {
+        for (auto &entry: entries) {
             org::polypheny::prism::ProtoEntry *proto_entry = proto_entries->Add();
             proto_entry->mutable_key()->mutable_string()->set_string(entry.first);
             *(proto_entry->mutable_value()) = *entry.second.serialize();  // Assuming serialize returns a unique_ptr
