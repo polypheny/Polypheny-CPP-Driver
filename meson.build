@@ -79,8 +79,10 @@ src_polypheny = files(
     'src/TypedValue.cpp'
 )
 
+dep_pthread = dependency('threads')
+
 library('polypheny-cpp-library',
         src_polypheny + src_prism,
-        dependencies : [dep_protobuf],
+        dependencies : [dep_protobuf, dep_pthread],
         include_directories : [inc_polypheny, inc_src_polypheny]
 )
