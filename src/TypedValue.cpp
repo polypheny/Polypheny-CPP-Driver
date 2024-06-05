@@ -239,16 +239,16 @@ namespace Types {
 
     TypedValue &TypedValue::operator=(const TypedValue &other) {
         if (this != &other) {
-            this->~TypedValue();  // Destruct current value
-            new(this) TypedValue(other);  // Copy construct into this
+            this->~TypedValue();
+            new(this) TypedValue(other);
         }
         return *this;
     }
 
     TypedValue &TypedValue::operator=(TypedValue &&other) noexcept {
         if (this != &other) {
-            this->~TypedValue();  // Destruct current value
-            new(this) TypedValue(std::move(other));  // Move construct into this
+            this->~TypedValue();
+            new(this) TypedValue(std::move(other));
         }
         return *this;
     }
@@ -537,7 +537,7 @@ namespace Types {
         if (!is_deserialized) {
             deserialize();
         }
-        if (value_case != org::polypheny::prism::ProtoValue::ValueCase::kInterval) {
+        if (value_case != org::polypheny::prism::ProtoValue::ValueCase::kBinary) {
             throw std::runtime_error("This value can not be retrieved as a vector of bytes.");
         }
         return value.binary_value;
