@@ -61,15 +61,21 @@ inc_src_polypheny = include_directories('src')
 
 src_polypheny = files(
     'src/BigDecimal.cpp',
+    'src/CallbackQueue.cpp',
     'src/Connection.cpp',
+    'src/ConnectionClosedError.cpp',
     'src/ConnectionProperties.cpp',
     'src/Cursor.cpp',
     'src/Document.cpp',
+    'src/DocumentResult.cpp',
+    'src/GraphResult.cpp',
     'src/Interval.cpp',
     'src/library.cpp',
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
     'src/ProtoUtils.cpp',
+    'src/RelationalResult.cpp',
+    'src/ScalarResult.cpp',
     'src/TypedValue.cpp'
 )
 
