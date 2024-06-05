@@ -6,9 +6,6 @@ add_project_link_arguments('-lm', language : 'cpp')
 # Dependencies
 # ========================
 
-# abseil-strings required by libprotobuf
-abseil_cpp_subproject = subproject('abseil-cpp')
-abseil_string_dep = abseil_cpp_subproject.get_variable('absl_strings_dep')
 # libprotobuf ant protoc
 protobuf_subproject = subproject('protobuf')
 protobuf_dep = protobuf_subproject.get_variable('protobuf_dep')
