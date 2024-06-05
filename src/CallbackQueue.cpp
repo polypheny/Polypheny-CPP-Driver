@@ -22,7 +22,7 @@ namespace Communication {
     void CallbackQueue::on_next(const org::polypheny::prism::Response &message) {
         {
             std::lock_guard<std::mutex> lock(queue_mutex);
-            message_queue.push(extract_response(message));
+            message_queue.push(message);
         }
         has_next.notify_one();
     }
@@ -31,6 +31,7 @@ namespace Communication {
         {
             std::lock_guard<std::mutex> lock(queue_mutex);
             this->propagated_exception = exception;
+            b_is_completed = true;
         }
         has_next.notify_all();
         is_completed.notify_all();
@@ -45,9 +46,10 @@ namespace Communication {
     }
 
     void CallbackQueue::throw_received_exception() {
-        if (propagated_exception) {
-            std::rethrow_exception(propagated_exception);
+        if (!propagated_exception) {
+            return;
         }
+        std::rethrow_exception(propagated_exception);
     }
 
 } // namespace Communication

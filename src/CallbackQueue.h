@@ -30,7 +30,6 @@ namespace Communication {
         std::condition_variable is_completed;
         bool b_is_completed = false;
         std::queue<org::polypheny::prism::Response> message_queue;
-        std::function<const org::polypheny::prism::Response &(const org::polypheny::prism::Response &)> extract_response;
         std::exception_ptr propagated_exception;
     };
 
