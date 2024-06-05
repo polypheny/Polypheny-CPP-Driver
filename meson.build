@@ -95,7 +95,9 @@ polypheny_cpp_driver_lib = library('polypheny-cpp-library',
 
 test_src = files(
     'tests/Init.cpp',
-    'tests/IntervalTest.cpp'
+    'tests/IntervalTest.cpp',
+    'tests/BigDecimalTest.cpp',
+    'tests/CallbackQueueTest.cpp',
 )
 
 test_exe = executable('runTests',
