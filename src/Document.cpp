@@ -21,6 +21,10 @@ namespace Types {
         return proto_document;
     }
 
+    TypedValue &Document::at(const std::string &key) {
+        return entries.at(key);
+    }
+
     TypedValue& Document::operator[](const std::string &key) {
         return entries[key];
     }
