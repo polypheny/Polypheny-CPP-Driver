@@ -99,6 +99,8 @@ namespace Types {
 
         bool is_null();
 
+        bool is_moved_from();
+
         bool as_boolean();
 
         int32_t as_int32_t();

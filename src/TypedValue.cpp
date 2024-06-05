@@ -397,10 +397,14 @@ namespace Types {
     }
 
     bool TypedValue::is_null() {
-        if (!is_deserialized) {
-            deserialize();
+        if (value_case == org::polypheny::prism::ProtoValue::ValueCase::kNull) {
+            return true;
         }
-        return value_case == org::polypheny::prism::ProtoValue::ValueCase::kNull;
+        return value_case == org::polypheny::prism::ProtoValue::ValueCase::VALUE_NOT_SET;
+    }
+
+    bool TypedValue::is_moved_from() {
+        return value_case == org::polypheny::prism::ProtoValue::ValueCase::VALUE_NOT_SET;
     }
 
     bool TypedValue::as_boolean() {
