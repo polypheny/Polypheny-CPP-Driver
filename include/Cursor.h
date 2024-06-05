@@ -28,8 +28,6 @@ namespace Connection {
         static std::unique_ptr<Results::Result>
         get_result_from_frame(const org::polypheny::prism::Frame &frame);
 
-        std::function<const org::polypheny::prism::StatementResponse&(const org::polypheny::prism::Response&)> response_extractor;
-
     public:
         Cursor(Connection &connection);
 

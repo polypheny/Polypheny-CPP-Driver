@@ -2,11 +2,6 @@
 #include <iostream>
 
 namespace Connection {
-    Cursor::Cursor(Connection &connection)
-            : statement_id(0), is_statement_id_set(false), connection(connection),
-              response_extractor([](const org::polypheny::prism::Response& response) -> const org::polypheny::prism::StatementResponse& {
-                  return response.statement_response();
-              }) {}
 
     void Cursor::reset_statement() {
         if (is_statement_id_set) {
@@ -30,12 +25,16 @@ namespace Connection {
     std::unique_ptr<Results::Result>
     Cursor::execute(const std::string &language, const std::string &statement, const std::string &nspace) {
         reset_statement();
-        auto callback = std::make_shared<Communication::CallbackQueue<org::polypheny::prism::StatementResponse>>(response_extractor);
+        auto callback = std::make_shared<Communication::CallbackQueue>();
         connection.get_prism_interface_client().execute_unparameterized_statement(nspace, language, statement,
                                                                                   callback);
 
         while (true) {
-            org::polypheny::prism::StatementResponse statement_response = callback->take_next();
+            org::polypheny::prism::Response response = callback->take_next();
+            if (!response.has_statement_response()) {
+                throw std::runtime_error("Received illegal response type on statement execution");
+            }
+            const org::polypheny::prism::StatementResponse& statement_response = response.statement_response();
 
             if (!is_statement_id_set) {
                 statement_id = statement_response.statement_id();
