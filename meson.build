@@ -74,7 +74,6 @@ polypheny_src = files(
     'src/DocumentResult.cpp',
     'src/GraphResult.cpp',
     'src/Interval.cpp',
-    'src/library.cpp',
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
     'src/ProtoUtils.cpp',
