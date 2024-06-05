@@ -88,6 +88,13 @@ polypheny_cpp_driver_lib = library('polypheny-cpp-library',
         include_directories : [polypheny_inc, polypheny_src_inc]
 )
 
+
+polypheny_cpp_driver_dep = declare_dependency(
+    link_with : polypheny_cpp_driver_lib,
+    include_directories : [polypheny_inc, polypheny_src_inc],
+    dependencies : [protobuf_dep, pthread_dep]
+)
+
 # ========================
 # Tests
 # ========================
@@ -112,3 +119,9 @@ test_exe = executable('runTests',
 )
 
 test('runTests', test_exe)
+
+# ========================
+# Examples
+# ========================
+
+subdir('examples')

@@ -26,7 +26,7 @@ namespace Results {
         explicit Result(ResultType resultType) : resultType(resultType) {}
 
     public:
-        ResultType getResultType() const {
+        ResultType get_result_type() const {
             return resultType;
         }
 
