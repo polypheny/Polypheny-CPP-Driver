@@ -1,11 +1,29 @@
 #include "Cursor.h"
+#include "Connection.h"
 #include <iostream>
 
 namespace Connection {
 
     // INFO: the statement_id set here is a placeholder value ignored as is_statement_id_set == false
-    Cursor::Cursor(Connection &connection) : connection(connection), statement_id(0), is_statement_id_set(false) {
+    Cursor::Cursor(Connection &connection) : connection(connection), statement_id(0), is_statement_id_set(false) {}
 
+    Cursor::Cursor(const Cursor &other)
+            : connection(other.connection),
+              statement_id(other.statement_id),
+              is_statement_id_set(other.is_statement_id_set) {}
+
+    Cursor &Cursor::operator=(const Cursor &other) {
+        if (this == &other) {
+            return *this;
+        }
+        statement_id = other.statement_id;
+        is_statement_id_set = other.is_statement_id_set;
+        return *this;
+    }
+
+    Cursor::~Cursor() {
+        // Destructor implementation, if needed
+        // For example, cleanup resources if any
     }
 
     void Cursor::reset_statement() {
@@ -31,8 +49,7 @@ namespace Connection {
     Cursor::execute(const std::string &language, const std::string &statement, const std::string &nspace) {
         reset_statement();
         auto callback = std::make_shared<Communication::CallbackQueue>();
-        connection.get_prism_interface_client().execute_unparameterized_statement(nspace, language, statement,
-                                                                                  callback);
+        connection.get_prism_interface_client().execute_unparameterized_statement(nspace, language, statement, callback);
 
         while (true) {
             org::polypheny::prism::Response response = callback->take_next();

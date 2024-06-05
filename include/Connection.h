@@ -1,11 +1,13 @@
 #ifndef POLYPHENY_CPP_DRIVER_CONNECTION_H
 #define POLYPHENY_CPP_DRIVER_CONNECTION_H
 
+#include <list>
 #include "ConnectionProperties.h"
 #include "PrismInterfaceClient.h"
-#include "Cursor.h"
 
 namespace Connection {
+    // forward declaration, include in .cpp
+    class Cursor;
 
     class Connection {
     private:
