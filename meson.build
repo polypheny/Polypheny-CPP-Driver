@@ -3,32 +3,26 @@ add_project_arguments('-Wall', '-Wextra', '-w', '-fcompare-debug-second', langua
 add_project_link_arguments('-lm', language : 'cpp')
 
 # ========================
-# Protobuf Dependencies
+# Dependencies
 # ========================
 
-protobuf_version = '3.14.4'
-protobuf_enforce_exact_match = false
+# abseil-strings required by libprotobuf
+abseil_cpp_subproject = subproject('abseil-cpp')
+abseil_string_dep = abseil_cpp_subproject.get_variable('absl_strings_dep')
+# libprotobuf ant protoc
+protobuf_subproject = subproject('protobuf')
+protobuf_dep = protobuf_subproject.get_variable('protobuf_dep')
+protoc = protobuf_subproject.get_variable('protoc')
+# pthreads
+pthread_dep = dependency('threads')
 
-protobuf_dep = dependency('protobuf', version : protobuf_version, required : false)
-is_using_fallback = false
-if not protobuf_dep.found()
-    protobuf_dep = declare_dependency(
-        include_directories : include_directories('/snap/protobuf/current/include'),
-        link_args : ['-L/snap/protobuf/current/lib', '-lprotobuf']
-    )
-    is_using_fallback = true
-    warning('Using Snap fallback for Protobuf.')
-endif
+# ========================
+# Test Dependencies
+# ========================
 
-protoc = find_program('protoc', required : true)
-protoc_version = run_command(protoc, '--version').stdout().strip().split()[-1]
-
-message('Protobuf version: ' + protobuf_version)
-message('protoc version: ' + protoc_version)
-
-if protobuf_enforce_exact_match and protoc_version != protobuf_version
-    error('protoc version (' + protoc_version + ') does not match protobuf version (' + protobuf_version + ')')
-endif
+# unit test system
+catch2_subproject = subproject('catch2')
+catch2_dep = catch2_subproject.get_variable('catch2_with_main_dep')
 
 # ========================
 # Prism API Compilation
@@ -92,8 +86,6 @@ polypheny_src = files(
     'src/TypedValue.cpp'
 )
 
-pthread_dep = dependency('threads')
-
 polypheny_cpp_driver_lib = library('polypheny-cpp-library',
         polypheny_src + prism_src,
         dependencies : [protobuf_dep, pthread_dep],
@@ -101,11 +93,8 @@ polypheny_cpp_driver_lib = library('polypheny-cpp-library',
 )
 
 # ========================
-# Tests and Dependencies
+# Tests
 # ========================
-
-catch2_subproject = subproject('catch2')
-catch2_dep = catch2_subproject.get_variable('catch2_with_main_dep')
 
 test_src = files(
     'tests/Init.cpp',
@@ -119,8 +108,4 @@ test_exe = executable('runTests',
                       install: true
 )
 
-if is_using_fallback
-    test('runTests', test_exe, env: ['LD_LIBRARY_PATH=/snap/protobuf/current/lib'])
-else
-    test('runTests', test_exe)
-endif
+test('runTests', test_exe)
