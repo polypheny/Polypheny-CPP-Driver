@@ -99,6 +99,7 @@ test_src = files(
     'tests/BigDecimalTest.cpp',
     'tests/CallbackQueueTest.cpp',
     'tests/ConnectionClosedErrorTest.cpp',
+    'tests/ConnectionPropertiesTest.cpp',
 )
 
 test_exe = executable('runTests',

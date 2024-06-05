@@ -16,7 +16,7 @@ namespace Connection {
         bool is_auto_commit;
 
     public:
-        ConnectionProperties(std::string host = "localhost",
+        explicit ConnectionProperties(std::string host = "localhost",
                              uint16_t port = 7659,
                              std::string username = "pa",
                              std::string password = "pa",
@@ -24,27 +24,27 @@ namespace Connection {
                              bool is_auto_commit = true);
 
 
-        std::string get_host() const;
+        [[nodiscard]] std::string get_host() const;
 
         void set_host(const std::string &host);
 
-        uint16_t get_port() const;
+        [[nodiscard]] uint16_t get_port() const;
 
         void set_port(uint16_t port);
 
-        std::string get_username() const;
+        [[nodiscard]] std::string get_username() const;
 
         void set_username(const std::string &username);
 
-        std::string get_password() const;
+        [[nodiscard]] std::string get_password() const;
 
         void set_password(const std::string &password);
 
-        std::string get_default_namespace() const;
+        [[nodiscard]] std::string get_default_namespace() const;
 
         void set_default_namespace(const std::string &default_nspace);
 
-        bool get_is_auto_commit() const;
+        [[nodiscard]] bool get_is_auto_commit() const;
 
         void set_is_auto_commit(bool is_auto_commit);
     };
