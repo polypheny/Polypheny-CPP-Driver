@@ -3,12 +3,16 @@
 //
 
 #include "TypedValue.h"
-#include "ProtoUtils.h"
+#include "BigDecimal.h"
+#include "Document.h"
+#include "Interval.h"
 
 namespace Types {
-    TypedValue::TypedValue(org::polypheny::prism::ProtoValue proto_value) : serialized(std::move(proto_value)),
-                                                                            is_serialized(true),
-                                                                            value_case(proto_value.value_case()) {
+
+    TypedValue::TypedValue(org::polypheny::prism::ProtoValue proto_value)
+            : serialized(std::make_unique<org::polypheny::prism::ProtoValue>(std::move(proto_value))),
+              is_serialized(true),
+              value_case(proto_value.value_case()) {
     }
 
     TypedValue::TypedValue(bool value)
@@ -28,7 +32,7 @@ namespace Types {
 
     TypedValue::TypedValue(const Types::BigDecimal &value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal) {
-        new(&this->value.big_decimal_value) Types::BigDecimal(value);
+        this->value.big_decimal_value = new Types::BigDecimal(value);
     }
 
     TypedValue::TypedValue(float value)
@@ -63,14 +67,12 @@ namespace Types {
 
     TypedValue::TypedValue(const Types::Interval &value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kInterval) {
-        new(&this->value.interval_value) Types::Interval(value);
+        this->value.interval_value = new Types::Interval(value);
     }
 
     TypedValue::TypedValue(const Types::Document &value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kDocument) {
-        //TODO: copy documents propertly!!!
-        // Assign value.document_value = value
-        new(&this->value.document_value) Types::Document(value);
+        this->value.document_value = new Types::Document(value);
     }
 
     TypedValue::TypedValue()
@@ -105,7 +107,7 @@ namespace Types {
                 value.bigint_value = original.value.bigint_value;
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
-                new(&value.big_decimal_value) BigDecimal(original.value.big_decimal_value);
+                value.big_decimal_value = new BigDecimal(*original.value.big_decimal_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
                 value.float_value = original.value.float_value;
@@ -123,7 +125,7 @@ namespace Types {
                 value.timestamp_value = original.value.timestamp_value;
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
-                new(&value.interval_value) Interval(original.value.interval_value);
+                value.interval_value = new Interval(*original.value.interval_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
                 new(&value.varchar_value) std::string(original.value.varchar_value);
@@ -135,7 +137,7 @@ namespace Types {
                 new(&value.list_value) std::list<TypedValue>(original.value.list_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
-                new(&value.document_value) Document(original.value.document_value);
+                value.document_value = new Document(*original.value.document_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 break;
@@ -144,23 +146,98 @@ namespace Types {
         }
 
         if (original.is_serialized) {
-            serialized = original.serialized;
+            serialized = std::make_unique<org::polypheny::prism::ProtoValue>(*original.serialized);
         }
+    }
+
+    TypedValue::TypedValue(TypedValue &&other) noexcept
+            : value_case(other.value_case), is_serialized(other.is_serialized), serialized(std::move(other.serialized)) {
+        switch (value_case) {
+            case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
+                value.boolean_value = other.value.boolean_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInteger:
+                value.integer_value = other.value.integer_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kLong:
+                value.bigint_value = other.value.bigint_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
+                value.big_decimal_value = other.value.big_decimal_value;
+                other.value.big_decimal_value = nullptr;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
+                value.float_value = other.value.float_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDouble:
+                value.double_value = other.value.double_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDate:
+                value.date_value = other.value.date_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTime:
+                value.time_value = other.value.time_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kTimestamp:
+                value.timestamp_value = other.value.timestamp_value;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
+                value.interval_value = other.value.interval_value;
+                other.value.interval_value = nullptr;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kString:
+                new(&value.varchar_value) std::string(std::move(other.value.varchar_value));
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
+                new(&value.binary_value) std::vector<uint8_t>(std::move(other.value.binary_value));
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kList:
+                new(&value.list_value) std::list<TypedValue>(std::move(other.value.list_value));
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
+                value.document_value = other.value.document_value;
+                other.value.document_value = nullptr;
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kNull:
+                break;
+            default:
+                throw std::runtime_error("Unsupported value case in TypedValue move constructor");
+        }
+        other.value_case = org::polypheny::prism::ProtoValue::ValueCase::VALUE_NOT_SET;
+    }
+
+    TypedValue& TypedValue::operator=(const TypedValue &other) {
+        if (this != &other) {
+            this->~TypedValue();  // Destruct current value
+            new(this) TypedValue(other);  // Copy construct into this
+        }
+        return *this;
+    }
+
+    TypedValue& TypedValue::operator=(TypedValue &&other) noexcept {
+        if (this != &other) {
+            this->~TypedValue();  // Destruct current value
+            new(this) TypedValue(std::move(other));  // Move construct into this
+        }
+        return *this;
     }
 
     TypedValue::~TypedValue() {
         switch (value_case) {
             case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
-                value.big_decimal_value.~BigDecimal();
+                delete value.big_decimal_value;
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
-                value.interval_value.~Interval();
+                delete value.interval_value;
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                value.varchar_value.~basic_string();
+                value.varchar_value.std::string::~string();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                value.binary_value.~vector<uint8_t>();
+                value.binary_value.std::vector<uint8_t>::~vector();
+                break;
+            case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
+                delete value.document_value;
                 break;
             default:
                 break;
@@ -181,7 +258,7 @@ namespace Types {
                 proto_value->mutable_long_()->set_long_(value.bigint_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
-                *proto_value->mutable_big_decimal() = *value.big_decimal_value.serialize();
+                *proto_value->mutable_big_decimal() = *value.big_decimal_value->serialize();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
                 proto_value->mutable_float_()->set_float_(value.float_value);
@@ -199,7 +276,7 @@ namespace Types {
                 *proto_value->mutable_timestamp() = *Utils::ProtoUtils::timestamp_to_proto(value.timestamp_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
-                *proto_value->mutable_interval() = *value.interval_value.serialize();
+                *proto_value->mutable_interval() = *value.interval_value->serialize();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
                 proto_value->mutable_string()->set_string(value.varchar_value);
@@ -211,7 +288,7 @@ namespace Types {
                 *proto_value->mutable_list() = *Utils::ProtoUtils::list_to_proto(value.list_value);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
-                *proto_value->mutable_document() = *value.document_value.serialize();
+                *proto_value->mutable_document() = *value.document_value->serialize();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
                 proto_value->mutable_file()->set_binary(Utils::ProtoUtils::vector_to_string(value.binary_value));
@@ -226,54 +303,52 @@ namespace Types {
         return proto_value;
     }
 
-
     void TypedValue::deserialize() {
         switch (value_case) {
             case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
-                value.boolean_value = serialized.boolean().boolean();
+                value.boolean_value = serialized->boolean().boolean();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kInteger:
-                value.integer_value = serialized.integer().integer();
+                value.integer_value = serialized->integer().integer();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kLong:
-                value.bigint_value = serialized.long_().long_();
+                value.bigint_value = serialized->long_().long_();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
-                value.big_decimal_value = Types::BigDecimal(serialized.big_decimal());
+                value.big_decimal_value = new Types::BigDecimal(serialized->big_decimal());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
-                value.float_value = serialized.float_().float_();
+                value.float_value = serialized->float_().float_();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDouble:
-                value.double_value = serialized.double_().double_();
+                value.double_value = serialized->double_().double_();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDate:
-                value.date_value = Utils::ProtoUtils::proto_to_date(serialized.date());
+                value.date_value = Utils::ProtoUtils::proto_to_date(serialized->date());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kTime:
-                value.time_value = Utils::ProtoUtils::proto_to_time(serialized.time());
+                value.time_value = Utils::ProtoUtils::proto_to_time(serialized->time());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kTimestamp:
-                value.timestamp_value = Utils::ProtoUtils::proto_to_timestamp(serialized.timestamp());
+                value.timestamp_value = Utils::ProtoUtils::proto_to_timestamp(serialized->timestamp());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
-                value.interval_value = Types::Interval(serialized.interval());
+                value.interval_value = new Types::Interval(serialized->interval());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                value.varchar_value = serialized.string().string();
+                value.varchar_value = serialized->string().string();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.binary().binary());
+                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized->binary().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList:
-                value.list_value = Utils::ProtoUtils::proto_to_list(serialized.list());
+                value.list_value = Utils::ProtoUtils::proto_to_list(serialized->list());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument:
-                value.document_value = Types::Document(serialized.document());
+                value.document_value = new Types::Document(serialized->document());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
-                // TODO: we currently represent files the same way as binaries. with the introduction of streaming we might implement a custom file type which automatically fetches more data if required.
-                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized.file().binary());
+                value.binary_value = Utils::ProtoUtils::string_to_vector(serialized->file().binary());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 break;
@@ -299,7 +374,7 @@ namespace Types {
     }
 
     Types::BigDecimal TypedValue::as_big_decimal() {
-        return value.big_decimal_value;
+        return *value.big_decimal_value;
     }
 
     float TypedValue::as_float() {
@@ -323,20 +398,15 @@ namespace Types {
     }
 
     Interval TypedValue::as_interval() {
-        return value.interval_value;
+        return *value.interval_value;
     }
 
     Document TypedValue::as_document() {
-        // TODO: implement returning of document
-        // Placeholder implementation
-        return {
-        };
+        return *value.document_value;
     }
 
     std::list<TypedValue> TypedValue::as_list() {
-        // TODO: implement returnin of list
-        // Placeholder implementation
-        return {};
+        return value.list_value;
     }
 
     std::string TypedValue::as_string() {
