@@ -40,7 +40,7 @@ namespace Utils {
         static std::unique_ptr<org::polypheny::prism::ProtoTime> time_to_proto(const std::chrono::milliseconds &time);
 
         static std::unique_ptr<org::polypheny::prism::ProtoList>
-        list_to_proto(const std::list<Types::TypedValue> &typed_values);
+        list_to_proto(std::list<Types::TypedValue> &typed_values);
 
     };
 

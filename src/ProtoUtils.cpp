@@ -65,10 +65,10 @@ namespace Utils {
 
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
-    Utils::ProtoUtils::list_to_proto(const std::list<Types::TypedValue> &typed_values) {
+    Utils::ProtoUtils::list_to_proto(std::list<Types::TypedValue> &typed_values) {
         auto proto_list = std::make_unique<org::polypheny::prism::ProtoList>();
-        for (const Types::TypedValue &typed_value: typed_values) {
-            *proto_list->add_values() = *typed_value.serialize(); // Assuming serialize returns a unique_ptr
+        for (Types::TypedValue &typed_value: typed_values) {
+            *proto_list->add_values() = *typed_value.serialize();
         }
         return proto_list;
     }
