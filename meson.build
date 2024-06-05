@@ -102,6 +102,7 @@ test_src = files(
     'tests/ConnectionPropertiesTest.cpp',
     'tests/DocumentTest.cpp',
     'tests/ProtoUtilsTest.cpp',
+    'tests/TypedValueTest.cpp',
 )
 
 test_exe = executable('runTests',
