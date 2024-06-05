@@ -10,33 +10,17 @@
 
 namespace Communication {
 
-    class ICallbackQueue {
+    class CallbackQueue {
     public:
-        virtual ~ICallbackQueue() = default;
+        void await_completion();
 
-        virtual void await_completion() = 0;
+        org::polypheny::prism::Response take_next();
 
-        virtual void on_error(std::exception_ptr exception) = 0;
+        void on_next(const org::polypheny::prism::Response &message);
 
-        virtual void on_completed() = 0;
+        void on_error(std::exception_ptr exception);
 
-        virtual void on_next(const org::polypheny::prism::Response &message) = 0;
-    };
-
-    template<typename T>
-    class CallbackQueue : public ICallbackQueue {
-    public:
-        explicit CallbackQueue(std::function<const T &(const org::polypheny::prism::Response &)> &response_extractor);
-
-        void await_completion() override;
-
-        T take_next();
-
-        void on_next(const org::polypheny::prism::Response &message) override;
-
-        void on_error(std::exception_ptr exception) override;
-
-        void on_completed() override;
+        void on_completed();
 
     private:
         void throw_received_exception();
@@ -45,13 +29,11 @@ namespace Communication {
         std::condition_variable has_next;
         std::condition_variable is_completed;
         bool b_is_completed = false;
-        std::queue<T> message_queue;
-        std::function<T &(const org::polypheny::prism::Response &)> extract_response;
+        std::queue<org::polypheny::prism::Response> message_queue;
+        std::function<const org::polypheny::prism::Response &(const org::polypheny::prism::Response &)> extract_response;
         std::exception_ptr propagated_exception;
     };
 
 } // namespace Communication
-
-#include "CallbackQueue.tpp"
 
 #endif // POLYPHENY_CPP_DRIVER_CALLBACKQUEUE_H
