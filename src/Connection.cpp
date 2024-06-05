@@ -1,4 +1,5 @@
 #include "Connection.h"
+#include "Cursor.h"
 
 namespace Connection {
 

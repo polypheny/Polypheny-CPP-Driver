@@ -6,7 +6,6 @@
 #include <memory>
 #include <stdexcept>
 #include "TypedValue.h"
-#include "Connection.h"
 #include "protointerface.pb.h"
 #include "statement_responses.pb.h"
 #include "Result.h"
@@ -16,6 +15,8 @@
 #include "ScalarResult.h"
 
 namespace Connection {
+    // forward declaration, include in .cpp
+    class Connection;
 
     class Cursor {
     private:
@@ -30,6 +31,12 @@ namespace Connection {
 
     public:
         Cursor(Connection &connection);
+
+        Cursor(const Cursor &other);
+
+        Cursor &operator=(const Cursor &other);
+
+        ~Cursor();
 
         std::unique_ptr<Results::Result>
         execute(const std::string &language, const std::string &statement, const std::string &nspace);
