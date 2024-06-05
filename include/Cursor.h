@@ -19,8 +19,8 @@ namespace Connection {
 
     class Cursor {
     private:
-        int32_t statement_id;
-        bool is_statement_id_set;
+        int32_t statement_id{};
+        bool is_statement_id_set{};
         Connection &connection;
 
         void reset_statement();

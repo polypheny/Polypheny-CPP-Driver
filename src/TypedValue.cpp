@@ -3,9 +3,6 @@
 //
 
 #include "TypedValue.h"
-#include "BigDecimal.h"
-#include "Document.h"
-#include "Interval.h"
 #include "ProtoUtils.h"
 
 namespace Types {

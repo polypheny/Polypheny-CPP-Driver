@@ -3,6 +3,11 @@
 
 namespace Connection {
 
+    // INFO: the statement_id set here is a placeholder value ignored as is_statement_id_set == false
+    Cursor::Cursor(Connection &connection) : connection(connection), statement_id(0), is_statement_id_set(false) {
+
+    }
+
     void Cursor::reset_statement() {
         if (is_statement_id_set) {
             is_statement_id_set = false;
