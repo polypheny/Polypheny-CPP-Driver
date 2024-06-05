@@ -17,6 +17,8 @@ namespace Types {
 
         std::unique_ptr<org::polypheny::prism::ProtoDocument> serialize();
 
+        TypedValue& at(const std::string &key);
+
         TypedValue& operator[](const std::string &key);
 
         std::pair<std::unordered_map<std::string, TypedValue>::iterator, bool> insert(const std::pair<std::string, TypedValue> &pair);

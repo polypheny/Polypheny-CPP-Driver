@@ -3,7 +3,7 @@
 #include "TypedValue.h"
 #include "value.pb.h"
 
-TEST_CASE("Document Initialization from ProtoDocument", "[document]") {
+TEST_CASE("Document Initialization from ProtoDocument 1", "[document]") {
     org::polypheny::prism::ProtoDocument proto_doc;
     auto entry = proto_doc.add_entries();
     entry->mutable_key()->mutable_string()->set_string("key1");
@@ -13,6 +13,7 @@ TEST_CASE("Document Initialization from ProtoDocument", "[document]") {
 
     REQUIRE(doc.size() == 1);
     REQUIRE(doc["key1"].as_int32_t() == 42);
+    REQUIRE(doc.at("key1").as_int32_t() == 42);
 }
 
 TEST_CASE("Document Serialization", "[document]") {
