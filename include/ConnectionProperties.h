@@ -17,9 +17,9 @@ namespace Connection {
 
     public:
         explicit ConnectionProperties(std::string host = "localhost",
-                             uint16_t port = 7659,
+                             uint16_t port = 20590,
                              std::string username = "pa",
-                             std::string password = "pa",
+                             std::string password = "",
                              std::string default_nspace = "public",
                              bool is_auto_commit = true);
 
