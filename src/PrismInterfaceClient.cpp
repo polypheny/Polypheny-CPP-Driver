@@ -10,9 +10,6 @@
 #include <chrono>
 
 namespace Communication {
-
-    const std::string PlainTransport::VERSION = "plain-v1@polypheny.com";
-
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
         transport = std::make_unique<PlainTransport>(connection_properties.get_host(),
                                                      connection_properties.get_port());

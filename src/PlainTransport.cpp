@@ -1,7 +1,7 @@
 #include "PlainTransport.h"
 
 namespace Communication {
-
+    const std::string PlainTransport::VERSION = "plain-v1@polypheny.com\n";
 
     PlainTransport::PlainTransport(const std::string &host, uint16_t port) {
 #ifdef _WIN32
@@ -110,7 +110,7 @@ namespace Communication {
             throw std::runtime_error("Unsupported version: '" + incoming_version + "' expected '" + VERSION + "'");
         }
 
-        int8_t version_length = static_cast<int8_t>(VERSION.size());
+        auto version_length = static_cast<int8_t>(VERSION.size());
         std::string version_message = std::string(1, version_length) + VERSION;
         if (send(socket_fd, version_message.c_str(), version_message.size(), 0) == -1) {
             throw std::runtime_error("Failed to send version");

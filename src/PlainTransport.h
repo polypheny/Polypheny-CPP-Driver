@@ -39,7 +39,7 @@ namespace Communication {
 
         int socket_fd;
         std::mutex write_mutex;
-        static const std::string VERSION;  // Declaration of VERSION
+        static const std::string VERSION;
     };
 
 }
