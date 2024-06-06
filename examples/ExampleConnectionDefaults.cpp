@@ -5,7 +5,7 @@ int main() {
     // valid connection parameters to connect to a polypheny instance
     std::string host = "localhost";
     std::string username = "pa";
-    std::string password = "pa";
+    std::string password = "";
 
     // open a connection to the polypheny instance
     Connection::Connection database_connection = Connection::Connection(host, username, password);
@@ -18,7 +18,7 @@ int main() {
 
     // the result can now be processed
     // for further details please refer to the examples "ExampleRelational", "ExampleDocument" and "ExampleGraph"
+    std::cout << "Example completed successfully";
 
-    // TODO: close connection
-
+    // connection is automatically closed in destructor of the connection
 }

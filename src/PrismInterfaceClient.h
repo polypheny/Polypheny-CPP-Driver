@@ -46,9 +46,7 @@ namespace Communication {
 
         void handle_callback_queue_unsafe(const org::polypheny::prism::Response &response);
 
-        void handle_connection_closure(const std::exception &exception);
-
-        void handle_unexpected_exception(const std::exception_ptr &exception);
+        void handle_connection_closure(const std::exception_ptr &exception);
 
     public:
         explicit PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties);

@@ -59,7 +59,6 @@ namespace Communication {
         complete_synchronously(outer, timeout_millis);
         has_sent_disconnect = true;
         is_closed = true;
-        //TODO: is joinable blocking? If yes, code gets stuck here!
         if (response_reader.joinable()) {
             response_reader.join();
         }
@@ -157,10 +156,13 @@ namespace Communication {
                 } // end locked region
             }
         } catch (const Errors::ConnectionClosedError &e) {
-            handle_connection_closure(e);
-            handle_unexpected_exception(std::current_exception());
+            handle_connection_closure(std::current_exception());
+            if (!has_sent_disconnect) { // this is not a logic error: has_sent_disconnect is modified by another thread!
+                std::rethrow_exception(std::current_exception());
+            }
         } catch (const std::runtime_error &e) {
-            handle_unexpected_exception(std::current_exception());
+            handle_connection_closure(std::current_exception());
+            std::rethrow_exception(std::current_exception());
         }
     }
 
@@ -194,7 +196,7 @@ namespace Communication {
         }
     }
 
-    void PrismInterfaceClient::handle_connection_closure(const std::exception &exception) {
+    void PrismInterfaceClient::handle_connection_closure(const std::exception_ptr &exception) {
         std::lock_guard<std::mutex> lock(mutex);
         is_closed = true;
         for (auto &[id, callback]: callbacks) {
@@ -203,18 +205,6 @@ namespace Communication {
         for (auto &[id, callback_queue]: callback_queues) {
             callback_queue->on_error(std::make_exception_ptr(exception));
         }
-    }
-
-    void PrismInterfaceClient::handle_unexpected_exception(const std::exception_ptr &exception) {
-        std::lock_guard<std::mutex> lock(mutex);
-        is_closed = true;
-        for (auto &[id, callback]: callbacks) {
-            callback.set_exception(exception);
-        }
-        for (auto &[id, callback_queue]: callback_queues) {
-            callback_queue->on_error(exception);
-        }
-        std::rethrow_exception(exception);
     }
 
     org::polypheny::prism::Response
