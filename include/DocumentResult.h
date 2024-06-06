@@ -12,7 +12,7 @@ namespace Results {
 
     class DocumentResult : public Result {
     public:
-        DocumentResult(const org::polypheny::prism::DocumentFrame &document_frame);
+        explicit DocumentResult(const org::polypheny::prism::DocumentFrame &document_frame);
     };
 
 } // Results

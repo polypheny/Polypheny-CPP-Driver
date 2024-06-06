@@ -22,8 +22,7 @@ namespace Connection {
     }
 
     Cursor::~Cursor() {
-        // Destructor implementation, if needed
-        // For example, cleanup resources if any
+        // TODO: implement d'tor if needed or remove
     }
 
     void Cursor::reset_statement() {
@@ -33,9 +32,10 @@ namespace Connection {
     }
 
     std::unique_ptr<Results::Result> Cursor::get_result_from_frame(const org::polypheny::prism::Frame &frame) {
+        bool is_last = frame.is_last();
         switch (frame.result_case()) {
             case org::polypheny::prism::Frame::ResultCase::kRelationalFrame:
-                return std::make_unique<Results::RelationalResult>(frame.relational_frame());
+                return std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last);
             case org::polypheny::prism::Frame::ResultCase::kDocumentFrame:
                 return std::make_unique<Results::DocumentResult>(frame.document_frame());
             case org::polypheny::prism::Frame::ResultCase::kGraphFrame:
@@ -81,5 +81,13 @@ namespace Connection {
     Cursor::execute(const std::string &language, const std::string &statement) {
         const std::string &nspace = connection.get_connection_properties().get_default_namespace();
         return execute(language, statement, nspace);
+    }
+
+    uint32_t Cursor::get_statement_id() const {
+        return statement_id;
+    }
+
+    Connection &Cursor::get_connection() {
+        return connection;
     }
 } // namespace Connection
