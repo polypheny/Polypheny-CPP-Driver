@@ -11,6 +11,10 @@ namespace Connection {
             : prism_interface_client(build_connection_properties(host, user, password)) {
     }
 
+    Connection::~Connection() {
+        prism_interface_client.disconnect_and_close();
+    }
+
 
     ConnectionProperties Connection::build_connection_properties(const std::string &host, const std::string &username,
                                                                  const std::string &password) {
@@ -28,5 +32,4 @@ namespace Connection {
     const ConnectionProperties &Connection::get_connection_properties() const {
         return connection_properties;
     }
-
 }

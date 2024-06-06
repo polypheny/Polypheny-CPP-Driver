@@ -9,9 +9,11 @@ namespace Connection {
                                                std::string username,
                                                std::string password,
                                                std::string default_nspace,
+                                               bool is_password_required,
                                                bool is_auto_commit)
             : host(std::move(host)), port(port), username(std::move(username)), password(std::move(password)),
-              default_namespace(std::move(default_nspace)), is_auto_commit(is_auto_commit) {}
+              default_namespace(std::move(default_nspace)), is_password_required(is_password_required),
+              is_auto_commit(is_auto_commit) {}
 
     std::string ConnectionProperties::get_host() const {
         return host;
@@ -59,6 +61,14 @@ namespace Connection {
 
     void ConnectionProperties::set_is_auto_commit(bool is_auto_commit) {
         this->is_auto_commit = is_auto_commit;
+    }
+
+    void ConnectionProperties::set_is_password_required(bool is_password_required) {
+        this->is_password_required = is_password_required;
+    }
+
+    bool ConnectionProperties::get_is_password_required() const {
+        return is_password_required;
     }
 
 }

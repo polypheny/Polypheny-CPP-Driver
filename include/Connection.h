@@ -19,13 +19,14 @@ namespace Connection {
         build_connection_properties(const std::string &host, const std::string &username, const std::string &password);
 
     public:
-        Connection(ConnectionProperties &connection_properties);
+        explicit Connection(ConnectionProperties &connection_properties);
+        ~ Connection();
 
         Connection(const std::string &host, const std::string &user, const std::string &password);
 
         Communication::PrismInterfaceClient &get_prism_interface_client();
 
-        const ConnectionProperties &get_connection_properties() const;
+        [[nodiscard]] const ConnectionProperties &get_connection_properties() const;
 
 
     };

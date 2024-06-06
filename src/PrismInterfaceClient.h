@@ -14,6 +14,7 @@
 #include "CallbackQueue.h"
 #include "Transport.h"
 #include "PlainTransport.h"
+#include "ServerError.h"
 #include "ConnectionProperties.h"
 #include "statement_responses.pb.h"
 #include "connection_responses.pb.h"
@@ -55,33 +56,33 @@ namespace Communication {
         ~PrismInterfaceClient();
 
         org::polypheny::prism::ConnectionResponse
-        connect(const Connection::ConnectionProperties &connection_properties, uint32_t timeout_millis);
+        connect(const Connection::ConnectionProperties &connection_properties, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        void disconnect(uint32_t timeout_millis);
+        void disconnect_and_close(uint32_t timeout_millis  = DEFAULT_TIMEOUT_MILLIS);
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
                                           std::shared_ptr<CallbackQueue> callback_queue);
 
-        void commit_transaction(uint32_t timeout_millis);
+        void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        void rollback_transaction(uint32_t timeout_millis);
+        void rollback_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        void close_statement(uint32_t statement_id, uint32_t timeout_millis);
+        void close_statement(uint32_t statement_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        void close_result(uint32_t statement_id, uint32_t timeout_millis);
+        void close_result(uint32_t statement_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        org::polypheny::prism::Frame fetch_result(uint32_t statement_id, uint32_t fetch_size, uint32_t timeout_millis);
+        org::polypheny::prism::Frame fetch_result(uint32_t statement_id, uint32_t fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 
         org::polypheny::prism::Response receive_message();
 
         org::polypheny::prism::Response
-        wait_for_completion(std::future<org::polypheny::prism::Response> &future, uint32_t timeout_millis);
+        wait_for_completion(std::future<org::polypheny::prism::Response> &future, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::Response
-        complete_synchronously(const org::polypheny::prism::Request &request, uint32_t timeout_millis);
+        complete_synchronously(const org::polypheny::prism::Request &request, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void close();
     };

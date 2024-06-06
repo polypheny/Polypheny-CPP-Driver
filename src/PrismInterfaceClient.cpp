@@ -5,7 +5,6 @@
 #include "statement_requests.pb.h"
 #include "statement_responses.pb.h"
 #include <stdexcept>
-#include <iostream>
 #include <thread>
 #include <chrono>
 
@@ -14,14 +13,14 @@ namespace Communication {
         transport = std::make_unique<PlainTransport>(connection_properties.get_host(),
                                                      connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
-        connect(connection_properties, DEFAULT_TIMEOUT_MILLIS);
+        connect(connection_properties);
     }
 
     PrismInterfaceClient::~PrismInterfaceClient() {
-        is_closed = true;
-        if (response_reader.joinable()) {
-            response_reader.join();
+        if (has_sent_disconnect) {
+            return;
         }
+        disconnect_and_close();
     }
 
     org::polypheny::prism::ConnectionResponse
@@ -32,6 +31,10 @@ namespace Communication {
         org::polypheny::prism::ConnectionRequest *inner = outer.mutable_connection_request();
         inner->set_major_api_version(MAJOR_API_VERSION);
         inner->set_minor_api_version(MINOR_API_VERSION);
+        inner->set_username(connection_properties.get_username());
+        if (connection_properties.get_is_password_required()) {
+            inner->set_password(connection_properties.get_password());
+        }
         org::polypheny::prism::ConnectionProperties *properties_message = inner->mutable_connection_properties();
         properties_message->set_namespace_name(connection_properties.get_default_namespace());
         properties_message->set_is_auto_commit(connection_properties.get_is_auto_commit());
@@ -49,12 +52,18 @@ namespace Communication {
         return response;
     }
 
-    void PrismInterfaceClient::disconnect(uint32_t timeout_millis) {
+    void PrismInterfaceClient::disconnect_and_close(uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         outer.mutable_disconnect_request();
         complete_synchronously(outer, timeout_millis);
-        close();
+        has_sent_disconnect = true;
+        is_closed = true;
+        //TODO: is joinable blocking? If yes, code gets stuck here!
+        if (response_reader.joinable()) {
+            response_reader.join();
+        }
+
     }
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
@@ -132,7 +141,7 @@ namespace Communication {
 
     void PrismInterfaceClient::read_responses() {
         try {
-            while (true) {
+            while (!has_sent_disconnect) {
                 org::polypheny::prism::Response response = receive_message();
                 if (response.id() == 0) {
                     throw std::runtime_error("Invalid message id");
@@ -231,25 +240,12 @@ namespace Communication {
             callbacks[request.id()] = std::move(promise);
         }
 
-        if (request.type_case() == org::polypheny::prism::Request::TypeCase::kDisconnectRequest) {
-            has_sent_disconnect = true;
-        }
-
         send_message(request);
 
         org::polypheny::prism::Response response = wait_for_completion(future, timeout_millis);
         if (response.has_error_response()) {
-            throw std::runtime_error(response.error_response().message());
+            throw Errors::ServerError(response.error_response().message());
         }
         return response;
     }
-
-    void PrismInterfaceClient::close() {
-        is_closed = true;
-        //TODO: is joinable blocking? If yes, code gets stuck here!
-        if (response_reader.joinable()) {
-            response_reader.join();
-        }
-    }
-
 } // namespace Communication
