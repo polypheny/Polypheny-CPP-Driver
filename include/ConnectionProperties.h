@@ -13,15 +13,17 @@ namespace Connection {
         std::string username;
         std::string password;
         std::string default_namespace;
+        bool is_password_required;
         bool is_auto_commit;
 
     public:
         explicit ConnectionProperties(std::string host = "localhost",
-                             uint16_t port = 20590,
-                             std::string username = "pa",
-                             std::string password = "",
-                             std::string default_nspace = "public",
-                             bool is_auto_commit = true);
+                                      uint16_t port = 20590,
+                                      std::string username = "pa",
+                                      std::string password = "",
+                                      std::string default_nspace = "public",
+                                      bool is_password_required = true,
+                                      bool is_auto_commit = true);
 
 
         [[nodiscard]] std::string get_host() const;
@@ -35,6 +37,10 @@ namespace Connection {
         [[nodiscard]] std::string get_username() const;
 
         void set_username(const std::string &username);
+
+        void set_is_password_required(bool is_password_required);
+
+        [[nodiscard]] bool get_is_password_required() const;
 
         [[nodiscard]] std::string get_password() const;
 
