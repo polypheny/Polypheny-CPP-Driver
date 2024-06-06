@@ -54,8 +54,7 @@ namespace Communication {
 
     void PlainTransport::send_message(const std::string &message) {
         std::lock_guard<std::mutex> lock(write_mutex);
-        uint64_t message_length_big_endian = Utils::TransportUtils::reverse_byte_order(
-                static_cast<uint64_t>(message.size()));
+        auto message_length_big_endian = static_cast<uint64_t>(message.size());
 
         std::vector<uint8_t> buffer(sizeof(message_length_big_endian) + message.size());
         std::memcpy(buffer.data(), &message_length_big_endian, sizeof(message_length_big_endian));
@@ -67,11 +66,9 @@ namespace Communication {
     }
 
     std::string PlainTransport::receive_message() {
-        uint64_t message_length_big_endian = 0;
-        ssize_t bytes_received = recv(socket_fd, reinterpret_cast<char *>(&message_length_big_endian),
-                                      sizeof(message_length_big_endian), 0);
-        uint64_t message_length = Utils::TransportUtils::reverse_byte_order(message_length_big_endian);
-
+        uint64_t message_length = 0;
+        ssize_t bytes_received = recv(socket_fd, reinterpret_cast<char *>(&message_length),
+                                      sizeof(message_length), 0);
         if (bytes_received == 0) {
             throw Errors::ConnectionClosedError("Connection closed while receiving message length");
         } else if (bytes_received < 0) {
