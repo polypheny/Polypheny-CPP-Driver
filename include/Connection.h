@@ -5,6 +5,12 @@
 #include "ConnectionProperties.h"
 #include "PrismInterfaceClient.h"
 
+namespace Results {
+    class RelationalResult;
+    class DocumentResult;
+    class GraphResult;
+}
+
 namespace Connection {
     // forward declaration, include in .cpp
     class Cursor;
@@ -18,17 +24,22 @@ namespace Connection {
         static ConnectionProperties
         build_connection_properties(const std::string &host, const std::string &username, const std::string &password);
 
+    protected:
+        Communication::PrismInterfaceClient &get_prism_interface_client();
+
+        [[nodiscard]] const ConnectionProperties &get_connection_properties() const;
+
+        friend class Cursor;
+        friend class Results::RelationalResult;
+        friend class Results::DocumentResult;
+        friend class Results::GraphResult;
+
+
     public:
         explicit Connection(ConnectionProperties &connection_properties);
         ~ Connection();
 
         Connection(const std::string &host, const std::string &user, const std::string &password);
-
-        Communication::PrismInterfaceClient &get_prism_interface_client();
-
-        [[nodiscard]] const ConnectionProperties &get_connection_properties() const;
-
-
     };
 
 } // Connection

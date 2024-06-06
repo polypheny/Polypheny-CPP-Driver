@@ -20,7 +20,7 @@ namespace Connection {
 
     class Cursor {
     private:
-        int32_t statement_id{};
+        uint32_t statement_id{};
         bool is_statement_id_set{};
         Connection &connection;
 
@@ -28,6 +28,15 @@ namespace Connection {
 
         static std::unique_ptr<Results::Result>
         get_result_from_frame(const org::polypheny::prism::Frame &frame);
+
+    protected:
+        [[nodiscard]] uint32_t get_statement_id() const;
+
+        Connection& get_connection();
+
+        friend class Results::RelationalResult;
+        friend class Results::DocumentResult;
+        friend class Results::GraphResult;
 
     public:
         Cursor(Connection &connection);

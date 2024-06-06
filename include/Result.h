@@ -25,8 +25,11 @@ namespace Results {
     protected:
         explicit Result(ResultType resultType) : resultType(resultType) {}
 
+        const uint32_t DEFAULT_FETCH_SIZE = 100;
     public:
-        ResultType get_result_type() const {
+        virtual ~Result() = default;
+
+        [[nodiscard]] ResultType get_result_type() const {
             return resultType;
         }
 
