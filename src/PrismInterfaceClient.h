@@ -24,8 +24,9 @@ namespace Communication {
     class PrismInterfaceClient {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
-        static constexpr int MAJOR_API_VERSION = 1;
-        static constexpr int MINOR_API_VERSION = 0;
+        // TODO: send proper api version, polypheny version for testing uses 5.1
+        static constexpr int MAJOR_API_VERSION = 5;
+        static constexpr int MINOR_API_VERSION = 1;
 
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport> transport;
@@ -39,10 +40,10 @@ namespace Communication {
 
         void read_responses();
 
-        void complete_callback(const org::polypheny::prism::Response &response,
-                               std::promise<org::polypheny::prism::Response> &callback);
+        void complete_callback_unsafe(const org::polypheny::prism::Response &response,
+                                      std::promise<org::polypheny::prism::Response> &callback);
 
-        void handle_callback_queue(const org::polypheny::prism::Response &response);
+        void handle_callback_queue_unsafe(const org::polypheny::prism::Response &response);
 
         void handle_connection_closure(const std::exception &exception);
 

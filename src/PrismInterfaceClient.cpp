@@ -137,14 +137,15 @@ namespace Communication {
                 if (response.id() == 0) {
                     throw std::runtime_error("Invalid message id");
                 }
-
-                auto it = callbacks.find(response.id());
-                if (it != callbacks.end()) {
-                    complete_callback(response, it->second);
-                    continue;
-                }
-
-                handle_callback_queue(response);
+                { // start locked region
+                    std::lock_guard<std::mutex> lock(mutex);
+                    auto it = callbacks.find(response.id());
+                    if (it != callbacks.end()) {
+                        complete_callback_unsafe(response, it->second);
+                        continue;
+                    }
+                    handle_callback_queue_unsafe(response);
+                } // end locked region
             }
         } catch (const Errors::ConnectionClosedError &e) {
             handle_connection_closure(e);
@@ -154,15 +155,16 @@ namespace Communication {
         }
     }
 
-    void PrismInterfaceClient::complete_callback(const org::polypheny::prism::Response &response,
-                                                 std::promise<org::polypheny::prism::Response> &callback) {
+    void PrismInterfaceClient::complete_callback_unsafe(const org::polypheny::prism::Response &response,
+                                                        std::promise<org::polypheny::prism::Response> &callback) {
+        std::promise<org::polypheny::prism::Response> moved_callback = std::move(callback);
         if (response.last()) {
             callbacks.erase(response.id());
         }
-        callback.set_value(response);
+        moved_callback.set_value(response);
     }
 
-    void PrismInterfaceClient::handle_callback_queue(const org::polypheny::prism::Response &response) {
+    void PrismInterfaceClient::handle_callback_queue_unsafe(const org::polypheny::prism::Response &response) {
         auto it = callback_queues.find(response.id());
         if (it == callback_queues.end()) {
             return;
