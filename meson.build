@@ -6,10 +6,9 @@ add_project_link_arguments('-lm', language : 'cpp')
 # Dependencies
 # ========================
 
-# libprotobuf ant protoc
-protobuf_subproject = subproject('protobuf')
-protobuf_dep = protobuf_subproject.get_variable('protobuf_dep')
-protoc = protobuf_subproject.get_variable('protoc')
+# prism api
+polypheny_prism_api_subproject = subproject('polypheny_prism_api')
+polypheny_prism_api_dep = polypheny_prism_api_subproject.get_variable('polypheny_prism_api_dep')
 # pthreads
 pthread_dep = dependency('threads')
 
@@ -20,41 +19,6 @@ pthread_dep = dependency('threads')
 # unit test system
 catch2_subproject = subproject('catch2')
 catch2_dep = catch2_subproject.get_variable('catch2_with_main_dep')
-
-# ========================
-# Prism API Compilation
-# ========================
-
-prism_gen = generator(protoc,
-                      output : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
-                      arguments : [
-                          '--proto_path=@CURRENT_SOURCE_DIR@/prism',
-                          '--cpp_out=@BUILD_DIR@',
-                          '--experimental_allow_proto3_optional',
-                          '@INPUT@'
-                      ]
-)
-
-prism_files = files(
-    'prism/connection_requests.proto',
-    'prism/connection_responses.proto',
-    'prism/document_frame.proto',
-    'prism/error.proto',
-    'prism/graph_frame.proto',
-    'prism/meta_requests.proto',
-    'prism/meta_responses.proto',
-    'prism/namespace_meta_requests.proto',
-    'prism/namespace_meta_responses.proto',
-    'prism/protointerface.proto',
-    'prism/relational_frame.proto',
-    'prism/statement_requests.proto',
-    'prism/statement_responses.proto',
-    'prism/transaction_requests.proto',
-    'prism/transaction_responses.proto',
-    'prism/value.proto'
-)
-
-prism_src = prism_gen.process(prism_files)
 
 # ========================
 # Library and Dependencies
@@ -83,16 +47,16 @@ polypheny_src = files(
 )
 
 polypheny_cpp_driver_lib = library('polypheny-cpp-library',
-        polypheny_src + prism_src,
-        dependencies : [protobuf_dep, pthread_dep],
-        include_directories : [polypheny_inc, polypheny_src_inc]
+        polypheny_src,
+        dependencies : [pthread_dep, polypheny_prism_api_dep],
+        include_directories : [polypheny_inc, polypheny_src_inc],
 )
 
 
 polypheny_cpp_driver_dep = declare_dependency(
     link_with : polypheny_cpp_driver_lib,
     include_directories : [polypheny_inc, polypheny_src_inc],
-    dependencies : [protobuf_dep, pthread_dep]
+    dependencies : [pthread_dep, polypheny_prism_api_dep]
 )
 
 # ========================
@@ -112,8 +76,8 @@ test_src = files(
 )
 
 test_exe = executable('runTests',
-                      test_src + polypheny_src + prism_src,
-                      dependencies: [catch2_dep, protobuf_dep, pthread_dep],
+                      test_src + polypheny_src,
+                      dependencies: [catch2_dep, pthread_dep, polypheny_prism_api_dep],
                       include_directories : [polypheny_inc, polypheny_src_inc],
                       install: true
 )
