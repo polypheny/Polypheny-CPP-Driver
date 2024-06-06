@@ -18,22 +18,24 @@ namespace Results {
     class RelationalResult : public Result {
     public:
         explicit RelationalResult(const org::polypheny::prism::RelationalFrame &relational_frame,
-                                  bool is_last, Connection::Cursor &cursor);
+                                  bool is_last, Connection::Cursor *cursor);
 
         [[nodiscard]] std::shared_ptr<RelationalMetadata> get_metadata() const;
 
         class RowIterator;
 
         RowIterator begin();
+
         RowIterator end();
 
     private:
         std::shared_ptr<RelationalMetadata> metadata;
-        Connection::Cursor& cursor;
+        Connection::Cursor *cursor;
         std::list<Row> rows;
         bool is_fully_fetched;
 
         void add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame);
+
         void fetch_more();
 
     };
@@ -43,9 +45,11 @@ namespace Results {
         RowIterator(std::shared_ptr<RelationalResult> result, size_t index = 0);
 
         bool operator==(const RowIterator &other) const;
+
         bool operator!=(const RowIterator &other) const;
 
         Row &operator*();
+
         RowIterator &operator++();
 
     private:

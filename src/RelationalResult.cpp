@@ -4,9 +4,9 @@
 
 namespace Results {
     RelationalResult::RelationalResult(const org::polypheny::prism::RelationalFrame &relational_frame,
-                                       bool is_last, Connection::Cursor &cursor)
+                                       bool is_last, Connection::Cursor *cursor)
             : Result(ResultType::RELATIONAL), is_fully_fetched(is_last), cursor(cursor) {
-        metadata = std::make_shared<RelationalMetadata>(relational_frame.column_meta());
+        metadata = std::make_shared<RelationalMetadata>(relational_frame);
         add_rows(relational_frame);
     }
 
@@ -17,8 +17,8 @@ namespace Results {
     }
 
     void RelationalResult::fetch_more() {
-        uint32_t statement_id = cursor.get_statement_id();
-        org::polypheny::prism::Frame frame = cursor.get_connection().get_prism_interface_client().fetch_result(
+        uint32_t statement_id = cursor->get_statement_id();
+        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client().fetch_result(
                 statement_id, DEFAULT_FETCH_SIZE);
 
         if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kRelationalFrame) {
