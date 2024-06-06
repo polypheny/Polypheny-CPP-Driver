@@ -39,7 +39,7 @@ namespace Connection {
         friend class Results::GraphResult;
 
     public:
-        Cursor(Connection &connection);
+        explicit Cursor(Connection &connection);
 
         Cursor(const Cursor &other);
 

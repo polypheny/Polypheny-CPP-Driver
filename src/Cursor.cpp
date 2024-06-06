@@ -35,7 +35,7 @@ namespace Connection {
         bool is_last = frame.is_last();
         switch (frame.result_case()) {
             case org::polypheny::prism::Frame::ResultCase::kRelationalFrame:
-                return std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last);
+                return std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last, this);
             case org::polypheny::prism::Frame::ResultCase::kDocumentFrame:
                 return std::make_unique<Results::DocumentResult>(frame.document_frame());
             case org::polypheny::prism::Frame::ResultCase::kGraphFrame:

@@ -41,6 +41,7 @@ polypheny_src = files(
     'src/PlainTransport.cpp',
     'src/PrismInterfaceClient.cpp',
     'src/ProtoUtils.cpp',
+    'src/RelationalColumnMetadata.cpp',
     'src/RelationalMetadata.cpp',
     'src/RelationalResult.cpp',
     'src/Row.cpp',
