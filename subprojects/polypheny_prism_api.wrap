@@ -1,0 +1,5 @@
+[wrap-git]
+directory = polypheny_prism_api
+url = https://github.com/polypheny/Polypheny-Prism-API.git
+revision = prism-graphs
+depth = 1
