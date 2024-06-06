@@ -47,7 +47,7 @@ polypheny_src = files(
     'src/TypedValue.cpp'
 )
 
-polypheny_cpp_driver_lib = library('polypheny-cpp-library',
+polypheny_cpp_driver_lib = library('polypheny_cpp_library',
         polypheny_src,
         dependencies : [pthread_dep, polypheny_prism_api_dep],
         include_directories : [polypheny_inc, polypheny_src_inc],
