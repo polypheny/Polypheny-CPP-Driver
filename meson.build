@@ -43,6 +43,7 @@ polypheny_src = files(
     'src/ProtoUtils.cpp',
     'src/RelationalResult.cpp',
     'src/ScalarResult.cpp',
+    'src/TransportUtils.cpp',
     'src/TypedValue.cpp'
 )
 
