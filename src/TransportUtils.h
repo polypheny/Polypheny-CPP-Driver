@@ -5,6 +5,8 @@
 #ifndef POLYPHENY_CPP_DRIVER_TRANSPORTUTILS_H
 #define POLYPHENY_CPP_DRIVER_TRANSPORTUTILS_H
 
+#include <cstdint>
+
 namespace Utils::TransportUtils {
         uint64_t reverse_byte_order(uint64_t value);
     }
