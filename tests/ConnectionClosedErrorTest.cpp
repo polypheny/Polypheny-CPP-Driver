@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "ConnectionClosedError.h"
+#include "src/transport/ConnectionClosedError.h"
 
 TEST_CASE("ConnectionClosedError message test") {
     std::string errorMessage = "Connection closed unexpectedly";

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <memory>
 #include "value.pb.h"
-#include "TypedValue.h"
+#include "src/types/TypedValue.h"
 
 namespace Types {
     // forward declarations

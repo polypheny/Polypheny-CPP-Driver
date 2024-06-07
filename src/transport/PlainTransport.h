@@ -2,7 +2,6 @@
 #define POLYPHENY_CPP_DRIVER_PLAINTRANSPORT_H
 
 #include "Transport.h"
-#include "TransportUtils.h"
 #include <iostream>
 #include <string>
 #include <thread>
@@ -10,7 +9,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cstring>
-#include <ConnectionClosedError.h>
+#include "ConnectionClosedError.h"
 
 #ifdef _WIN32
 #include <winsock2.h>

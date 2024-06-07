@@ -5,14 +5,14 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
-#include "TypedValue.h"
+#include "src/types/TypedValue.h"
 #include "protointerface.pb.h"
 #include "statement_responses.pb.h"
-#include "Result.h"
-#include "RelationalResult.h"
-#include "DocumentResult.h"
-#include "GraphResult.h"
-#include "ScalarResult.h"
+#include "src/results/Result.h"
+#include "src/results/RelationalResult.h"
+#include "src/results/DocumentResult.h"
+#include "src/results/GraphResult.h"
+#include "src/results/ScalarResult.h"
 
 namespace Connection {
     // forward declaration, include in .cpp

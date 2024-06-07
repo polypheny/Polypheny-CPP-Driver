@@ -11,11 +11,11 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "CallbackQueue.h"
-#include "Transport.h"
-#include "PlainTransport.h"
-#include "ServerError.h"
-#include "ConnectionProperties.h"
+#include "src/connection/CallbackQueue.h"
+#include "src/transport/Transport.h"
+#include "src/transport/PlainTransport.h"
+#include "src/connection/ServerError.h"
+#include "src/connection/ConnectionProperties.h"
 #include "statement_responses.pb.h"
 #include "connection_responses.pb.h"
 #include "protointerface.pb.h"

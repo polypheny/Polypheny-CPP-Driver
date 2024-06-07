@@ -1,6 +1,6 @@
 #include "RelationalResult.h"
-#include "Cursor.h"
-#include "Connection.h"
+#include "src/connection/Cursor.h"
+#include "src/connection/Connection.h"
 
 namespace Results {
     RelationalResult::RelationalResult(const org::polypheny::prism::RelationalFrame &relational_frame,

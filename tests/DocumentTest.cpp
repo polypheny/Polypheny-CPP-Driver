@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
-#include "Document.h"
-#include "TypedValue.h"
+#include "src/types/Document.h"
+#include "src/types/TypedValue.h"
 #include "value.pb.h"
 
 TEST_CASE("Document Initialization from ProtoDocument 1", "[document]") {

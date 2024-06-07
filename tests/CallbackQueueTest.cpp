@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "CallbackQueue.h"
+#include "src/connection/CallbackQueue.h"
 #include <thread>
 #include <exception>
 

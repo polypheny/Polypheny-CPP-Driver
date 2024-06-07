@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <sstream>
-#include "Interval.h"
+#include "src/types/Interval.h"
 #include "protointerface.pb.h"
 
 using namespace Types;

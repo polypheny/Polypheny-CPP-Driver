@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "ConnectionProperties.h"
+#include "src/connection/ConnectionProperties.h"
 
 TEST_CASE("ConnectionProperties constructor and getters") {
     Connection::ConnectionProperties props("localhost", 5432, "user", "pass", "default_ns", false, true);

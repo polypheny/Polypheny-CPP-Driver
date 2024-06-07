@@ -6,6 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_ROW_H
 
 #include "relational_frame.pb.h"
+#include "RelationalMetadata.h"
 
 namespace Results {
 

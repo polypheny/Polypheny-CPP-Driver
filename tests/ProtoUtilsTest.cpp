@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
-#include "ProtoUtils.h"
+#include "src/utils/ProtoUtils.h"
 #include "value.pb.h"
-#include "TypedValue.h"
+#include "src/types/TypedValue.h"
 
 constexpr long long MILLIS_PER_DAY = 86400000LL;
 

@@ -1,8 +1,8 @@
 #include <catch2/catch_all.hpp>
-#include "TypedValue.h"
-#include "BigDecimal.h"
-#include "Document.h"
-#include "Interval.h"
+#include "src/types/TypedValue.h"
+#include "src/types/BigDecimal.h"
+#include "src/types/Document.h"
+#include "src/types/Interval.h"
 #include "value.pb.h"
 
 TEST_CASE("TypedValue construction from boolean", "[TypedValue]") {
