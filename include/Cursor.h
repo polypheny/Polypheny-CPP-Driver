@@ -26,7 +26,7 @@ namespace Connection {
 
         void reset_statement();
 
-        static std::unique_ptr<Results::Result>
+        std::unique_ptr<Results::Result>
         get_result_from_frame(const org::polypheny::prism::Frame &frame);
 
     protected:

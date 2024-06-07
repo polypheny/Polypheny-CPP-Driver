@@ -8,11 +8,15 @@
 #include "Result.h"
 #include "graph_frame.pb.h"
 
+namespace Connection {
+    class Cursor;
+}
+
 namespace Results {
 
     class GraphResult : public Result {
     public:
-        GraphResult(const org::polypheny::prism::GraphFrame &graph_frame);
+        GraphResult(const org::polypheny::prism::GraphFrame &graph_frame, bool is_last, Connection::Cursor *cursor);
     };
 
 } // Results
