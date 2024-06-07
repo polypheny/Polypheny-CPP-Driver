@@ -10,7 +10,7 @@
 
 namespace Communication {
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
-        transport = std::make_unique<PlainTransport>(connection_properties.get_host(),
+        transport = std::make_unique<Transport::PlainTransport>(connection_properties.get_host(),
                                                      connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);

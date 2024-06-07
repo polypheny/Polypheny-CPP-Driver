@@ -1,6 +1,6 @@
 #include "PlainTransport.h"
 
-namespace Communication {
+namespace Transport {
     const std::string PlainTransport::VERSION = "plain-v1@polypheny.com\n";
 
     PlainTransport::PlainTransport(const std::string &host, uint16_t port) {
