@@ -1,5 +1,5 @@
 #include "Cursor.h"
-#include "Connection.h"
+#include "src/connection/Connection.h"
 #include <iostream>
 
 namespace Connection {

@@ -1,8 +1,9 @@
 #include "BigDecimal.h"
 #include "value.pb.h"
-#include "ProtoUtils.h"
+#include "src/utils/ProtoUtils.h"
 
 namespace Types {
+    // find library that uses bigdecimals and use this (libGMP oder so)
 
     BigDecimal::BigDecimal(const org::polypheny::prism::ProtoBigDecimal &value) : unscaled_value(
             Utils::ProtoUtils::string_to_vector(value.unscaled_value())),

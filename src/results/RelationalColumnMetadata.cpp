@@ -44,6 +44,9 @@ namespace Results {
     }
 
     std::string RelationalColumnMetadata::get_protocol_type_name(org::polypheny::prism::ProtoPolyType type) {
+        return org::polypheny::prism::ProtoPolyType_Name(type);
+
+        //TODO: remove this...
         switch(type) {
             case org::polypheny::prism::ProtoPolyType::UNSPECIFIED:
                 return "UNSPECIFIED";

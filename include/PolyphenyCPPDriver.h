@@ -6,24 +6,24 @@
 #define POLYPHENY_CPP_DRIVER_POLYPHENYCPPDRIVER_H
 
 // connection
-#include "Connection.h"
-#include "ConnectionProperties.h"
-#include "Cursor.h"
+#include "connection/Connection.h"
+#include "connection/ConnectionProperties.h"
+#include "connection/Cursor.h"
 
 // results
-#include "Result.h"
-#include "ScalarResult.h"
-#include "RelationalResult.h"
-#include "DocumentResult.h"
-#include "GraphResult.h"
+#include "results/Result.h"
+#include "results/ScalarResult.h"
+#include "results/RelationalResult.h"
+#include "results/DocumentResult.h"
+#include "results/GraphResult.h"
 
 // native types
-#include "NativeType.h"
-#include "BigDecimal.h"
-#include "Document.h"
-#include "Interval.h"
+#include "types/NativeType.h"
+#include "types/BigDecimal.h"
+#include "types/Document.h"
+#include "types/Interval.h"
 
 // values
-#include "TypedValue.h"
+#include "types/TypedValue.h"
 
 #endif //POLYPHENY_CPP_DRIVER_POLYPHENYCPPDRIVER_H

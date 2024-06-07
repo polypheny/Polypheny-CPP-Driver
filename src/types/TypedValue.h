@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include "ProtoUtils.h"
+#include "src/utils/ProtoUtils.h"
 #include "value.pb.h"
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
@@ -38,7 +38,7 @@ namespace Types {
         std::list<TypedValue> list_value;
         Document *document_value;
 
-        Representation() : boolean_value(false) {}
+        Representation() {}
 
         ~Representation() {}
     };

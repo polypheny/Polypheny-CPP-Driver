@@ -3,8 +3,8 @@
 
 #include "Result.h"
 #include "relational_frame.pb.h"
-#include "RelationalMetadata.h"
-#include "Row.h"
+#include "src/results/RelationalMetadata.h"
+#include "src/results/Row.h"
 #include <memory>
 #include <list>
 #include <iterator>

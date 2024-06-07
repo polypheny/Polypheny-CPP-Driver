@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
-#include "BigDecimal.h"
+#include "src/types/BigDecimal.h"
 #include "value.pb.h"
-#include "ProtoUtils.h"
+#include "src/utils/ProtoUtils.h"
 
 TEST_CASE("BigDecimal constructor from ProtoBigDecimal") {
     org::polypheny::prism::ProtoBigDecimal proto;
