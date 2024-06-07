@@ -8,11 +8,15 @@
 #include "Result.h"
 #include "document_frame.pb.h"
 
+namespace Connection {
+    class Cursor;
+}
+
 namespace Results {
 
     class DocumentResult : public Result {
     public:
-        explicit DocumentResult(const org::polypheny::prism::DocumentFrame &document_frame);
+        explicit DocumentResult(const org::polypheny::prism::DocumentFrame &document_frame, bool is_lst, Connection::Cursor *cursor);
     };
 
 } // Results

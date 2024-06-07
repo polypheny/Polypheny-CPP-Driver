@@ -37,9 +37,9 @@ namespace Connection {
             case org::polypheny::prism::Frame::ResultCase::kRelationalFrame:
                 return std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last, this);
             case org::polypheny::prism::Frame::ResultCase::kDocumentFrame:
-                return std::make_unique<Results::DocumentResult>(frame.document_frame());
+                return std::make_unique<Results::DocumentResult>(frame.document_frame(), is_last, this);
             case org::polypheny::prism::Frame::ResultCase::kGraphFrame:
-                return std::make_unique<Results::GraphResult>(frame.graph_frame());
+                return std::make_unique<Results::GraphResult>(frame.graph_frame(), is_last, this);
             default:
                 throw std::runtime_error("Frame of illegal result type encountered");
         }
