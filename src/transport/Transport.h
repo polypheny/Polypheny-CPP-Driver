@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Communication {
+namespace Transport {
 
     class Transport {
     public:

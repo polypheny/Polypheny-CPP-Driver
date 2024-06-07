@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include "PlainTransport.h"
 
-namespace Communication {
+namespace Transport {
 
     class UnixTransport {
     public:

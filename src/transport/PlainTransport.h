@@ -23,7 +23,7 @@
 #include <netinet/tcp.h>
 #endif
 
-namespace Communication {
+namespace Transport {
 
     class PlainTransport : public Transport {
     public:

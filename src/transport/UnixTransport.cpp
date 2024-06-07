@@ -1,6 +1,6 @@
 #include "UnixTransport.h"
 
-namespace Communication {
+namespace Transport {
 
     const std::string UnixTransport::VERSION = "unix-v1@polypheny.com\n";
 
@@ -17,7 +17,7 @@ namespace Communication {
         addr.sun_family = AF_UNIX;
         strncpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path) - 1);
 
-        if (connect(socket_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+        if (connect(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
             close_socket();
             throw std::runtime_error("Failed to connect to server: " + std::string(strerror(errno)));
         }
@@ -70,7 +70,8 @@ namespace Communication {
 
     void UnixTransport::exchange_version() {
         int8_t incoming_version_length = 0;
-        if (recv(socket_fd, reinterpret_cast<char *>(&incoming_version_length), sizeof(incoming_version_length), 0) <= 0) {
+        if (recv(socket_fd, reinterpret_cast<char *>(&incoming_version_length), sizeof(incoming_version_length), 0) <=
+            0) {
             throw std::runtime_error("Failed to receive version length: " + std::string(strerror(errno)));
         }
 
@@ -93,3 +94,4 @@ namespace Communication {
             throw std::runtime_error("Failed to send version: " + std::string(strerror(errno)));
         }
     }
+}
