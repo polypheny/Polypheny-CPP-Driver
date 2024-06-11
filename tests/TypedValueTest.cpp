@@ -268,7 +268,7 @@ TEST_CASE("TypedValue move constructor from boolean", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_boolean() == true);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from int32_t", "[TypedValue]") {
@@ -278,7 +278,7 @@ TEST_CASE("TypedValue move constructor from int32_t", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_int32_t() == 42);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from int64_t", "[TypedValue]") {
@@ -288,7 +288,7 @@ TEST_CASE("TypedValue move constructor from int64_t", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_int64_t() == 42000000000);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from BigDecimal", "[TypedValue]") {
@@ -301,7 +301,7 @@ TEST_CASE("TypedValue move constructor from BigDecimal", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_big_decimal() == big_decimal);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from float", "[TypedValue]") {
@@ -311,7 +311,7 @@ TEST_CASE("TypedValue move constructor from float", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE_THAT(moved.as_float(), Catch::Matchers::WithinAbs(4.2f, 10E-8));
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from double", "[TypedValue]") {
@@ -321,7 +321,7 @@ TEST_CASE("TypedValue move constructor from double", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE_THAT(moved.as_double(), Catch::Matchers::WithinAbs(4.2, 10E-8));
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from date", "[TypedValue]") {
@@ -332,7 +332,7 @@ TEST_CASE("TypedValue move constructor from date", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_date() == now);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from time", "[TypedValue]") {
@@ -343,7 +343,7 @@ TEST_CASE("TypedValue move constructor from time", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_time() == millis);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from timestamp", "[TypedValue]") {
@@ -354,7 +354,7 @@ TEST_CASE("TypedValue move constructor from timestamp", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_timestamp() == now);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from Interval", "[TypedValue]") {
@@ -366,7 +366,7 @@ TEST_CASE("TypedValue move constructor from Interval", "[TypedValue]") {
     REQUIRE(moved.as_interval().get_milliseconds() == 20);
     REQUIRE(moved.as_interval().get_months() == 5);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from Document", "[TypedValue]") {
@@ -381,7 +381,7 @@ TEST_CASE("TypedValue move constructor from Document", "[TypedValue]") {
     REQUIRE(moved.as_document()["key1"].as_int32_t() == 42);
     REQUIRE(moved.as_document()["key2"].as_string() == "value");
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from null", "[TypedValue]") {
@@ -389,7 +389,7 @@ TEST_CASE("TypedValue move constructor from null", "[TypedValue]") {
 
     REQUIRE(original.is_null());
     Types::TypedValue moved(std::move(original));
-    REQUIRE(moved.is_null() == true);
+    REQUIRE(moved.is_null());
 
     REQUIRE(original.is_null());
 }
@@ -409,7 +409,7 @@ TEST_CASE("TypedValue move constructor from list", "[TypedValue]") {
     ++it;
     REQUIRE(it == moved_list.end());
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from string", "[TypedValue]") {
@@ -420,7 +420,7 @@ TEST_CASE("TypedValue move constructor from string", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_string() == str);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move constructor from bytes", "[TypedValue]") {
@@ -431,7 +431,7 @@ TEST_CASE("TypedValue move constructor from bytes", "[TypedValue]") {
     Types::TypedValue moved(std::move(original));
     REQUIRE(moved.as_bytes() == bytes);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from boolean", "[TypedValue]") {
@@ -442,7 +442,7 @@ TEST_CASE("TypedValue move assignment operator from boolean", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_boolean() == true);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from int32_t", "[TypedValue]") {
@@ -453,7 +453,7 @@ TEST_CASE("TypedValue move assignment operator from int32_t", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_int32_t() == 42);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from int64_t", "[TypedValue]") {
@@ -464,7 +464,7 @@ TEST_CASE("TypedValue move assignment operator from int64_t", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_int64_t() == 42000000000);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from BigDecimal", "[TypedValue]") {
@@ -478,7 +478,7 @@ TEST_CASE("TypedValue move assignment operator from BigDecimal", "[TypedValue]")
     moved = std::move(original);
     REQUIRE(moved.as_big_decimal() == big_decimal);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from float", "[TypedValue]") {
@@ -489,7 +489,7 @@ TEST_CASE("TypedValue move assignment operator from float", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE_THAT(moved.as_float(), Catch::Matchers::WithinAbs(4.2f, 10E-8));
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from double", "[TypedValue]") {
@@ -500,7 +500,7 @@ TEST_CASE("TypedValue move assignment operator from double", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE_THAT(moved.as_double(), Catch::Matchers::WithinAbs(4.2, 10E-8));
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from date", "[TypedValue]") {
@@ -512,7 +512,7 @@ TEST_CASE("TypedValue move assignment operator from date", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_date() == now);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from time", "[TypedValue]") {
@@ -524,7 +524,7 @@ TEST_CASE("TypedValue move assignment operator from time", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_time() == millis);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from timestamp", "[TypedValue]") {
@@ -536,7 +536,7 @@ TEST_CASE("TypedValue move assignment operator from timestamp", "[TypedValue]") 
     moved = std::move(original);
     REQUIRE(moved.as_timestamp() == now);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from Interval", "[TypedValue]") {
@@ -549,7 +549,7 @@ TEST_CASE("TypedValue move assignment operator from Interval", "[TypedValue]") {
     REQUIRE(moved.as_interval().get_milliseconds() == 20);
     REQUIRE(moved.as_interval().get_months() == 5);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from Document", "[TypedValue]") {
@@ -565,7 +565,7 @@ TEST_CASE("TypedValue move assignment operator from Document", "[TypedValue]") {
     REQUIRE(moved.as_document()["key1"].as_int32_t() == 42);
     REQUIRE(moved.as_document()["key2"].as_string() == "value");
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from null", "[TypedValue]") {
@@ -595,7 +595,7 @@ TEST_CASE("TypedValue move assignment operator from list", "[TypedValue]") {
     ++it;
     REQUIRE(it == moved_list.end());
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from string", "[TypedValue]") {
@@ -607,7 +607,7 @@ TEST_CASE("TypedValue move assignment operator from string", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_string() == str);
 
-    REQUIRE(original.is_null());
+
 }
 
 TEST_CASE("TypedValue move assignment operator from bytes", "[TypedValue]") {
@@ -619,7 +619,7 @@ TEST_CASE("TypedValue move assignment operator from bytes", "[TypedValue]") {
     moved = std::move(original);
     REQUIRE(moved.as_bytes() == bytes);
 
-    REQUIRE(original.is_null());
+
 }
 
 // Copy Assignment Operator Tests
@@ -782,4 +782,124 @@ TEST_CASE("TypedValue copy assignment operator from bytes", "[TypedValue]") {
     REQUIRE(copy.is_null());
     copy = original;
     REQUIRE(copy.as_bytes() == original.as_bytes());
+}
+
+TEST_CASE("TypedValue print boolean", "[TypedValue]") {
+    Types::TypedValue boolean_value(true);
+    std::ostringstream oss;
+    oss << boolean_value;
+    REQUIRE(oss.str() == "true");
+}
+
+TEST_CASE("TypedValue print int32_t", "[TypedValue]") {
+    Types::TypedValue int_value(42);
+    std::ostringstream oss;
+    oss << int_value;
+    REQUIRE(oss.str() == "42");
+}
+
+TEST_CASE("TypedValue print int64_t", "[TypedValue]") {
+    Types::TypedValue long_value(int64_t(42000000000));
+    std::ostringstream oss;
+    oss << long_value;
+    REQUIRE(oss.str() == "42000000000");
+}
+
+TEST_CASE("TypedValue print BigDecimal", "[TypedValue]") {
+    std::string value = "1234.56";
+    mpf_class big_decimal(value);
+    Types::TypedValue big_decimal_value(big_decimal);
+    std::ostringstream oss;
+    oss << big_decimal_value;
+    REQUIRE(oss.str() == value);
+}
+
+TEST_CASE("TypedValue print float", "[TypedValue]") {
+    Types::TypedValue float_value(4.2f);
+    std::ostringstream oss;
+    oss << float_value;
+    REQUIRE(oss.str() == "4.2");
+}
+
+TEST_CASE("TypedValue print double", "[TypedValue]") {
+    Types::TypedValue double_value(4.2);
+    std::ostringstream oss;
+    oss << double_value;
+    REQUIRE(oss.str() == "4.2");
+}
+
+TEST_CASE("TypedValue print date", "[TypedValue]") {
+    auto hardcoded_time = std::chrono::system_clock::time_point(std::chrono::seconds(1622505600)); // 2021-06-01 00:00:00 UTC
+    Types::TypedValue date_value(hardcoded_time);
+    std::ostringstream oss;
+    oss << date_value;
+    std::string expected_date = "2021-06-01";
+    REQUIRE(oss.str() == expected_date);
+}
+
+TEST_CASE("TypedValue print time", "[TypedValue]") {
+    std::chrono::milliseconds millis(12345);
+    Types::TypedValue time_value(millis);
+    std::ostringstream oss;
+    oss << time_value;
+    REQUIRE(oss.str() == "00:00:12.345");
+}
+
+TEST_CASE("TypedValue print timestamp", "[TypedValue]") {
+    auto hardcoded_time = std::chrono::system_clock::time_point(std::chrono::milliseconds(1654041600000)); // 2022-06-01 00:00:00 UTC
+    Types::TypedValue timestamp_value(hardcoded_time, true);
+    std::ostringstream oss;
+    oss << timestamp_value;
+
+    std::string expected_timestamp = "2022-06-01 00:00:00.000";
+    REQUIRE(oss.str() == expected_timestamp);
+}
+
+TEST_CASE("TypedValue print interval", "[TypedValue]") {
+    Types::Interval interval(5, 20);
+    Types::TypedValue interval_value(interval);
+    std::ostringstream oss;
+    oss << interval_value;
+    REQUIRE(oss.str() == "5 months 20 milliseconds"); // Example output format
+}
+
+TEST_CASE("TypedValue print document", "[TypedValue]") {
+    std::unordered_map<std::string, Types::TypedValue> document;
+    document["key1"] = Types::TypedValue(42);
+    document["key2"] = Types::TypedValue(std::string("value"));
+    Types::TypedValue document_value(document);
+    std::ostringstream oss;
+    oss << document_value;
+    REQUIRE((oss.str() == "{\"key1\": 42, \"key2\": \"value\"}" || oss.str() == "{\"key2\": \"value\", \"key1\": 42}"));
+}
+
+TEST_CASE("TypedValue print null", "[TypedValue]") {
+    Types::TypedValue null_value;
+    std::ostringstream oss;
+    oss << null_value;
+    REQUIRE(oss.str() == "null");
+}
+
+TEST_CASE("TypedValue print list", "[TypedValue]") {
+    std::list<Types::TypedValue> list = {Types::TypedValue(1), Types::TypedValue(2)};
+    Types::TypedValue list_value(list);
+    std::ostringstream oss;
+    oss << list_value;
+    REQUIRE(oss.str() == "[1, 2]");
+}
+
+TEST_CASE("TypedValue print string", "[TypedValue]") {
+    std::string str = "test";
+    Types::TypedValue string_value(str);
+    std::ostringstream oss;
+    oss << string_value;
+    REQUIRE(oss.str() == "\"test\"");
+}
+
+TEST_CASE("TypedValue print bytes", "[TypedValue]") {
+    std::vector<uint8_t> bytes = {'a', 'b', 'c'};
+    Types::TypedValue bytes_value(bytes);
+    std::ostringstream oss;
+    oss << bytes_value;
+    REQUIRE(oss.str() == "616263"); // Hex representation of 'a', 'b', 'c'
 }

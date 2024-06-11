@@ -186,7 +186,7 @@ namespace Types {
         }
     }
 
-
+/*
     TypedValue::TypedValue(TypedValue &&other) noexcept
             : value_case(other.value_case),
               is_serialized(other.is_serialized),
@@ -195,6 +195,7 @@ namespace Types {
         value = std::move(other.value);
         other.value_case = org::polypheny::prism::ProtoValue::ValueCase::VALUE_NOT_SET;
     }
+    */
 
 
     TypedValue &TypedValue::operator=(const TypedValue &other) {

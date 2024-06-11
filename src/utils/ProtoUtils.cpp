@@ -94,18 +94,19 @@
 
         std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value) {
             mp_exp_t exponent;
-            std::string str_val = mpf_value.get_str(exponent);
+            std::string str_val = mpf_value.get_str(exponent, 10);
             std::string::size_type point_pos = str_val.find('.');
             if (point_pos != std::string::npos) {
                 str_val.erase(point_pos, 1);
             }
             mpz_class mantissa(str_val, 10);
+            int32_t scale = str_val.length() - exponent;
             size_t count;
             auto binary_data = mpz_export(nullptr, &count, 1, 1, 0, 0, mantissa.get_mpz_t());
             std::string unscaled_value(reinterpret_cast<char*>(binary_data), count);
             free(binary_data);
 
-            return std::make_pair(unscaled_value, -exponent);
+            return std::make_pair(unscaled_value, scale);
         }
 
     }

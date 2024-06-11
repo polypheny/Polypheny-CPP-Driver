@@ -120,13 +120,34 @@ TEST_CASE("Utils::scale_by_10_to_neg_x", "[Utils]") {
     REQUIRE(number == expected);
 }
 
-TEST_CASE("Utils::mpf_get_unscaled_value_and_scale", "[Utils]") {
+TEST_CASE("Utils::mpf_get_unscaled_value_and_scale - positive scale", "[Utils]") {
     mpf_class number("123.45");
     std::pair<std::string, int32_t> result = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(number);
 
-    // decimal 12345 -> hex 0x30 0x39 -> ascii '0' = 0x30, '9' = 0x39
-    std::string expected_unscaled_value = R"(09)";
-    uint32_t expected_scale = 2;
+    std::string expected_unscaled_value = std::string{char(0x30), char(0x39)};
+    int32_t expected_scale = 2;
+
+    REQUIRE(result.first == expected_unscaled_value);
+    REQUIRE(result.second == expected_scale);
+}
+
+TEST_CASE("Utils::mpf_get_unscaled_value_and_scale - negative scale", "[Utils]") {
+    mpf_class number("1234500");
+    std::pair<std::string, int32_t> result = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(number);
+
+    std::string expected_unscaled_value = std::string{char(0x30), char(0x39)};;
+    int32_t expected_scale = -2;
+
+    REQUIRE(result.first == expected_unscaled_value);
+    REQUIRE(result.second == expected_scale);
+}
+
+TEST_CASE("Utils::mpf_get_unscaled_value_and_scale - scale 0", "[Utils]") {
+    mpf_class number("123");
+    std::pair<std::string, int32_t> result = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(number);
+
+    std::string expected_unscaled_value = std::string{char(0x7B)};
+    int32_t expected_scale = 0;
 
     REQUIRE(result.first == expected_unscaled_value);
     REQUIRE(result.second == expected_scale);

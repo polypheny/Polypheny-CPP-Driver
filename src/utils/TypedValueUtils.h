@@ -25,6 +25,8 @@ namespace Utils::TypedValueUtils {
     std::ostream &write_file_to_stream(std::ostream &os, const std::vector<uint8_t> &value);
 
     std::ostream &write_map_to_stream(std::ostream &os, std::unordered_map<std::string, Types::TypedValue> &value);
+
+    std::string bytes_to_hex_string(const std::vector<uint8_t>& bytes);
 }
 
 #endif //POLYPHENY_CPP_DRIVER_TYPEDVALUEUTILS_H
