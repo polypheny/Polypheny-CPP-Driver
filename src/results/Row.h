@@ -33,6 +33,17 @@ namespace Results {
 
         [[nodiscard]] size_t size() const;
 
+        using iterator = std::vector<Types::TypedValue>::iterator;
+        using const_iterator = std::vector<Types::TypedValue>::const_iterator;
+
+        iterator begin() { return values.begin(); }
+
+        [[nodiscard]] const_iterator begin() const { return values.begin(); }
+
+        iterator end() { return values.end(); }
+
+        [[nodiscard]] const_iterator end() const { return values.end(); }
+
     private:
         std::vector<Types::TypedValue> values;
         std::shared_ptr<Results::RelationalMetadata> relational_metadata;
