@@ -3,10 +3,76 @@
 //
 
 #include "GraphResult.h"
+#include "results/Node.h"
+#include "results/Edge.h"
+#include "connection/Cursor.h"
+#include "connection/Connection.h"
 
 namespace Results {
-    GraphResult::GraphResult(const org::polypheny::prism::GraphFrame &graph_frame, bool is_last,
-                             Connection::Cursor *cursor) : Result(ResultType::GRAPH) {
+    GraphResult::GraphResult(const org::polypheny::prism::GraphFrame &graph_frame, bool is_last, Connection::Cursor *cursor)
+            : Result(ResultType::GRAPH), is_fully_fetched(is_last), cursor(cursor) {
+        add_graph_elements(graph_frame);
+    }
 
+    void GraphResult::add_graph_elements(const org::polypheny::prism::GraphFrame &graph_frame) {
+        if (graph_frame.nodes_size() > 0) {
+            for (const auto &node : graph_frame.nodes()) {
+                elements.push_back(std::make_shared<Node>(node));
+            }
+            return;
+        }
+        if (graph_frame.edges_size() > 0) {
+            for (const auto &edge : graph_frame.edges()) {
+                elements.push_back(std::make_shared<Edge>(edge));
+            }
+            return;
+        }
+        if (graph_frame.paths_size() > 0) {
+            throw std::runtime_error("Path results are not supported yet.");
+        }
+    }
+
+    void GraphResult::fetch_more() {
+        uint32_t statement_id = cursor->get_statement_id();
+        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client().fetch_result(
+                statement_id, DEFAULT_FETCH_SIZE);
+
+        if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kGraphFrame) {
+            throw std::runtime_error("Statement returned a result of illegal type.");
+        }
+
+        is_fully_fetched = frame.is_last();
+        add_graph_elements(frame.graph_frame());
+    }
+
+    GraphResult::GraphElementIterator GraphResult::begin() {
+        return {std::shared_ptr<GraphResult>(this, [](GraphResult*){}), 0};
+    }
+
+    GraphResult::GraphElementIterator GraphResult::end() {
+        return {std::shared_ptr<GraphResult>(this, [](GraphResult*){}), elements.size()};
+    }
+
+    GraphResult::GraphElementIterator::GraphElementIterator(std::shared_ptr<GraphResult> result, size_t index)
+            : result(std::move(result)), index(index) {}
+
+    bool GraphResult::GraphElementIterator::operator==(const GraphElementIterator &other) const {
+        return index == other.index && result == other.result;
+    }
+
+    bool GraphResult::GraphElementIterator::operator!=(const GraphElementIterator &other) const {
+        return !(*this == other);
+    }
+
+    std::shared_ptr<GraphElement> GraphResult::GraphElementIterator::operator*() {
+        return result->elements[index];
+    }
+
+    GraphResult::GraphElementIterator &GraphResult::GraphElementIterator::operator++() {
+        ++index;
+        if (index >= result->elements.size() && !result->is_fully_fetched) {
+            result->fetch_more();
+        }
+        return *this;
     }
 } // Results

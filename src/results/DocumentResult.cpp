@@ -1,7 +1,7 @@
 #include "DocumentResult.h"
-#include "src/connection/Cursor.h"
-#include "src/connection/Connection.h"
-#include "src/types/TypedValue.h"
+#include "connection/Cursor.h"
+#include "connection/Connection.h"
+#include "types/TypedValue.h"
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -15,8 +15,8 @@ namespace Results {
         add_documents(document_frame);
     }
 
-    void DocumentResult::add_documents(const org::polypheny::prism::DocumentFrame &documentFrame) {
-        for (const auto &proto_document : documentFrame.documents()) {
+    void DocumentResult::add_documents(const org::polypheny::prism::DocumentFrame &document_frame) {
+        for (const auto &proto_document : document_frame.documents()) {
             std::unordered_map<std::string, Types::TypedValue> document;
             for (const auto &field : proto_document.entries()) {
                 document[field.key().string().string()] = Types::TypedValue(field.value());

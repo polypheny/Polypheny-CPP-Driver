@@ -12,8 +12,8 @@ polypheny_prism_api_dep = polypheny_prism_api_subproject.get_variable('polypheny
 # pthreads
 pthread_dep = dependency('threads')
 # GNU Multiple Precision Arithmetic Library (used for BigDecimals)
-gmp_dep = dependency('gmp', required: true, fallback: ['gmp', 'gmp_dep'])
-gmpxx_dep = dependency('gmpxx', required: true, fallback: ['gmp', 'gmpxx_dep'])
+gmp_dep = dependency('gmp', required : true, fallback : ['gmp', 'gmp_dep'])
+gmpxx_dep = dependency('gmpxx', required : true, fallback : ['gmp', 'gmpxx_dep'])
 
 # ========================
 # Test Dependencies
@@ -37,7 +37,10 @@ polypheny_src = files(
     'src/connection/ConnectionProperties.cpp',
     'src/connection/Cursor.cpp',
     'src/results/DocumentResult.cpp',
+    'src/results/GraphElement.cpp',
     'src/results/GraphResult.cpp',
+    'src/results/Edge.cpp',
+    'src/results/Node.cpp',
     'src/types/Interval.cpp',
     'src/transport/PlainTransport.cpp',
     'src/transport/UnixTransport.cpp',

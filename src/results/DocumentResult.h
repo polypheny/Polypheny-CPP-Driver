@@ -5,7 +5,7 @@
 #ifndef POLYPHENY_CPP_DRIVER_DOCUMENTRESULT_H
 #define POLYPHENY_CPP_DRIVER_DOCUMENTRESULT_H
 
-#include "Result.h"
+#include "results/Result.h"
 #include "document_frame.pb.h"
 #include "types/TypedValue.h"
 
@@ -37,7 +37,7 @@ namespace Results {
         DocumentIterator end();
 
     private:
-        void add_documents(const org::polypheny::prism::DocumentFrame &documentFrame);
+        void add_documents(const org::polypheny::prism::DocumentFrame &document_frame);
         void fetch_more();
 
         std::vector<std::unordered_map<std::string, Types::TypedValue>> documents;
