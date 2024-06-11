@@ -13,7 +13,7 @@ int main() {
     Connection::Cursor cursor(database_connection);
 
     // execute a statement using this cursor
-    std::unique_ptr<Results::Result> result = cursor.execute("sql", "SELECT * FROM emps;", "public");
+    std::unique_ptr<Results::Result> result = cursor.execute("sql", "SELECT * FROM emp;", "public");
 
     // the result can now be processed
     if (result->get_result_type() != Results::ResultType::RELATIONAL) {
@@ -21,8 +21,17 @@ int main() {
     }
 
     auto* relational_result = result->unwrap<Results::RelationalResult>();
-    for (auto row : *relational_result) {
-        std::cout << row[0];
+    auto metadata = relational_result->get_metadata();
+    uint32_t columns_count = metadata->get_column_count();
+    for(uint32_t i = 0; i < columns_count; i++) {
+        std::cout << metadata->get_column_meta(i).get_column_label() << ", ";
+    }
+    std::cout << std::endl;
+    for (const auto& row : *relational_result) {
+        for (const auto& value : row) {
+            std::cout << value << ", ";
+        }
+        std::cout << std::endl;
     }
 
 }

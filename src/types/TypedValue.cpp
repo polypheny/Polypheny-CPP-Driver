@@ -120,6 +120,12 @@ namespace Types {
             : value_case(other.value_case),
               is_serialized(other.is_serialized),
               is_deserialized(other.is_deserialized) {
+        if (other.is_serialized) {
+            serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
+        }
+        if (!other.is_deserialized) {
+            return;
+        }
         switch (value_case) {
             case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
                 value = std::get<bool>(other.value);
@@ -180,10 +186,6 @@ namespace Types {
             default:
                 throw std::runtime_error("Unsupported value case in TypedValue copy constructor");
         }
-
-        if (other.is_serialized) {
-            serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
-        }
     }
 
 /*
@@ -203,7 +205,12 @@ namespace Types {
             value_case = other.value_case;
             is_serialized = other.is_serialized;
             is_deserialized = other.is_deserialized;
-
+            if (other.is_serialized) {
+                serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
+            }
+            if (!other.is_deserialized) {
+                return *this;
+            }
             switch (value_case) {
                 case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
                     value = std::get<bool>(other.value);
@@ -263,10 +270,6 @@ namespace Types {
                     break;
                 default:
                     throw std::runtime_error("Unsupported value case in TypedValue copy assignment operator");
-            }
-
-            if (other.is_serialized) {
-                serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
             }
         }
         return *this;
