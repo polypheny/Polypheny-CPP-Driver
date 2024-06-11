@@ -21,6 +21,8 @@ int main() {
     }
 
     auto* relational_result = result->unwrap<Results::RelationalResult>();
-
+    for (auto row : *relational_result) {
+        std::cout << row[0];
+    }
 
 }

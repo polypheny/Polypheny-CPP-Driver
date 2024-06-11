@@ -3,8 +3,8 @@
 
 #include "Result.h"
 #include "relational_frame.pb.h"
-#include "src/results/RelationalMetadata.h"
-#include "src/results/Row.h"
+#include "results/RelationalMetadata.h"
+#include "results/Row.h"
 #include <memory>
 #include <list>
 #include <iterator>
@@ -57,8 +57,6 @@ namespace Results {
         std::shared_ptr<RelationalResult> result;
         size_t index;
     };
-
-} // Results
 
 } // Results
 

@@ -11,11 +11,11 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "src/connection/CallbackQueue.h"
-#include "src/transport/Transport.h"
-#include "src/transport/PlainTransport.h"
-#include "src/connection/ServerError.h"
-#include "src/connection/ConnectionProperties.h"
+#include "transport/Transport.h"
+#include "connection/CallbackQueue.h"
+#include "transport/PlainTransport.h"
+#include "connection/ServerError.h"
+#include "connection/ConnectionProperties.h"
 #include "statement_responses.pb.h"
 #include "connection_responses.pb.h"
 #include "protointerface.pb.h"
@@ -30,7 +30,7 @@ namespace Communication {
         static constexpr int MINOR_API_VERSION = 1;
 
         std::atomic<long> request_id{1};
-        std::unique_ptr<Transport> transport;
+        std::unique_ptr<Transport::Transport> transport;
         std::thread response_reader;
         bool is_closed = false;
         bool has_sent_disconnect = false;

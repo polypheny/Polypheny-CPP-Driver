@@ -27,7 +27,7 @@ namespace Results {
 
         const uint32_t DEFAULT_FETCH_SIZE = 100;
     public:
-        virtual ~Result() = default
+        virtual ~Result() = default;
 
         [[nodiscard]] ResultType get_result_type() const {
             return resultType;

@@ -73,4 +73,39 @@
             }
             return proto_list;
         }
+
+        mpf_class bytes_to_mpf(const std::string &input) {
+            mpz_t temp;
+            mpz_init(temp);
+            mpz_import(temp, input.size(), 1, sizeof(char), 0, 0, input.data());
+            mpf_class result;
+            mpf_set_z(result.get_mpf_t(), temp);
+            mpz_clear(temp);
+            return result;
+        }
+
+        void scale_by_10_to_neg_x(mpf_class &number, int32_t x) {
+            mpf_class scale_factor;
+            mpf_init_set_ui(scale_factor.get_mpf_t(), 10);
+            mpf_pow_ui(scale_factor.get_mpf_t(), scale_factor.get_mpf_t(), x);
+            number /= scale_factor;
+        }
+
+
+        std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value) {
+            mp_exp_t exponent;
+            std::string str_val = mpf_value.get_str(exponent);
+            std::string::size_type point_pos = str_val.find('.');
+            if (point_pos != std::string::npos) {
+                str_val.erase(point_pos, 1);
+            }
+            mpz_class mantissa(str_val, 10);
+            size_t count;
+            auto binary_data = mpz_export(nullptr, &count, 1, 1, 0, 0, mantissa.get_mpz_t());
+            std::string unscaled_value(reinterpret_cast<char*>(binary_data), count);
+            free(binary_data);
+
+            return std::make_pair(unscaled_value, -exponent);
+        }
+
     }
