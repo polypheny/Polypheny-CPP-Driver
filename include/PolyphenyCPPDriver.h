@@ -14,13 +14,14 @@
 #include "results/Result.h"
 #include "results/ScalarResult.h"
 #include "results/RelationalResult.h"
+#include "results/RelationalMetadata.h"
+#include "results/RelationalColumnMetadata.h"
+#include "results/Row.h"
 #include "results/DocumentResult.h"
 #include "results/GraphResult.h"
 
 // native types
 #include "types/NativeType.h"
-#include "types/BigDecimal.h"
-#include "types/Document.h"
 #include "types/Interval.h"
 
 // values

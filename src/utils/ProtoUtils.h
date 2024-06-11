@@ -7,7 +7,9 @@
 #include <cstdint>
 #include <memory>
 #include "value.pb.h"
-#include "src/types/TypedValue.h"
+#include "types/TypedValue.h"
+#include "types/Interval.h"
+#include <gmpxx.h>
 
 namespace Types {
     // forward declarations
@@ -38,6 +40,12 @@ namespace Utils::ProtoUtils {
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
     list_to_proto(std::list<Types::TypedValue> &typed_values);
+
+    mpf_class bytes_to_mpf(const std::string &bytes);
+
+    void scale_by_10_to_neg_x(mpf_class &number, int32_t x);
+
+    std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value);
 
 
 } // namespace Utils

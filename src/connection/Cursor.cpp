@@ -1,4 +1,4 @@
-#include "Cursor.h"
+#include "src/connection/Cursor.h"
 #include "src/connection/Connection.h"
 #include <iostream>
 

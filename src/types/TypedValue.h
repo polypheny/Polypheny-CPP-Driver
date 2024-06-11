@@ -1,59 +1,57 @@
 #ifndef POLYPHENY_CPP_DRIVER_TYPEDVALUE_H
 #define POLYPHENY_CPP_DRIVER_TYPEDVALUE_H
 
-#include <chrono>
-#include <vector>
-#include <list>
 #include <memory>
 #include <string>
 #include <utility>
-#include "src/utils/ProtoUtils.h"
+#include <variant>
+#include <vector>
+#include <list>
+#include <unordered_map>
+#include <gmpxx.h>
+#include <chrono>
+#include "utils/ProtoUtils.h"
 #include "value.pb.h"
+
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
-    class BigDecimal;
-
     class Document;
-
     class Interval;
-
     class TypedValue;
+
+    using Representation = std::variant<
+            std::monostate,
+            bool,
+            int32_t,
+            int64_t,
+            mpf_class,
+            float,
+            double,
+            std::chrono::system_clock::time_point,
+            std::chrono::milliseconds,
+            std::unique_ptr<Interval>,
+            std::string,
+            std::vector<uint8_t>,
+            std::list<std::unique_ptr<TypedValue>>,
+            std::unordered_map<std::string, std::unique_ptr<TypedValue>>
+    >;
 }
 
 namespace Types {
-
-    union Representation {
-        bool boolean_value;
-        int32_t integer_value;
-        int64_t bigint_value;
-        BigDecimal *big_decimal_value;
-        float float_value;
-        double double_value;
-        std::chrono::system_clock::time_point date_value;
-        std::chrono::milliseconds time_value;
-        std::chrono::system_clock::time_point timestamp_value;
-        Interval *interval_value;
-        std::string varchar_value;
-        std::vector<uint8_t> binary_value;
-        std::list<TypedValue> list_value;
-        Document *document_value;
-
-        Representation() {}
-
-        ~Representation() {}
-    };
-
     class TypedValue {
     private:
+        Representation value;
+
         org::polypheny::prism::ProtoValue::ValueCase value_case;
-        Types::Representation value;
+
         std::shared_ptr<org::polypheny::prism::ProtoValue> serialized;
-        bool is_serialized{};
-        bool is_deserialized{};
+        bool is_serialized;
+        bool is_deserialized;
         void deserialize();
 
     public:
-        explicit TypedValue(org::polypheny::prism::ProtoValue proto_value);
+        // Constructors for different types
+        explicit TypedValue(const org::polypheny::prism::ProtoValue &proto_value);
 
         explicit TypedValue(bool value);
 
@@ -61,7 +59,7 @@ namespace Types {
 
         explicit TypedValue(int64_t value);
 
-        explicit TypedValue(const BigDecimal &value);
+        explicit TypedValue(const mpf_class &value);
 
         explicit TypedValue(float value);
 
@@ -75,11 +73,11 @@ namespace Types {
 
         explicit TypedValue(const Interval &value);
 
-        explicit TypedValue(const Document &value);
+        explicit TypedValue(const std::unordered_map<std::string, TypedValue> &document_value);
 
         explicit TypedValue();
 
-        explicit TypedValue(const std::list<Types::TypedValue> &values);
+        explicit TypedValue(const std::list<TypedValue> &values);
 
         explicit TypedValue(const std::string &value);
 
@@ -91,15 +89,15 @@ namespace Types {
 
         TypedValue &operator=(const TypedValue &other);
 
-        TypedValue &operator=(TypedValue &&other) noexcept;
+        ~TypedValue() = default;
 
-        ~TypedValue();
+        friend std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value);
 
         std::shared_ptr<org::polypheny::prism::ProtoValue> serialize();
 
-        bool is_null();
+        org::polypheny::prism::ProtoValue::ValueCase get_value_case();
 
-        bool is_moved_from();
+        bool is_null();
 
         bool as_boolean();
 
@@ -107,7 +105,7 @@ namespace Types {
 
         int64_t as_int64_t();
 
-        Types::BigDecimal as_big_decimal();
+        mpf_class as_big_decimal();
 
         float as_float();
 
@@ -119,9 +117,9 @@ namespace Types {
 
         std::chrono::system_clock::time_point as_timestamp();
 
-        Types::Interval as_interval();
+        Interval as_interval();
 
-        Types::Document as_document();
+        std::unordered_map<std::string, TypedValue> as_document();
 
         std::list<TypedValue> as_list();
 

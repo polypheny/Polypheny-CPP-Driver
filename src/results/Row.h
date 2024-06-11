@@ -31,7 +31,7 @@ namespace Results {
 
         [[nodiscard]] Types::TypedValue at(const std::string &column_name) const;
 
-        size_t size() const;
+        [[nodiscard]] size_t size() const;
 
     private:
         std::vector<Types::TypedValue> values;
