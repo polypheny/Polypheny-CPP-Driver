@@ -85,7 +85,7 @@ namespace Types {
 
         TypedValue(const TypedValue &other);
 
-        TypedValue(TypedValue &&other) noexcept;
+        //TypedValue(TypedValue &&other) noexcept;
 
         TypedValue &operator=(const TypedValue &other);
 

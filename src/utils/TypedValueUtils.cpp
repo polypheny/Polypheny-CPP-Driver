@@ -47,10 +47,10 @@ namespace Utils::TypedValueUtils {
                 os << typed_value.as_interval();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                os << typed_value.as_string();
+                os << "\"" << typed_value.as_string() << "\"";
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                os << Utils::ProtoUtils::vector_to_string(typed_value.as_bytes());
+                os << bytes_to_hex_string(typed_value.as_bytes());
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList:
                 write_list_to_stream(os, typed_value.as_list());
@@ -152,5 +152,13 @@ namespace Utils::TypedValueUtils {
         }
         os << "}";
         return os;
+    }
+
+    std::string bytes_to_hex_string(const std::vector<uint8_t>& bytes) {
+        std::ostringstream oss;
+        for (const auto& byte : bytes) {
+            oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+        }
+        return oss.str();
     }
 }
