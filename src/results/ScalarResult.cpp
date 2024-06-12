@@ -6,4 +6,8 @@
 
 namespace Results {
     ScalarResult::ScalarResult(uint64_t scalar) : Result(ResultType::SCALAR), scalar(scalar) {}
+
+    uint64_t ScalarResult::get_scalar() {
+        return scalar;
+    }
 } // Results
