@@ -9,10 +9,10 @@ namespace Results {
             : GraphElement(proto_edge.id(), proto_edge.name()),
               source(proto_edge.source()),
               target(proto_edge.target()),
-              direction(proto_edge.direction()) {
+              direction(get_edge_direction_from_proto(proto_edge.direction())) {
 
         labels.assign(proto_edge.labels().begin(), proto_edge.labels().end());
-        for (const auto& property : proto_edge.properties()) {
+        for (const auto &property: proto_edge.properties()) {
             emplace(property.key().string().string(), property.value());
         }
     }
@@ -25,7 +25,23 @@ namespace Results {
         return target;
     }
 
-    org::polypheny::prism::ProtoEdge_Direction Edge::get_direction() const {
+    EdgeDirection Edge::get_direction() const {
         return direction;
+    }
+
+    EdgeDirection Edge::get_edge_direction_from_proto(org::polypheny::prism::ProtoEdge_Direction direction) {
+        if (direction == org::polypheny::prism::ProtoEdge_Direction::ProtoEdge_Direction_UNSPECIFIED) {
+            throw std::runtime_error("Edge missing direction specification");
+        }
+        switch (direction) {
+            case org::polypheny::prism::ProtoEdge_Direction::ProtoEdge_Direction_NONE:
+                return EdgeDirection::NONE;
+            case org::polypheny::prism::ProtoEdge_Direction::ProtoEdge_Direction_LEFT_TO_RIGHT:
+                return EdgeDirection::LEFT_TO_RIGHT;
+            case org::polypheny::prism::ProtoEdge_Direction::ProtoEdge_Direction_RIGHT_TO_LEFT:
+                return EdgeDirection::RIGHT_TO_LEFT;
+            default:
+                throw std::runtime_error("Should never be thrown.");
+        }
     }
 } // Results

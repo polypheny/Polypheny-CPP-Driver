@@ -9,12 +9,20 @@
 #include "graph_frame.pb.h"
 
 namespace Results {
+    enum class EdgeDirection {
+        LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT,
+        NONE
+    };
 
     class Edge : public GraphElement {
     private:
         std::string source;
         std::string target;
-        org::polypheny::prism::ProtoEdge_Direction direction;
+        // TODO: use custom enum to prevent proto stuff from leaking
+        EdgeDirection direction;
+
+        static EdgeDirection get_edge_direction_from_proto(org::polypheny::prism::ProtoEdge_Direction direction);
 
     public:
         Edge(const org::polypheny::prism::ProtoEdge &proto_edge);
@@ -23,7 +31,7 @@ namespace Results {
 
         const std::string &get_target() const;
 
-        org::polypheny::prism::ProtoEdge_Direction get_direction() const;
+        EdgeDirection get_direction() const;
     };
 
 } // Results
