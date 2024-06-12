@@ -16,6 +16,7 @@ namespace Transport {
         sockaddr_un addr{};
         addr.sun_family = AF_UNIX;
         strncpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path) - 1);
+        //TODO: throw error if path does not fit
 
         if (connect(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
             close_socket();
