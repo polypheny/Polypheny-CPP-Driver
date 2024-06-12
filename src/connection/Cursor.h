@@ -14,6 +14,7 @@
 #include "results/DocumentResult.h"
 #include "results/GraphResult.h"
 #include "results/ScalarResult.h"
+#include "connection/Statement.h"
 
 namespace Connection {
     // forward declaration, include in .cpp
@@ -52,6 +53,18 @@ namespace Connection {
         execute(const std::string &language, const std::string &statement, const std::string &nspace);
 
         std::unique_ptr<Results::Result> execute(const std::string &language, const std::string &statement);
+
+        std::vector<std::unique_ptr<Results::Result>> execute(const std::vector<Statement> &statements);
+
+        void prepare(const std::string &language, const std::string &statement);
+
+        void prepare(const std::string &language, const std::string &statement, const std::string &nspace);
+
+        std::unique_ptr<Results::Result> execute_prepared(const std::vector<TypedValue> &params);
+
+        std::unique_ptr<Results::Result> execute_prepared(const std::unordered_map<std::string, TypedValue> &params);
+
+        std::vector<std::unique_ptr<Results::Result>> execute_prepared(const std::vector<std::vector<TypedValue>> &params_batch);
     };
 
 } // namespace Connection
