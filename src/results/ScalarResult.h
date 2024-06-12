@@ -11,7 +11,8 @@ namespace Results {
 
     class ScalarResult : public Result {
     public:
-        ScalarResult(uint64_t scalar);
+        explicit ScalarResult(uint64_t scalar);
+        uint64_t get_scalar();
 
     private:
         uint64_t scalar;
