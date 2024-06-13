@@ -36,7 +36,6 @@ polypheny_src = files(
     'src/transport/ConnectionClosedError.cpp',
     'src/connection/ConnectionProperties.cpp',
     'src/connection/Cursor.cpp',
-    'src/connection/Statement.cpp',
     'src/results/DocumentResult.cpp',
     'src/results/GraphElement.cpp',
     'src/results/GraphResult.cpp',

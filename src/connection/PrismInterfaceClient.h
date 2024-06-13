@@ -19,6 +19,7 @@
 #include "statement_responses.pb.h"
 #include "connection_responses.pb.h"
 #include "protointerface.pb.h"
+#include "types/TypedValue.h"
 
 namespace Communication {
 
@@ -54,13 +55,36 @@ namespace Communication {
         ~PrismInterfaceClient();
 
         org::polypheny::prism::ConnectionResponse
-        connect(const Connection::ConnectionProperties &connection_properties, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        connect(const Connection::ConnectionProperties &connection_properties,
+                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        void disconnect_and_close(uint32_t timeout_millis  = DEFAULT_TIMEOUT_MILLIS);
+        void disconnect_and_close(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
-                                          std::shared_ptr<CallbackQueue> callback_queue);
+                                          std::shared_ptr<CallbackQueue> &callback_queue);
+
+        void
+        execute_unparameterized_statement_batch(std::string namespace_name, std::string language_name,
+                                                const std::vector<std::string> &statements,
+                                                const std::shared_ptr<CallbackQueue> &callback_queue);
+
+        org::polypheny::prism::PreparedStatementSignature
+        prepare_indexed_statement(std::string &namespace_name, std::string &language_name, std::string &statement,
+                                  uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
+        org::polypheny::prism::StatementResult
+        execute_indexed_statement(uint32_t &statement_id, std::vector<Types::TypedValue> &values, uint32_t &fetch_size,
+                                  uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
+        org::polypheny::prism::StatementBatchResponse
+        execute_indexed_statement_batch(uint32_t &statement_id,
+                                        const std::vector<std::vector<Types::TypedValue>> &params_batch,
+                                        uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
+        org::polypheny::prism::StatementResult
+        execute_named_statement(uint32_t &statement_id, std::unordered_map<std::string, Types::TypedValue> &parameters, uint32_t &fetch_size,
+                                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
@@ -70,17 +94,20 @@ namespace Communication {
 
         void close_result(uint32_t statement_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
-        org::polypheny::prism::Frame fetch_result(uint32_t statement_id, uint32_t fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        org::polypheny::prism::Frame
+        fetch_result(uint32_t &statement_id, uint32_t &fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 
         org::polypheny::prism::Response receive_message();
 
         org::polypheny::prism::Response
-        wait_for_completion(std::future<org::polypheny::prism::Response> &future, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        wait_for_completion(std::future<org::polypheny::prism::Response> &future,
+                            uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::Response
-        complete_synchronously(const org::polypheny::prism::Request &request, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        complete_synchronously(const org::polypheny::prism::Request &request,
+                               uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void close();
     };

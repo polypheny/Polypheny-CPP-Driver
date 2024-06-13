@@ -11,7 +11,7 @@
 namespace Communication {
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
         transport = std::make_unique<Transport::PlainTransport>(connection_properties.get_host(),
-                                                     connection_properties.get_port());
+                                                                connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);
     }
@@ -67,13 +67,31 @@ namespace Communication {
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
                                                                  std::string statement,
-                                                                 std::shared_ptr<CallbackQueue> callback_queue) {
+                                                                 std::shared_ptr<CallbackQueue> &callback_queue) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner = outer.mutable_execute_unparameterized_statement_request();
         inner->set_namespace_name(namespace_name);
         inner->set_language_name(language_name);
         inner->set_statement(statement);
+        callback_queues.emplace(outer.id(), callback_queue);
+        send_message(outer);
+    }
+
+    void
+    PrismInterfaceClient::execute_unparameterized_statement_batch(std::string namespace_name, std::string language_name,
+                                                                  const std::vector<std::string> &statements,
+                                                                  const std::shared_ptr<CallbackQueue> &callback_queue) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::ExecuteUnparameterizedStatementBatchRequest *inner = outer.mutable_execute_unparameterized_statement_batch_request();
+        google::protobuf::RepeatedPtrField<org::polypheny::prism::ExecuteUnparameterizedStatementRequest> *inner_statements = inner->mutable_statements();
+        for (auto statement: statements) {
+            org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner_statement = inner_statements->Add();
+            inner_statement->set_namespace_name(namespace_name);
+            inner_statement->set_language_name(language_name);
+            inner_statement->set_statement(statement);
+        }
         callback_queues.emplace(outer.id(), callback_queue);
         send_message(outer);
     }
@@ -110,7 +128,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::Frame
-    PrismInterfaceClient::fetch_result(uint32_t statement_id, uint32_t fetch_size, uint32_t timeout_millis) {
+    PrismInterfaceClient::fetch_result(uint32_t &statement_id, uint32_t &fetch_size, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::FetchRequest *inner = outer.mutable_fetch_request();
@@ -237,5 +255,73 @@ namespace Communication {
             throw Errors::ServerError(response.error_response().message());
         }
         return response;
+    }
+
+    org::polypheny::prism::PreparedStatementSignature
+    PrismInterfaceClient::prepare_indexed_statement(std::string &namespace_name, std::string &language_name,
+                                                    std::string &statement, uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::PrepareStatementRequest *inner = outer.mutable_prepare_indexed_statement_request();
+        inner->set_namespace_name(namespace_name);
+        inner->set_language_name(language_name);
+        inner->set_statement(statement);
+        return complete_synchronously(outer, timeout_millis).prepared_statement_signature();
+    }
+
+    org::polypheny::prism::StatementResult
+    PrismInterfaceClient::execute_indexed_statement(uint32_t &statement_id, std::vector<Types::TypedValue> &values, uint32_t &fetch_size,
+                                                    uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::ExecuteIndexedStatementRequest *inner = outer.mutable_execute_indexed_statement_request();
+        inner->set_statement_id(statement_id);
+        inner->set_fetch_size(fetch_size);
+        org::polypheny::prism::IndexedParameters *inner_parameters = inner->mutable_parameters();
+        google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
+        for (auto value : values) {
+            parameters->AddAllocated(&(*value.serialize()));
+        }
+        return complete_synchronously(outer, timeout_millis).statement_result();
+    }
+
+    org::polypheny::prism::StatementResult PrismInterfaceClient::execute_named_statement(uint32_t &statement_id,
+                                                                                         std::unordered_map<std::string, Types::TypedValue> &values,
+                                                                                         uint32_t &fetch_size,
+                                                                                         uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::ExecuteNamedStatementRequest *inner = outer.mutable_execute_named_statement_request();
+        inner->set_statement_id(statement_id);
+        inner->set_fetch_size(fetch_size);
+        org::polypheny::prism::NamedParameters *inner_parameters = inner->mutable_parameters();
+        google::protobuf::Map<std::basic_string<char>, org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
+        for (auto &entry : values) {
+            (*parameters)[entry.first] = *entry.second.serialize();
+        }
+        return complete_synchronously(outer, timeout_millis).statement_result();
+    }
+
+    org::polypheny::prism::StatementBatchResponse
+    PrismInterfaceClient::execute_indexed_statement_batch(uint32_t &statement_id,
+                                                          const std::vector<std::vector<Types::TypedValue>> &params_batch,
+                                                          uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+
+
+        org::polypheny::prism::ExecuteIndexedStatementBatchRequest *inner = outer.mutable_execute_indexed_statement_batch_request();
+        inner->set_statement_id(statement_id);
+
+
+        google::protobuf::RepeatedPtrField<org::polypheny::prism::IndexedParameters>* inner_parameter_batch = inner->mutable_parameters();
+        for (const auto& param_batch : params_batch) {
+            org::polypheny::prism::IndexedParameters* indexed_param = inner_parameter_batch->Add();
+            google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue>* inner_parameters = indexed_param->mutable_parameters();
+            for (auto value : param_batch) {
+                inner_parameters->AddAllocated(&(*value.serialize()));
+            }
+        }
+        return complete_synchronously(outer, timeout_millis).statement_batch_response();
     }
 } // namespace Communication
