@@ -64,11 +64,11 @@ namespace Connection {
 
         void prepare(const std::string &language, const std::string &statement, const std::string &nspace);
 
-        std::unique_ptr<Results::Result> execute_prepared(const std::vector<Types::TypedValue> &params);
+        std::unique_ptr<Results::Result> execute_prepared(std::vector<Types::TypedValue> &params);
 
-        std::unique_ptr<Results::Result> execute_prepared(const std::unordered_map<std::string, Types::TypedValue> &params);
+        std::unique_ptr<Results::Result> execute_prepared(std::unordered_map<std::string, Types::TypedValue> &params);
 
-        std::vector<uint64_t> execute_prepared(const std::vector<std::vector<Types::TypedValue>> &params_batch);
+        std::vector<uint64_t> execute_prepared(std::vector<std::vector<Types::TypedValue>> &params_batch);
     };
 
 } // namespace Connection

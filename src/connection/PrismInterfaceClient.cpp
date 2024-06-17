@@ -4,13 +4,14 @@
 #include "connection_responses.pb.h"
 #include "statement_requests.pb.h"
 #include "statement_responses.pb.h"
+#include "transport/ConnectionClosedError.h"
 #include <stdexcept>
 #include <thread>
 #include <chrono>
 
 namespace Communication {
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
-        transport = std::make_unique<Transport::PlainTransport>(connection_properties.get_host(),
+        transport = std::make_unique<Transport::PlainTCPTransport>(connection_properties.get_host(),
                                                                 connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);
@@ -128,7 +129,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::Frame
-    PrismInterfaceClient::fetch_result(uint32_t &statement_id, uint32_t &fetch_size, uint32_t timeout_millis) {
+    PrismInterfaceClient::fetch_result(uint32_t &statement_id, const uint32_t &fetch_size, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::FetchRequest *inner = outer.mutable_fetch_request();
@@ -258,8 +259,8 @@ namespace Communication {
     }
 
     org::polypheny::prism::PreparedStatementSignature
-    PrismInterfaceClient::prepare_indexed_statement(std::string &namespace_name, std::string &language_name,
-                                                    std::string &statement, uint32_t timeout_millis) {
+    PrismInterfaceClient::prepare_indexed_statement(const std::string &namespace_name, const std::string &language_name,
+                                                    const std::string &statement, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::PrepareStatementRequest *inner = outer.mutable_prepare_indexed_statement_request();
@@ -270,7 +271,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::StatementResult
-    PrismInterfaceClient::execute_indexed_statement(uint32_t &statement_id, std::vector<Types::TypedValue> &values, uint32_t &fetch_size,
+    PrismInterfaceClient::execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
                                                     uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -285,9 +286,9 @@ namespace Communication {
         return complete_synchronously(outer, timeout_millis).statement_result();
     }
 
-    org::polypheny::prism::StatementResult PrismInterfaceClient::execute_named_statement(uint32_t &statement_id,
+    org::polypheny::prism::StatementResult PrismInterfaceClient::execute_named_statement(const uint32_t &statement_id,
                                                                                          std::unordered_map<std::string, Types::TypedValue> &values,
-                                                                                         uint32_t &fetch_size,
+                                                                                         const uint32_t &fetch_size,
                                                                                          uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));

@@ -13,7 +13,7 @@
 
 #include "transport/Transport.h"
 #include "connection/CallbackQueue.h"
-#include "transport/PlainTransport.h"
+#include "transport/PlainTCPTransport.h"
 #include "connection/ServerError.h"
 #include "connection/ConnectionProperties.h"
 #include "statement_responses.pb.h"
@@ -70,11 +70,11 @@ namespace Communication {
                                                 const std::shared_ptr<CallbackQueue> &callback_queue);
 
         org::polypheny::prism::PreparedStatementSignature
-        prepare_indexed_statement(std::string &namespace_name, std::string &language_name, std::string &statement,
+        prepare_indexed_statement(const std::string &namespace_name, const std::string &language_name, const std::string &statement,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
-        execute_indexed_statement(uint32_t &statement_id, std::vector<Types::TypedValue> &values, uint32_t &fetch_size,
+        execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementBatchResponse
@@ -83,7 +83,7 @@ namespace Communication {
                                         uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
-        execute_named_statement(uint32_t &statement_id, std::unordered_map<std::string, Types::TypedValue> &parameters, uint32_t &fetch_size,
+        execute_named_statement(const uint32_t &statement_id, std::unordered_map<std::string, Types::TypedValue> &parameters, const uint32_t &fetch_size,
                                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
@@ -95,7 +95,7 @@ namespace Communication {
         void close_result(uint32_t statement_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::Frame
-        fetch_result(uint32_t &statement_id, uint32_t &fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        fetch_result(uint32_t &statement_id, const uint32_t &fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 

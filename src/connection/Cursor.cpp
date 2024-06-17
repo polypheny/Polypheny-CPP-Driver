@@ -106,7 +106,7 @@ namespace Connection {
         is_prepared = true;
     }
 
-    std::unique_ptr<Results::Result> Cursor::execute_prepared(const std::vector<Types::TypedValue> &params) {
+    std::unique_ptr<Results::Result> Cursor::execute_prepared(std::vector<Types::TypedValue> &params) {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement ot be prepared first");
         }
@@ -119,7 +119,7 @@ namespace Connection {
     }
 
     std::unique_ptr<Results::Result>
-    Cursor::execute_prepared(const std::unordered_map<std::string, Types::TypedValue> &params) {
+    Cursor::execute_prepared(std::unordered_map<std::string, Types::TypedValue> &params) {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement ot be prepared first");
         }
@@ -132,7 +132,7 @@ namespace Connection {
     }
 
     std::vector<uint64_t>
-    Cursor::execute_prepared(const std::vector<std::vector<Types::TypedValue>> &params_batch) {
+    Cursor::execute_prepared(std::vector<std::vector<Types::TypedValue>> &params_batch) {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement ot be prepared first");
         }
