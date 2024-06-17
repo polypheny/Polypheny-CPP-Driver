@@ -1,4 +1,4 @@
-#include "PlainTCPTransport.h"
+#include "PlainTcpTransport.h"
 
 #include <utility>
 
@@ -6,20 +6,20 @@ namespace Transport {
 
     const std::string VERSION = "plain-v1@polypheny.com\n";
 
-    PlainTCPTransport::PlainTCPTransport() : host("localhost"), port(20590) {}
+    PlainTcpTransport::PlainTcpTransport() : host("localhost"), port(20590) {}
 
-    PlainTCPTransport::PlainTCPTransport(std::string host, uint16_t port) : host(std::move(host)), port(port) {}
+    PlainTcpTransport::PlainTcpTransport(std::string host, uint16_t port) : host(std::move(host)), port(port) {}
 
 
-    PlainTCPTransport::~PlainTCPTransport() {
+    PlainTcpTransport::~PlainTcpTransport() {
         close_socket();
     }
 
-    std::string PlainTCPTransport::get_version() const {
+    std::string PlainTcpTransport::get_version() const {
         return VERSION;
     }
 
-    void PlainTCPTransport::connect() {
+    void PlainTcpTransport::connect() {
 #ifdef _WIN32
         WSADATA wsaData;
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {

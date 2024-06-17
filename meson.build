@@ -14,6 +14,9 @@ pthread_dep = dependency('threads')
 # GNU Multiple Precision Arithmetic Library (used for BigDecimals)
 gmp_dep = dependency('gmp', required : true, fallback : ['gmp', 'gmp_dep'])
 gmpxx_dep = dependency('gmpxx', required : true, fallback : ['gmp', 'gmpxx_dep'])
+# open ssl for transport security
+openssl_subproject = subproject('openssl')
+ssl_dep = openssl_subproject.get_variable('openssl_dep')
 
 # ========================
 # Test Dependencies
@@ -44,7 +47,8 @@ polypheny_src = files(
     'src/types/Interval.cpp',
     'src/transport/SocketTransport.cpp',
     'src/transport/UnixTransport.cpp',
-    'src/transport/PlainTCPTransport.cpp',
+    'src/transport/PlainTcpTransport.cpp',
+    'src/transport/SecureTcpTransport.cpp',
     'src/connection/PrismInterfaceClient.cpp',
     'src/utils/ProtoUtils.cpp',
     'src/utils/TypedValueUtils.cpp',
@@ -59,7 +63,7 @@ polypheny_src = files(
 
 polypheny_cpp_driver_lib = library('polypheny_cpp_library',
                                    polypheny_src,
-                                   dependencies : [pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep],
+                                   dependencies : [pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep, ssl_dep],
                                    include_directories : [polypheny_inc, polypheny_src_inc],
 )
 
@@ -86,7 +90,7 @@ test_src = files(
 
 test_exe = executable('runTests',
                       test_src + polypheny_src,
-                      dependencies : [catch2_dep, pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep],
+                      dependencies : [catch2_dep, pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep, ssl_dep],
                       include_directories : [polypheny_inc, polypheny_src_inc],
                       install : true
 )

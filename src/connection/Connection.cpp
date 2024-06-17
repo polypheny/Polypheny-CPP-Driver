@@ -4,7 +4,7 @@
 namespace Connection {
 
     Connection::Connection(ConnectionProperties &connection_properties)
-            : prism_interface_client(connection_properties, std::make_unique<Transport::PlainTCPTransport>()) {
+            : prism_interface_client(connection_properties, std::make_unique<Transport::PlainTcpTransport>()) {
     }
 
     Connection::Connection(ConnectionProperties &connection_properties, std::unique_ptr<Transport::Transport> &&transport)
@@ -12,7 +12,7 @@ namespace Connection {
     }
 
     Connection::Connection(const std::string &host, const std::string &user, const std::string &password)
-            : prism_interface_client(build_connection_properties(user, password), std::make_unique<Transport::PlainTCPTransport>(host)) {
+            : prism_interface_client(build_connection_properties(user, password), std::make_unique<Transport::PlainTcpTransport>(host)) {
     }
 
     Connection::~Connection() {
