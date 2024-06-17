@@ -1,4 +1,5 @@
 #include "PolyphenyCPPDriver.h"
+#include "transport/UnixTransport.h"
 
 void print_separator(const std::vector<int>& column_widths) {
     for (int width : column_widths) {
@@ -31,14 +32,12 @@ void print_help() {
 
 int main() {
 
-    std::string host = "localhost";
-    std::string username = "pa";
-    std::string password = "";
+    std::string user_name = "tobi";
 
-    // Open a connection to the polypheny instance
-    Connection::Connection database_connection(host, username, password);
+    Connection::ConnectionProperties properties = Connection::ConnectionProperties();
+    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::UnixTransport>("/home/" + user_name + "/.polypheny/polypheny-prism.sock");
+    Connection::Connection database_connection(properties, std::move(transport));
 
-    // Get a cursor operating on the previously opened connection
     Connection::Cursor cursor(database_connection);
 
     std::string query;
@@ -46,7 +45,7 @@ int main() {
     std::string currentNamespace = "public";
 
     std::cout << "PolyphenyDB C++ Client: Type 'help' to get an overview over the commands available." << std::endl;
-    std::cout << "Connected to " << host << " as user '" << username << "'." << std::endl;
+    std::cout << "Connected as user '" << properties.get_username() << "'." << std::endl;
 
     while (true) {
         std::cout << currentLanguage << "@" << currentNamespace << "> ";
