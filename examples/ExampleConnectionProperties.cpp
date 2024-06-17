@@ -1,4 +1,5 @@
 #include "PolyphenyCPPDriver.h"
+#include "transport/UnixTransport.h"
 #include <memory>
 
 int main() {
@@ -13,7 +14,7 @@ int main() {
     properties.set_default_namespace("public");
 
     // further we must create a mode of transport to be used by the connection
-    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::PlainTCPTransport>("localhost");
+    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::UnixTransport>("/home/tobi/.polypheny/polypheny-prism.sock");
 
     // the connection properties and the mode of transport can now be used to open connections
     Connection::Connection database_connection(properties, std::move(transport));

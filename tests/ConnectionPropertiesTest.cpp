@@ -2,10 +2,8 @@
 #include "src/connection/ConnectionProperties.h"
 
 TEST_CASE("ConnectionProperties constructor and getters") {
-    Connection::ConnectionProperties props("localhost", 5432, "user", "pass", "default_ns", false, true);
+    Connection::ConnectionProperties props("user", "pass", "default_ns", false, true);
 
-    REQUIRE(props.get_host() == "localhost");
-    REQUIRE(props.get_port() == 5432);
     REQUIRE(props.get_username() == "user");
     REQUIRE(props.get_password() == "pass");
     REQUIRE(props.get_default_namespace() == "default_ns");
@@ -14,13 +12,7 @@ TEST_CASE("ConnectionProperties constructor and getters") {
 }
 
 TEST_CASE("ConnectionProperties setters") {
-    Connection::ConnectionProperties props("localhost", 5432, "user", "pass", "default_ns", false, true);
-
-    props.set_host("127.0.0.1");
-    REQUIRE(props.get_host() == "127.0.0.1");
-
-    props.set_port(3306);
-    REQUIRE(props.get_port() == 3306);
+    Connection::ConnectionProperties props("user", "pass", "default_ns", false, true);
 
     props.set_username("new_user");
     REQUIRE(props.get_username() == "new_user");
@@ -41,8 +33,6 @@ TEST_CASE("ConnectionProperties setters") {
 TEST_CASE("ConnectionProperties default constructor values") {
     Connection::ConnectionProperties props;
 
-    REQUIRE(props.get_host() == "localhost");
-    REQUIRE(props.get_port() == 20590);
     REQUIRE(props.get_username() == "pa");
     REQUIRE(props.get_password().empty());
     REQUIRE(props.get_default_namespace() == "public");
