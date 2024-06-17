@@ -17,22 +17,11 @@ namespace Connection {
         bool is_auto_commit;
 
     public:
-        explicit ConnectionProperties(std::string host = "localhost",
-                                      uint16_t port = 20590,
-                                      std::string username = "pa",
+        explicit ConnectionProperties(std::string username = "pa",
                                       std::string password = "",
                                       std::string default_nspace = "public",
                                       bool is_password_required = true,
                                       bool is_auto_commit = true);
-
-
-        [[nodiscard]] std::string get_host() const;
-
-        void set_host(const std::string &host);
-
-        [[nodiscard]] uint16_t get_port() const;
-
-        void set_port(uint16_t port);
 
         [[nodiscard]] std::string get_username() const;
 

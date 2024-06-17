@@ -50,7 +50,7 @@ namespace Communication {
         void handle_connection_closure(const std::exception_ptr &exception);
 
     public:
-        explicit PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties);
+        explicit PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport);
 
         ~PrismInterfaceClient();
 

@@ -10,9 +10,8 @@
 #include <chrono>
 
 namespace Communication {
-    PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
-        transport = std::make_unique<Transport::PlainTCPTransport>(connection_properties.get_host(),
-                                                                   connection_properties.get_port());
+    PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport) : transport(std::move(transport)) {
+        this->transport->connect();
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);
     }
@@ -57,13 +56,12 @@ namespace Communication {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         outer.mutable_disconnect_request();
-        complete_synchronously(outer, timeout_millis);
         has_sent_disconnect = true;
+        complete_synchronously(outer, timeout_millis);
         is_closed = true;
         if (response_reader.joinable()) {
             response_reader.join();
         }
-
     }
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,

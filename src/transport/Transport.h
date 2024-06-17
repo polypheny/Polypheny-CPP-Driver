@@ -12,6 +12,8 @@ namespace Transport {
         virtual void send_message(const std::string& message) = 0;
 
         virtual std::string receive_message() = 0;
+
+        virtual void connect() = 0;
     };
 
 }

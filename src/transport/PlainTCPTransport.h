@@ -11,11 +11,15 @@ namespace Transport {
 
     class PlainTCPTransport : public SocketTransport {
     public:
-        PlainTCPTransport(const std::string &host, uint16_t port);
+        PlainTCPTransport();
+        explicit PlainTCPTransport(std::string host, uint16_t port = 20590);
         ~PlainTCPTransport() override;
+        void connect() override;
 
     private:
         [[nodiscard]] std::string get_version() const override;
+        std::string host;
+        uint16_t port;
     };
 
 } // namespace Transport
