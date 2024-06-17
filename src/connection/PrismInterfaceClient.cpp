@@ -12,7 +12,7 @@
 namespace Communication {
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties) {
         transport = std::make_unique<Transport::PlainTCPTransport>(connection_properties.get_host(),
-                                                                connection_properties.get_port());
+                                                                   connection_properties.get_port());
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);
     }
@@ -270,8 +270,21 @@ namespace Communication {
         return complete_synchronously(outer, timeout_millis).prepared_statement_signature();
     }
 
+    org::polypheny::prism::PreparedStatementSignature
+    PrismInterfaceClient::prepare_named_statement(const std::string &namespace_name, const std::string &language_name,
+                                                  const std::string &statement, uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::PrepareStatementRequest *inner = outer.mutable_prepare_named_statement_request();
+        inner->set_namespace_name(namespace_name);
+        inner->set_language_name(language_name);
+        inner->set_statement(statement);
+        return complete_synchronously(outer, timeout_millis).prepared_statement_signature();
+    }
+
     org::polypheny::prism::StatementResult
-    PrismInterfaceClient::execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
+    PrismInterfaceClient::execute_indexed_statement(const uint32_t &statement_id,
+                                                    std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
                                                     uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -280,9 +293,14 @@ namespace Communication {
         inner->set_fetch_size(fetch_size);
         org::polypheny::prism::IndexedParameters *inner_parameters = inner->mutable_parameters();
         google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
-        for (auto value : values) {
-            parameters->AddAllocated(&(*value.serialize()));
+        for (auto &value: values) {
+            parameters->AddAllocated(value.serialize());
         }
+
+        //for (auto value : values) {
+        //    parameters->AddAllocated(value.serialize().get());
+        //}
+
         return complete_synchronously(outer, timeout_millis).statement_result();
     }
 
@@ -297,7 +315,7 @@ namespace Communication {
         inner->set_fetch_size(fetch_size);
         org::polypheny::prism::NamedParameters *inner_parameters = inner->mutable_parameters();
         google::protobuf::Map<std::basic_string<char>, org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
-        for (auto &entry : values) {
+        for (auto &entry: values) {
             (*parameters)[entry.first] = *entry.second.serialize();
         }
         return complete_synchronously(outer, timeout_millis).statement_result();
@@ -315,11 +333,11 @@ namespace Communication {
         inner->set_statement_id(statement_id);
 
 
-        google::protobuf::RepeatedPtrField<org::polypheny::prism::IndexedParameters>* inner_parameter_batch = inner->mutable_parameters();
-        for (const auto& param_batch : params_batch) {
-            org::polypheny::prism::IndexedParameters* indexed_param = inner_parameter_batch->Add();
-            google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue>* inner_parameters = indexed_param->mutable_parameters();
-            for (auto value : param_batch) {
+        google::protobuf::RepeatedPtrField<org::polypheny::prism::IndexedParameters> *inner_parameter_batch = inner->mutable_parameters();
+        for (const auto &param_batch: params_batch) {
+            org::polypheny::prism::IndexedParameters *indexed_param = inner_parameter_batch->Add();
+            google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue> *inner_parameters = indexed_param->mutable_parameters();
+            for (auto value: param_batch) {
                 inner_parameters->AddAllocated(&(*value.serialize()));
             }
         }

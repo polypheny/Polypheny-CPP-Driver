@@ -11,74 +11,73 @@ namespace Types {
 
     TypedValue::TypedValue(const org::polypheny::prism::ProtoValue &proto_value)
             : serialized(std::make_shared<org::polypheny::prism::ProtoValue>(proto_value)),
-              is_serialized(true),
               is_deserialized(false),
               value_case(proto_value.value_case()) {}
 
     TypedValue::TypedValue(bool value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kBoolean),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(int32_t value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kInteger),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(int64_t value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kLong),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const mpf_class &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(float value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kFloat),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(double value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kDouble),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::chrono::system_clock::time_point &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kDate),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::chrono::milliseconds &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kTime),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::chrono::system_clock::time_point &timestamp_value, bool is_timestamp)
             : value(timestamp_value),
               value_case(is_timestamp ? org::polypheny::prism::ProtoValue::ValueCase::kTimestamp
                                       : org::polypheny::prism::ProtoValue::ValueCase::kDate),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const Types::Interval &value)
             : value(std::make_unique<Types::Interval>(value)),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kInterval),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::unordered_map<std::string, TypedValue> &document_value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kDocument),
-              is_serialized(false),
+
               is_deserialized(true) {
         std::unordered_map<std::string, std::unique_ptr<TypedValue>> ptr_map;
         for (const auto &pair: document_value) {
@@ -90,12 +89,12 @@ namespace Types {
     TypedValue::TypedValue()
             : value(std::monostate{}),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kNull),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::list<TypedValue> &values)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kList),
-              is_serialized(false),
+
               is_deserialized(true) {
         std::list<std::unique_ptr<TypedValue>> ptr_values;
         for (const auto &val: values) {
@@ -107,23 +106,19 @@ namespace Types {
     TypedValue::TypedValue(const std::string &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kString),
-              is_serialized(false),
+
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const std::vector<uint8_t> &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kBinary),
-              is_serialized(false),
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const TypedValue &other)
             : value_case(other.value_case),
-              is_serialized(other.is_serialized),
               is_deserialized(other.is_deserialized) {
-        if (other.is_serialized) {
-            serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
-        }
         if (!other.is_deserialized) {
+            serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
             return;
         }
         switch (value_case) {
@@ -203,9 +198,8 @@ namespace Types {
     TypedValue &TypedValue::operator=(const TypedValue &other) {
         if (this != &other) {
             value_case = other.value_case;
-            is_serialized = other.is_serialized;
             is_deserialized = other.is_deserialized;
-            if (other.is_serialized) {
+            if (!other.is_deserialized) {
                 serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
             }
             if (!other.is_deserialized) {
@@ -279,11 +273,8 @@ namespace Types {
         return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue&>(typed_value));
     }
 
-    std::shared_ptr<org::polypheny::prism::ProtoValue> TypedValue::serialize() {
-        if (is_serialized) {
-            return serialized;
-        }
-        auto proto_value = std::make_shared<org::polypheny::prism::ProtoValue>();
+    org::polypheny::prism::ProtoValue* TypedValue::serialize() {
+        auto proto_value = new org::polypheny::prism::ProtoValue;
 
         switch (value_case) {
             case org::polypheny::prism::ProtoValue::ValueCase::kBoolean:
@@ -358,8 +349,6 @@ namespace Types {
             default:
                 throw std::runtime_error("Encountered unknown data type");
         }
-        serialized = proto_value;
-        is_serialized = true;
         return proto_value;
     }
 
@@ -593,5 +582,6 @@ namespace Types {
         return value_case;
     }
 
+    TypedValue::TypedValue(char const *value) : TypedValue(std::string(value)){}
 
 } // namespace Types

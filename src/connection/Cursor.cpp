@@ -101,9 +101,21 @@ namespace Connection {
     }
 
     void Cursor::prepare(const std::string &language, const std::string &statement, const std::string &nspace) {
-        org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client().prepare_indexed_statement(
-                nspace, language, statement);
-        is_prepared = true;
+        if (statement.find('?') != std::string::npos) {
+            org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client().prepare_indexed_statement(
+                    nspace, language, statement);
+            statement_id = signature.statement_id();
+            is_prepared = true;
+            return;
+        }
+        if (statement.find(':') != std::string::npos) {
+            org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client().prepare_named_statement(
+                    nspace, language, statement);
+            statement_id = signature.statement_id();
+            is_prepared = true;
+            return;
+        }
+        throw std::runtime_error("A statement to be prepared must contain either indexed or named placeholders.");
     }
 
     std::unique_ptr<Results::Result> Cursor::execute_prepared(std::vector<Types::TypedValue> &params) {

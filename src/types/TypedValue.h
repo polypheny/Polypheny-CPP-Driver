@@ -43,9 +43,7 @@ namespace Types {
         Representation value;
 
         org::polypheny::prism::ProtoValue::ValueCase value_case;
-
         std::shared_ptr<org::polypheny::prism::ProtoValue> serialized;
-        bool is_serialized;
         bool is_deserialized;
         void deserialize();
 
@@ -79,13 +77,13 @@ namespace Types {
 
         explicit TypedValue(const std::list<TypedValue> &values);
 
+        explicit TypedValue(char const* values);
+
         explicit TypedValue(const std::string &value);
 
         explicit TypedValue(const std::vector<uint8_t> &value);
 
         TypedValue(const TypedValue &other);
-
-        //TypedValue(TypedValue &&other) noexcept;
 
         TypedValue &operator=(const TypedValue &other);
 
@@ -93,7 +91,7 @@ namespace Types {
 
         friend std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value);
 
-        std::shared_ptr<org::polypheny::prism::ProtoValue> serialize();
+        org::polypheny::prism::ProtoValue* serialize();
 
         org::polypheny::prism::ProtoValue::ValueCase get_value_case();
 
