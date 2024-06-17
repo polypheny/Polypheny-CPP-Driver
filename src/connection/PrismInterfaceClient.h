@@ -13,7 +13,7 @@
 
 #include "transport/Transport.h"
 #include "connection/CallbackQueue.h"
-#include "transport/PlainTCPTransport.h"
+#include "transport/PlainTcpTransport.h"
 #include "connection/ServerError.h"
 #include "connection/ConnectionProperties.h"
 #include "statement_responses.pb.h"
