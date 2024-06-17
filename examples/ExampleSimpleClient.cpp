@@ -31,11 +31,12 @@ void print_help() {
 }
 
 int main() {
-
-    std::string user_name = "tobi";
-
     Connection::ConnectionProperties properties = Connection::ConnectionProperties();
-    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::UnixTransport>("/home/" + user_name + "/.polypheny/polypheny-prism.sock");
+#ifdef _WIN32
+    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::PlainTCPConnection>("localhost");
+# else
+    std::unique_ptr<Transport::Transport> transport = std::make_unique<Transport::UnixTransport>("/home/tobi/.polypheny/polypheny-prism.sock");
+#endif
     Connection::Connection database_connection(properties, std::move(transport));
 
     Connection::Cursor cursor(database_connection);
