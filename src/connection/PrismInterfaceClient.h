@@ -73,6 +73,10 @@ namespace Communication {
         prepare_indexed_statement(const std::string &namespace_name, const std::string &language_name, const std::string &statement,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
+        org::polypheny::prism::PreparedStatementSignature
+        prepare_named_statement(const std::string &namespace_name, const std::string &language_name, const std::string &statement,
+                                  uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
         org::polypheny::prism::StatementResult
         execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);

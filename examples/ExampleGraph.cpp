@@ -21,20 +21,34 @@ int main() {
                    "year_joined INTEGER NOT NULL"
                    ")", "public");
 
-    //TODO: replace with batch execute once available
+    // Insert some entries using an unparameterized statement batch
     std::vector<std::string> insert_statements = {
             "INSERT INTO customers(id, name, year_joined) VALUES (1, 'Maria', 2012)",
             "INSERT INTO customers(id, name, year_joined) VALUES (2, 'Daniel', 2020)",
             "INSERT INTO customers(id, name, year_joined) VALUES (3, 'Peter', 2001)",
-            "INSERT INTO customers(id, name, year_joined) VALUES (4, 'Anna', 2001)",
-            "INSERT INTO customers(id, name, year_joined) VALUES (5, 'Thomas', 2004)",
-            "INSERT INTO customers(id, name, year_joined) VALUES (6, 'Andreas', 2014)",
-            "INSERT INTO customers(id, name, year_joined) VALUES (7, 'Michael', 2010)"
     };
 
-    for (const auto& stmt : insert_statements) {
-        cursor.execute("sql", stmt, "public");
-    }
+    cursor.execute("sql", insert_statements, "public");
+
+    // Insert one more entry using an indexed parameterized statement
+    cursor.prepare("sql", "INSERT INTO customers(id, name, year_joined) VALUES (?, ?, ?)", "public");
+    std::vector<Types::TypedValue> parameters = { Types::TypedValue(4), Types::TypedValue("Anna"), Types::TypedValue(2004)};
+    cursor.execute_prepared(parameters);
+
+    // Insert some more entries using a batched indexed parameterized statement
+    std::vector<std::vector<Types::TypedValue>> parameter_batch = {
+            { Types::TypedValue(5), Types::TypedValue("Thomas"), Types::TypedValue(2004)},
+            { Types::TypedValue(6), Types::TypedValue("Andreas"), Types::TypedValue(2014)}
+    };
+    cursor.execute_prepared(parameter_batch);
+
+    // Insert the last entry using a named parameterized statement
+    cursor.prepare("sql", "INSERT INTO customers(id, name, year_joined) VALUES (:id, :name, :year_joined)", "public");
+    std::unordered_map<std::string, Types::TypedValue> named_parameters;
+    named_parameters["id"] = Types::TypedValue(7);
+    named_parameters["name"] = Types::TypedValue("Michael");
+    named_parameters["year_joined"] = Types::TypedValue(2010);
+    cursor.execute_prepared(named_parameters);
 
     std::unique_ptr<Results::Result> result = cursor.execute(
             "cypher",
