@@ -14,6 +14,11 @@ namespace Results {
         add_graph_elements(graph_frame);
     }
 
+    GraphResult::~GraphResult() {
+        uint32_t statement_id = cursor->get_statement_id();
+        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+    }
+
     void GraphResult::add_graph_elements(const org::polypheny::prism::GraphFrame &graph_frame) {
         if (graph_frame.nodes_size() > 0) {
             for (const auto &node : graph_frame.nodes()) {

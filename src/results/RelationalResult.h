@@ -19,6 +19,8 @@ namespace Results {
     public:
         [[nodiscard]] std::shared_ptr<RelationalMetadata> get_metadata() const;
 
+        ~RelationalResult();
+
         class RowIterator;
 
         RowIterator begin();

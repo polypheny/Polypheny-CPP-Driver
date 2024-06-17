@@ -15,6 +15,11 @@ namespace Results {
         add_documents(document_frame);
     }
 
+    DocumentResult::~DocumentResult() {
+        uint32_t statement_id = cursor->get_statement_id();
+        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+    }
+
     void DocumentResult::add_documents(const org::polypheny::prism::DocumentFrame &document_frame) {
         for (const auto &proto_document : document_frame.documents()) {
             std::unordered_map<std::string, Types::TypedValue> document;

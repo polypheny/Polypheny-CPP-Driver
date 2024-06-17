@@ -19,6 +19,8 @@ namespace Results {
     public:
         GraphResult(const org::polypheny::prism::GraphFrame &frame, bool is_last, Connection::Cursor *cursor);
 
+        ~GraphResult();
+
         class GraphElementIterator {
         public:
             GraphElementIterator(std::shared_ptr<GraphResult> result, size_t index);
