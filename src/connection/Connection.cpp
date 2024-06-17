@@ -4,11 +4,15 @@
 namespace Connection {
 
     Connection::Connection(ConnectionProperties &connection_properties)
-            : prism_interface_client(connection_properties) {
+            : prism_interface_client(connection_properties, std::make_unique<Transport::PlainTCPTransport>()) {
+    }
+
+    Connection::Connection(ConnectionProperties &connection_properties, std::unique_ptr<Transport::Transport> &&transport)
+            : prism_interface_client(connection_properties, std::move(transport)) {
     }
 
     Connection::Connection(const std::string &host, const std::string &user, const std::string &password)
-            : prism_interface_client(build_connection_properties(host, user, password)) {
+            : prism_interface_client(build_connection_properties(user, password), std::make_unique<Transport::PlainTCPTransport>(host)) {
     }
 
     Connection::~Connection() {
@@ -16,10 +20,9 @@ namespace Connection {
     }
 
 
-    ConnectionProperties Connection::build_connection_properties(const std::string &host, const std::string &username,
+    ConnectionProperties Connection::build_connection_properties(const std::string &username,
                                                                  const std::string &password) {
         ConnectionProperties connection_properties;
-        connection_properties.set_host(host);
         connection_properties.set_username(username);
         connection_properties.set_password(password);
         return connection_properties;

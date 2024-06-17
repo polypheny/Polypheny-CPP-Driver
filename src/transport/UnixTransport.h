@@ -12,11 +12,14 @@ namespace Transport {
 
     class UnixTransport : public SocketTransport {
     public:
-        explicit UnixTransport(const std::string &path);
+        explicit UnixTransport();
+        explicit UnixTransport(std::string socket_file);
         ~UnixTransport() override;
+        void connect() override;
 
     private:
         [[nodiscard]] std::string get_version() const override;
+        std::string socket_file;
     };
 
 } // namespace Transport
