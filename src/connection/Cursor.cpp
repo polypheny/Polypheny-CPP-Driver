@@ -27,6 +27,7 @@ namespace Connection {
 
     void Cursor::reset_statement() {
         if (is_statement_id_set) {
+            connection.get_prism_interface_client().close_statement(statement_id);
             is_statement_id_set = false;
         }
         if (is_prepared) {

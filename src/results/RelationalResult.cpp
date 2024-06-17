@@ -10,6 +10,11 @@ namespace Results {
         add_rows(relational_frame);
     }
 
+    RelationalResult::~RelationalResult() {
+        uint32_t statement_id = cursor->get_statement_id();
+        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+    }
+
     void RelationalResult::add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame) {
         for (const auto &row : relationalFrame.rows()) {
             rows.emplace_back(row, metadata);

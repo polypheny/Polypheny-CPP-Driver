@@ -19,6 +19,8 @@ namespace Results {
     public:
         DocumentResult(const org::polypheny::prism::DocumentFrame &document_frame, bool is_last, Connection::Cursor *cursor);
 
+        ~DocumentResult();
+
         class DocumentIterator {
         public:
             DocumentIterator(std::shared_ptr<DocumentResult> result, size_t index);
