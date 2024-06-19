@@ -33,8 +33,8 @@ namespace Communication {
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
         std::thread response_reader;
-        bool is_closed = false;
-        bool has_sent_disconnect = false;
+        volatile bool is_closed = false;
+        volatile bool has_sent_disconnect = false;
         std::exception_ptr error = nullptr;
         std::map<uint64_t, std::promise<org::polypheny::prism::Response>> callbacks;
         std::map<uint64_t, std::shared_ptr<CallbackQueue>> callback_queues;
