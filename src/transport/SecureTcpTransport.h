@@ -38,8 +38,6 @@ namespace Transport {
     };
 
 
-};
-
 } // Transport
 
 #endif //POLYPHENY_CPP_DRIVER_SECURETCPTRANSPORT_H
