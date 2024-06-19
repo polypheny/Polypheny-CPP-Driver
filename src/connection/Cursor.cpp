@@ -134,7 +134,7 @@ namespace Connection {
     std::unique_ptr<Results::Result>
     Cursor::execute_prepared(std::unordered_map<std::string, Types::TypedValue> &params) {
         if (!is_prepared) {
-            throw std::runtime_error("This operation requires a statement ot be prepared first");
+            throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client().execute_named_statement(
                 statement_id, params, DEFAULT_FETCH_SIZE);
@@ -147,7 +147,7 @@ namespace Connection {
     std::vector<uint64_t>
     Cursor::execute_prepared(std::vector<std::vector<Types::TypedValue>> &params_batch) {
         if (!is_prepared) {
-            throw std::runtime_error("This operation requires a statement ot be prepared first");
+            throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementBatchResponse response = connection.get_prism_interface_client().execute_indexed_statement_batch(
                 statement_id, params_batch);
@@ -178,7 +178,7 @@ namespace Connection {
                 is_statement_id_set = true;
             }
 
-            if (!statement_batch_response.scalars_size() == 0) {
+            if (statement_batch_response.scalars_size() == 0) {
                 continue;
             }
 
