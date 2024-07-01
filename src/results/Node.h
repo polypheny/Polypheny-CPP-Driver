@@ -10,6 +10,14 @@
 
 namespace Results {
 
+    /**
+     * @brief Represents a node in a graph query result.
+     *
+     * This class provides information about a node, including its ID, name, and labels,
+     * as well as any additional properties stored in the underlying map.
+     *
+     * This class does not yet offer any additional methods above the ones provided by the graph element base class.
+     */
     class Node : public GraphElement {
     public:
         Node(org::polypheny::prism::ProtoNode proto_edge);

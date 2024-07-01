@@ -15,12 +15,29 @@ namespace Connection {
 
 namespace Results {
 
+    /**
+     * @brief Represents the result of a graph query.
+     *
+     * This class provides access to graph elements (nodes, edges, paths) resulting from a graph query,
+     * and supports iteration over them.
+     */
     class GraphResult : public Result {
     public:
         GraphResult(const org::polypheny::prism::GraphFrame &frame, bool is_last, Connection::Cursor *cursor);
 
+        /**
+         * @brief Destructor for the GraphResult class.
+         *
+         * It's the programmer's responsibility to call this destructor once a result is no longer needed.
+         * This internally tells the connected Polypheny instance to free the associated resources.
+         */
         ~GraphResult();
 
+        /**
+         * @brief Iterator class for iterating over graph elements (nodes, edges, paths) in the graph result.
+         *
+         * New elements are automatically fetched providing seamless iteration over the result of a query.
+         */
         class GraphElementIterator {
         public:
             GraphElementIterator(std::shared_ptr<GraphResult> result, size_t index);
@@ -38,8 +55,18 @@ namespace Results {
             size_t index;
         };
 
+        /**
+         * @brief Returns an iterator to the beginning of the graph element collection being the elements of this result.
+         *
+         * @return An iterator to the first graph element.
+         */
         GraphElementIterator begin();
 
+        /**
+         * @brief Returns an iterator to the end of the graph element collection being the elements of this result.
+         *
+         * @return An iterator to the past-the-end graph element.
+         */
         GraphElementIterator end();
 
     private:

@@ -1,0 +1,7 @@
+title: Polypheny CPP Driver
+description: A Driver integrating Polypheny into C++ projects.
+files:
+  - "src/**/*.h"
+  - "src/**/*.cpp"
+  - "include/**/*.h"
+
