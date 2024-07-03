@@ -14,8 +14,6 @@ namespace Connection {
      */
     class ConnectionProperties {
     private:
-        std::string host;
-        uint16_t port;
         std::string username;
         std::string password;
         std::string default_namespace;
