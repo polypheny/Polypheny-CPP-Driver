@@ -1,3 +1,4 @@
+#include <sstream>
 #include "PolyphenyCPPDriver.h"
 #include "transport/UnixTransport.h"
 
