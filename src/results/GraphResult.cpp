@@ -7,6 +7,7 @@
 #include "results/Edge.h"
 #include "connection/Cursor.h"
 #include "connection/Connection.h"
+#include "Path.h"
 
 namespace Results {
     GraphResult::GraphResult(const org::polypheny::prism::GraphFrame &graph_frame, bool is_last, Connection::Cursor *cursor)
@@ -33,7 +34,10 @@ namespace Results {
             return;
         }
         if (graph_frame.paths_size() > 0) {
-            throw std::runtime_error("Path results are not supported yet.");
+            for (const auto &path : graph_frame.paths()) {
+                elements.push_back(std::make_shared<Path>(path));
+            }
+            return;
         }
     }
 

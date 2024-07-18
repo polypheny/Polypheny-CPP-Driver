@@ -7,7 +7,7 @@
 #include <utility>
 
 namespace Results {
-    GraphElement::GraphElement(std::string id, std::string name)
+    GraphElement::GraphElement(int id, std::string name)
             : id(std::move(id)), name(std::move(name)) {}
 
     const std::string &GraphElement::get_id() const {
