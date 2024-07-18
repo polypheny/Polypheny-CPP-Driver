@@ -26,9 +26,8 @@ namespace Communication {
     class PrismInterfaceClient {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
-        // TODO: send proper api version, polypheny version for testing uses 5.1
-        static constexpr int MAJOR_API_VERSION = 5;
-        static constexpr int MINOR_API_VERSION = 1;
+        static constexpr int MAJOR_API_VERSION = 1;
+        static constexpr int MINOR_API_VERSION = 4;
 
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
