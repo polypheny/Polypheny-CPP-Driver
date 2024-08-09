@@ -363,7 +363,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::StreamAcknowledgement
-    PrismInterfaceClient::streamBinary(const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
+    PrismInterfaceClient::stream_binary(const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
                                        uint64_t stream_id, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -377,7 +377,7 @@ namespace Communication {
     }
 
     org::polypheny::prism::StreamAcknowledgement
-    PrismInterfaceClient::streamString(const std::string substring, bool is_last, uint32_t statement_id,
+    PrismInterfaceClient::stream_string(const std::string substring, bool is_last, uint32_t statement_id,
                                        uint64_t stream_id, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));

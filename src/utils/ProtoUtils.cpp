@@ -109,4 +109,21 @@
             return std::make_pair(unscaled_value, scale);
         }
 
+
+        std::vector<uint8_t> collect_binary_stream(Streaming::BinaryInputStream& stream) {
+            std::vector<uint8_t> collected_data;
+            std::vector<char> buffer(Streaming::BinaryInputStream::BUFFER_SIZE);
+            while (true) {
+                std::streamsize bytes_read = stream.read(buffer.data(), buffer.size());
+                if (bytes_read > 0) {
+                    collected_data.insert(collected_data.end(), buffer.begin(), buffer.begin() + bytes_read);
+                }
+                if (bytes_read < static_cast<std::streamsize>(buffer.size())) {
+                    break;
+                }
+            }
+            return collected_data;
+        }
+
+
     }

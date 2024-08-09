@@ -3,14 +3,18 @@
 //
 
 #include "types/TypedValue.h"
+
+#include <utility>
 #include "types/Interval.h"
 #include "utils/TypedValueUtils.h"
 #include "utils/ProtoUtils.h"
 
 namespace Types {
 
-    TypedValue::TypedValue(const org::polypheny::prism::ProtoValue &proto_value)
+    TypedValue::TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
+                           std::shared_ptr<Communication::PrismInterfaceClient> client)
             : serialized(std::make_shared<org::polypheny::prism::ProtoValue>(proto_value)),
+              client(std::move(client)),
               is_deserialized(false),
               value_case(proto_value.value_case()) {}
 
@@ -259,10 +263,10 @@ namespace Types {
     }
 
     std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value) {
-        return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue&>(typed_value));
+        return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue &>(typed_value));
     }
 
-    org::polypheny::prism::ProtoValue* TypedValue::serialize() {
+    org::polypheny::prism::ProtoValue *TypedValue::serialize() {
         auto proto_value = new org::polypheny::prism::ProtoValue;
 
         switch (value_case) {
@@ -320,8 +324,8 @@ namespace Types {
             }
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument: {
                 auto proto_document = proto_value->mutable_document();
-                auto* entries = proto_document->mutable_entries();
-                for (const auto& pair : std::get<std::unordered_map<std::string, std::unique_ptr<TypedValue>>>(value)) {
+                auto *entries = proto_document->mutable_entries();
+                for (const auto &pair: std::get<std::unordered_map<std::string, std::unique_ptr<TypedValue>>>(value)) {
                     auto serialized_value = pair.second->serialize();
                     entries->emplace(pair.first, *serialized_value);
                 }
@@ -384,12 +388,21 @@ namespace Types {
                 value = serialized->string().string();
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                value = Utils::ProtoUtils::string_to_vector(serialized->binary().binary());
+                if (serialized->binary().has_binary()) {
+                    value = Utils::ProtoUtils::string_to_vector(serialized->binary().binary());
+                    break;
+                }
+                Streaming::BinaryInputStream stream(
+                        serialized->binary().statement_id(),
+                        serialized->binary().stream_id(),
+                        client
+                );
+                value = Utils::ProtoUtils::collect_binary_stream(stream);
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kList: {
                 std::list<std::unique_ptr<TypedValue>> list_value;
                 for (const auto &proto_value: serialized->list().values()) {
-                    list_value.emplace_back(std::make_unique<TypedValue>(proto_value));
+                    list_value.emplace_back(std::make_unique<TypedValue>(proto_value, client));
                 }
                 value = std::move(list_value);
                 break;
@@ -397,7 +410,7 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument: {
                 std::unordered_map<std::string, std::unique_ptr<TypedValue>> map_value;
                 for (auto &entry: serialized->document().entries()) {
-                    map_value.emplace(entry.first, std::make_unique<TypedValue>(entry.second));
+                    map_value.emplace(entry.first, std::make_unique<TypedValue>(entry.second, client));
                 }
                 value = std::move(map_value);
                 break;
@@ -571,6 +584,6 @@ namespace Types {
         return value_case;
     }
 
-    TypedValue::TypedValue(char const *value) : TypedValue(std::string(value)){}
+    TypedValue::TypedValue(char const *value) : TypedValue(std::string(value)) {}
 
 } // namespace Types

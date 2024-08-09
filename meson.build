@@ -58,7 +58,9 @@ polypheny_src = files(
     'src/results/Row.cpp',
     'src/results/ScalarResult.cpp',
     'src/connection/ServerError.cpp',
-    'src/types/TypedValue.cpp'
+    'src/types/TypedValue.cpp',
+    'src/streaming/BinaryInputStream.cpp',
+    'src/streaming/BinaryInputStreamBuffer.cpp'
 )
 
 polypheny_cpp_driver_lib = library('polypheny_cpp_library',

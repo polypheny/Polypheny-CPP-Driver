@@ -9,6 +9,7 @@
 #include "value.pb.h"
 #include "types/TypedValue.h"
 #include "types/Interval.h"
+#include "streaming/BinaryInputStream.h"
 #include <gmpxx.h>
 
 namespace Types {
@@ -47,7 +48,7 @@ namespace Utils::ProtoUtils {
 
     std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value);
 
-
+    std::vector<uint8_t> collect_binary_stream(Streaming::BinaryInputStream& stream);
 } // namespace Utils
 
 #endif // POLYPHENY_CPP_DRIVER_PROTOUTILS_H

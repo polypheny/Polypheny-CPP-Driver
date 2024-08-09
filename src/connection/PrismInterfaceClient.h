@@ -120,12 +120,12 @@ namespace Communication {
                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS
         );
 
-        org::polypheny::prism::StreamAcknowledgement streamBinary(
+        org::polypheny::prism::StreamAcknowledgement stream_binary(
                 const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
                 uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS
         );
 
-        org::polypheny::prism::StreamAcknowledgement streamString(
+        org::polypheny::prism::StreamAcknowledgement stream_string(
                 const std::string substring, bool is_last, uint32_t statement_id,
                 uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 

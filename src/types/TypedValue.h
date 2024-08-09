@@ -11,12 +11,16 @@
 #include <gmpxx.h>
 #include <chrono>
 #include "utils/ProtoUtils.h"
+#include "streaming/BinaryInputStream.h"
 #include "value.pb.h"
+#include "connection/PrismInterfaceClient.h"
 
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
     class Document;
+
     class Interval;
+
     class TypedValue;
 
     using Representation = std::variant<
@@ -52,15 +56,17 @@ namespace Types {
     class TypedValue {
     private:
         Representation value;
-
+        std::shared_ptr<Communication::PrismInterfaceClient> client;
         org::polypheny::prism::ProtoValue::ValueCase value_case;
         std::shared_ptr<org::polypheny::prism::ProtoValue> serialized;
         bool is_deserialized;
+
         void deserialize();
 
     public:
         // Constructors for different types
-        explicit TypedValue(const org::polypheny::prism::ProtoValue &proto_value);
+        explicit TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
+                            std::shared_ptr<Communication::PrismInterfaceClient> client);
 
         /**
          * @brief Constructs a TypedValue object from a boolean value.
@@ -168,7 +174,7 @@ namespace Types {
          *
          * @param value The string value.
          */
-        explicit TypedValue(char const* values);
+        explicit TypedValue(char const *values);
 
 /**
          * @brief Constructs a TypedValue object from a vector of bytes.
@@ -192,7 +198,7 @@ namespace Types {
 
         friend std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value);
 
-        org::polypheny::prism::ProtoValue* serialize();
+        org::polypheny::prism::ProtoValue *serialize();
 
         org::polypheny::prism::ProtoValue::ValueCase get_value_case();
 
@@ -284,6 +290,7 @@ namespace Types {
          * @throws std::runtime_error if the value is not an interval.
          */
         Interval as_interval();
+
 /**
          * @brief Retrieves the value as a document.
          *
