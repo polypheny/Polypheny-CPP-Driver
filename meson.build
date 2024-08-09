@@ -44,7 +44,6 @@ polypheny_src = files(
     'src/results/GraphResult.cpp',
     'src/results/Edge.cpp',
     'src/results/Node.cpp',
-    'src/results/Path.cpp',
     'src/types/Interval.cpp',
     'src/transport/SocketTransport.cpp',
     'src/transport/UnixTransport.cpp',
