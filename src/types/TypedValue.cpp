@@ -320,14 +320,14 @@ namespace Types {
             }
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument: {
                 auto proto_document = proto_value->mutable_document();
-                auto *proto_entries = proto_document->mutable_entries();
-                for (const auto &pair: std::get<std::unordered_map<std::string, std::unique_ptr<TypedValue>>>(value)) {
-                    auto *proto_entry = proto_entries->Add();
-                    proto_entry->mutable_key()->mutable_string()->set_string(pair.first);
-                    *proto_entry->mutable_value() = *pair.second->serialize();
+                auto* entries = proto_document->mutable_entries();
+                for (const auto& pair : std::get<std::unordered_map<std::string, std::unique_ptr<TypedValue>>>(value)) {
+                    auto serialized_value = pair.second->serialize();
+                    entries->emplace(pair.first, *serialized_value);
                 }
                 break;
             }
+
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
                 proto_value->mutable_file()->set_binary(
                         Utils::ProtoUtils::vector_to_string(std::get<std::vector<uint8_t>>(value)));
@@ -397,7 +397,7 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kDocument: {
                 std::unordered_map<std::string, std::unique_ptr<TypedValue>> map_value;
                 for (auto &entry: serialized->document().entries()) {
-                    map_value.emplace(entry.key().string().string(), std::make_unique<TypedValue>(entry.value()));
+                    map_value.emplace(entry.first, std::make_unique<TypedValue>(entry.second));
                 }
                 value = std::move(map_value);
                 break;
