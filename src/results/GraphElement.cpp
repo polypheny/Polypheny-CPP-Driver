@@ -22,5 +22,9 @@ namespace Results {
         return labels;
     }
 
+    GraphElementType GraphElement::get_element_type() const {
+        return element_type;
+    }
+
 
 } // Results

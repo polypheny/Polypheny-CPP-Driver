@@ -6,6 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_GRAPHELEMENT_H
 
 #include "types/TypedValue.h"
+#include "results/GraphElementType.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -25,6 +26,8 @@ namespace Results {
         std::string id;
         std::string name;
         std::vector<std::string> labels;
+        GraphElementType element_type;
+
 
     public:
         /**
@@ -64,6 +67,13 @@ namespace Results {
          * @return A reference to the vector of labels.
          */
         const std::vector<std::string>& get_labels() const;
+
+        /**
+         * @brief Returns wether the graph element is a node or an edge.
+         *
+         * @return A value form the graph element type enum.
+         */
+        GraphElementType get_element_type() const;
     };
 }  // Results
 
