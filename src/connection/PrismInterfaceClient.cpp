@@ -13,6 +13,10 @@ namespace Communication {
 
     const std::string PrismInterfaceClient::AUTOCOMMIT_PROPERTY_KEY = "autocommit";
     const std::string PrismInterfaceClient::NAMESPACE_PROPERTY_KEY = "namespace";
+    const std::string PrismInterfaceClient::SERVER_STREAMING_FEATURE = "client_streaming";
+    const std::string PrismInterfaceClient::CLIENT_STREAMING_FEATURE = "server_streaming";
+
+
 
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport) : transport(std::move(transport)) {
         this->transport->connect();
@@ -39,6 +43,11 @@ namespace Communication {
         if (connection_properties.get_is_password_required()) {
             inner->set_password(connection_properties.get_password());
         }
+
+        google::protobuf::RepeatedPtrField<std::string>* features = inner->mutable_features();
+        features->Add(std::string(CLIENT_STREAMING_FEATURE));
+        features->Add(std::string(SERVER_STREAMING_FEATURE));
+
         google::protobuf::Map<std::string, std::string>* properties = inner->mutable_properties();
         properties->emplace(AUTOCOMMIT_PROPERTY_KEY, connection_properties.get_is_auto_commit() ? "true" : "false");
         properties->emplace(NAMESPACE_PROPERTY_KEY, connection_properties.get_default_namespace());

@@ -31,6 +31,8 @@ namespace Communication {
 
         static const std::string AUTOCOMMIT_PROPERTY_KEY;
         static const std::string NAMESPACE_PROPERTY_KEY;
+        static const std::string SERVER_STREAMING_FEATURE;
+        static const std::string CLIENT_STREAMING_FEATURE;
 
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
