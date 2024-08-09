@@ -79,7 +79,7 @@ namespace Types {
 
               is_deserialized(true) {}
 
-    TypedValue::TypedValue(const std::unordered_map<std::string, TypedValue> &document_value)
+    TypedValue::TypedValue(org::polypheny::prism::ProtoValue document_value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kDocument),
 
               is_deserialized(true) {

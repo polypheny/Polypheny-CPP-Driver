@@ -155,7 +155,7 @@ namespace Types {
          *
          * @param document_value The document value.
          */
-        explicit TypedValue(const std::unordered_map<std::string, TypedValue> &document_value);
+        explicit TypedValue(org::polypheny::prism::ProtoValue document_value);
 
         /**
          * @brief Constructs an empty TypedValue object representing a null value.
