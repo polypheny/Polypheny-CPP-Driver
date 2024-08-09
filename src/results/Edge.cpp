@@ -13,7 +13,7 @@ namespace Results {
 
         labels.assign(proto_edge.labels().begin(), proto_edge.labels().end());
         for (const auto &property: proto_edge.properties()) {
-            emplace(property.key().string().string(), property.value());
+            emplace(property.first, property.second);
         }
     }
 
