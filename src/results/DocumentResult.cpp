@@ -24,7 +24,7 @@ namespace Results {
         for (const auto &proto_document : document_frame.documents()) {
             std::unordered_map<std::string, Types::TypedValue> document;
             for (const auto &field : proto_document.entries()) {
-                document[field.key().string().string()] = Types::TypedValue(field.value());
+                document[field.first] = Types::TypedValue(field.second);
             }
             documents.push_back(document);
         }
