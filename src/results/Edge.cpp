@@ -6,9 +6,9 @@
 
 namespace Results {
     Edge::Edge(const org::polypheny::prism::ProtoEdge &proto_edge)
-            : GraphElement(proto_edge.id(), proto_edge.name()),
-              source(proto_edge.source()),
-              target(proto_edge.target()),
+            : GraphElement(proto_edge.id(), proto_edge.name(), GraphElementType::EDGE),
+              left(proto_edge.left()),
+              right(proto_edge.right()),
               direction(get_edge_direction_from_proto(proto_edge.direction())) {
 
         labels.assign(proto_edge.labels().begin(), proto_edge.labels().end());
@@ -17,12 +17,12 @@ namespace Results {
         }
     }
 
-    const std::string &Edge::get_source() const {
-        return source;
+    const std::string &Edge::get_left() const {
+        return left;
     }
 
-    const std::string &Edge::get_target() const {
-        return target;
+    const std::string &Edge::get_right() const {
+        return right;
     }
 
     EdgeDirection Edge::get_direction() const {

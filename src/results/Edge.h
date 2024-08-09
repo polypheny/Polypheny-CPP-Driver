@@ -27,29 +27,29 @@ namespace Results {
      */
     class Edge : public GraphElement {
     private:
-        std::string source;
-        std::string target;
+        std::string left;
+        std::string right;
         EdgeDirection direction;
 
         static EdgeDirection get_edge_direction_from_proto(org::polypheny::prism::ProtoEdge_Direction direction);
 
     public:
-        Edge(const org::polypheny::prism::ProtoEdge &proto_edge);
+        explicit Edge(const org::polypheny::prism::ProtoEdge &proto_edge);
 
         /**
          * @brief Gets the source node id of the edge.
          *
-         * @return A reference to the source node string.
+         * @return A reference to the left node string.
          */
-        const std::string &get_source() const;
+        const std::string &get_left() const;
 
 
         /**
          * @brief Gets the target node id of the edge.
          *
-         * @return A reference to the target node string.
+         * @return A reference to the right node string.
          */
-        const std::string &get_target() const;
+        const std::string &get_right() const;
 
         /**
          * @brief Gets the direction of the edge.

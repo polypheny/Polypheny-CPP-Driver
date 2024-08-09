@@ -20,7 +20,7 @@ namespace Results {
      */
     class Node : public GraphElement {
     public:
-        Node(org::polypheny::prism::ProtoNode proto_edge);
+        explicit Node(org::polypheny::prism::ProtoNode proto_edge);
     };
 
 } // Results
