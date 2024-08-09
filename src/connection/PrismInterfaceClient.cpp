@@ -10,6 +10,10 @@
 #include <chrono>
 
 namespace Communication {
+
+    const std::string PrismInterfaceClient::AUTOCOMMIT_PROPERTY_KEY = "autocommit";
+    const std::string PrismInterfaceClient::NAMESPACE_PROPERTY_KEY = "namespace";
+
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport) : transport(std::move(transport)) {
         this->transport->connect();
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
@@ -35,22 +39,22 @@ namespace Communication {
         if (connection_properties.get_is_password_required()) {
             inner->set_password(connection_properties.get_password());
         }
-        org::polypheny::prism::ConnectionProperties *properties_message = inner->mutable_connection_properties();
-        properties_message->set_namespace_name(connection_properties.get_default_namespace());
-        properties_message->set_is_auto_commit(connection_properties.get_is_auto_commit());
-        org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer,
-                                                                                    timeout_millis).connection_response();
+        google::protobuf::Map<std::string, std::string>* properties = inner->mutable_properties();
+        properties->emplace(AUTOCOMMIT_PROPERTY_KEY, connection_properties.get_is_auto_commit() ? "true" : "false");
+        properties->emplace(NAMESPACE_PROPERTY_KEY, connection_properties.get_default_namespace());
+
+        org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer, timeout_millis).connection_response();
         if (!response.is_compatible()) {
             std::string server_api_version =
                     std::to_string(response.major_api_version()) + "." + std::to_string(response.minor_api_version());
             std::string client_api_version =
                     std::to_string(inner->major_api_version()) + "." + std::to_string(inner->minor_api_version());
             throw std::runtime_error(
-                    "Incompatible API version. Server expected " + server_api_version + ", client has " +
-                    client_api_version);
+                    "Incompatible API version. Server expected " + server_api_version + ", client has " + client_api_version);
         }
         return response;
     }
+
 
     void PrismInterfaceClient::disconnect_and_close(uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;

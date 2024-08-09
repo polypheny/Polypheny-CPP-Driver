@@ -29,6 +29,9 @@ namespace Communication {
         static constexpr int MAJOR_API_VERSION = 1;
         static constexpr int MINOR_API_VERSION = 10;
 
+        static const std::string AUTOCOMMIT_PROPERTY_KEY;
+        static const std::string NAMESPACE_PROPERTY_KEY;
+
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
         std::thread response_reader;
@@ -49,7 +52,8 @@ namespace Communication {
         void handle_connection_closure(const std::exception_ptr &exception);
 
     public:
-        explicit PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport);
+        explicit PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties,
+                                      std::unique_ptr<Transport::Transport> transport);
 
         ~PrismInterfaceClient();
 
@@ -69,15 +73,18 @@ namespace Communication {
                                                 const std::shared_ptr<CallbackQueue> &callback_queue);
 
         org::polypheny::prism::PreparedStatementSignature
-        prepare_indexed_statement(const std::string &namespace_name, const std::string &language_name, const std::string &statement,
+        prepare_indexed_statement(const std::string &namespace_name, const std::string &language_name,
+                                  const std::string &statement,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::PreparedStatementSignature
-        prepare_named_statement(const std::string &namespace_name, const std::string &language_name, const std::string &statement,
-                                  uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        prepare_named_statement(const std::string &namespace_name, const std::string &language_name,
+                                const std::string &statement,
+                                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
-        execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
+        execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values,
+                                  const uint32_t &fetch_size,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementBatchResponse
@@ -86,7 +93,9 @@ namespace Communication {
                                         uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
-        execute_named_statement(const uint32_t &statement_id, std::unordered_map<std::string, Types::TypedValue> &parameters, const uint32_t &fetch_size,
+        execute_named_statement(const uint32_t &statement_id,
+                                std::unordered_map<std::string, Types::TypedValue> &parameters,
+                                const uint32_t &fetch_size,
                                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
@@ -98,7 +107,8 @@ namespace Communication {
         void close_result(uint32_t statement_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::Frame
-        fetch_result(uint32_t &statement_id, const uint32_t &fetch_size, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+        fetch_result(uint32_t &statement_id, const uint32_t &fetch_size,
+                     uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 
