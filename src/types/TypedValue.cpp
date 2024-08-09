@@ -387,7 +387,7 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kString:
                 value = serialized->string().string();
                 break;
-            case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
+            case org::polypheny::prism::ProtoValue::ValueCase::kBinary: {
                 if (serialized->binary().has_binary()) {
                     value = Utils::ProtoUtils::string_to_vector(serialized->binary().binary());
                     break;
@@ -399,6 +399,7 @@ namespace Types {
                 );
                 value = Utils::ProtoUtils::collect_binary_stream(stream);
                 break;
+            }
             case org::polypheny::prism::ProtoValue::ValueCase::kList: {
                 std::list<std::unique_ptr<TypedValue>> list_value;
                 for (const auto &proto_value: serialized->list().values()) {
