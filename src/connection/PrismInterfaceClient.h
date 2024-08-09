@@ -27,7 +27,7 @@ namespace Communication {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
         static constexpr int MAJOR_API_VERSION = 1;
-        static constexpr int MINOR_API_VERSION = 4;
+        static constexpr int MINOR_API_VERSION = 10;
 
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
