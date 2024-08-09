@@ -21,23 +21,15 @@ namespace Results {
     }
 
     void GraphResult::add_graph_elements(const org::polypheny::prism::GraphFrame &graph_frame) {
-        if (graph_frame.nodes_size() > 0) {
-            for (const auto &node : graph_frame.nodes()) {
-                elements.push_back(std::make_shared<Node>(node));
+        for (const auto &element : graph_frame.element()) {
+            switch(element.element_case()) {
+                case (org::polypheny::prism::GraphElement::kNode):
+                    elements.push_back(std::make_shared<Node>(element.node()));
+                    break;
+                case (org::polypheny::prism::GraphElement::kEdge):
+                    elements.push_back(std::make_shared<Edge>(element.edge()));
+                    break;
             }
-            return;
-        }
-        if (graph_frame.edges_size() > 0) {
-            for (const auto &edge : graph_frame.edges()) {
-                elements.push_back(std::make_shared<Edge>(edge));
-            }
-            return;
-        }
-        if (graph_frame.paths_size() > 0) {
-            for (const auto &path : graph_frame.paths()) {
-                elements.push_back(std::make_shared<Path>(path));
-            }
-            return;
         }
     }
 
