@@ -45,7 +45,7 @@ namespace Results {
             throw std::runtime_error("Not a wrapper for " + std::string(typeid(T).name()));
         }
 
-        GraphElement(int id, std::string name);
+        GraphElement(std::string id, std::string name, GraphElementType type);
 
         /**
          * @brief Gets the unique identifier of the graph element.

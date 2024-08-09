@@ -7,7 +7,6 @@
 #include "results/Edge.h"
 #include "connection/Cursor.h"
 #include "connection/Connection.h"
-#include "Path.h"
 
 namespace Results {
     GraphResult::GraphResult(const org::polypheny::prism::GraphFrame &graph_frame, bool is_last, Connection::Cursor *cursor)

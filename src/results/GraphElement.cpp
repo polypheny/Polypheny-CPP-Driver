@@ -7,8 +7,8 @@
 #include <utility>
 
 namespace Results {
-    GraphElement::GraphElement(int id, std::string name)
-            : id(std::move(id)), name(std::move(name)) {}
+    GraphElement::GraphElement(std::string id, std::string name, GraphElementType type)
+            : id(std::move(id)), name(std::move(name)), element_type(type) {}
 
     const std::string &GraphElement::get_id() const {
         return id;

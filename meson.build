@@ -40,7 +40,6 @@ polypheny_src = files(
     'src/connection/ConnectionProperties.cpp',
     'src/connection/Cursor.cpp',
     'src/results/DocumentResult.cpp',
-    'src/results/GraphElementType.cpp',
     'src/results/GraphElement.cpp',
     'src/results/GraphResult.cpp',
     'src/results/Edge.cpp',
