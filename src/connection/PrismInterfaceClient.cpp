@@ -17,8 +17,9 @@ namespace Communication {
     const std::string PrismInterfaceClient::CLIENT_STREAMING_FEATURE = "server_streaming";
 
 
-
-    PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> transport) : transport(std::move(transport)) {
+    PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties,
+                                               std::unique_ptr<Transport::Transport> transport) : transport(
+            std::move(transport)) {
         this->transport->connect();
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
         connect(connection_properties);
@@ -44,22 +45,24 @@ namespace Communication {
             inner->set_password(connection_properties.get_password());
         }
 
-        google::protobuf::RepeatedPtrField<std::string>* features = inner->mutable_features();
+        google::protobuf::RepeatedPtrField<std::string> *features = inner->mutable_features();
         features->Add(std::string(CLIENT_STREAMING_FEATURE));
         features->Add(std::string(SERVER_STREAMING_FEATURE));
 
-        google::protobuf::Map<std::string, std::string>* properties = inner->mutable_properties();
+        google::protobuf::Map<std::string, std::string> *properties = inner->mutable_properties();
         properties->emplace(AUTOCOMMIT_PROPERTY_KEY, connection_properties.get_is_auto_commit() ? "true" : "false");
         properties->emplace(NAMESPACE_PROPERTY_KEY, connection_properties.get_default_namespace());
 
-        org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer, timeout_millis).connection_response();
+        org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer,
+                                                                                    timeout_millis).connection_response();
         if (!response.is_compatible()) {
             std::string server_api_version =
                     std::to_string(response.major_api_version()) + "." + std::to_string(response.minor_api_version());
             std::string client_api_version =
                     std::to_string(inner->major_api_version()) + "." + std::to_string(inner->minor_api_version());
             throw std::runtime_error(
-                    "Incompatible API version. Server expected " + server_api_version + ", client has " + client_api_version);
+                    "Incompatible API version. Server expected " + server_api_version + ", client has " +
+                    client_api_version);
         }
         return response;
     }
@@ -307,11 +310,6 @@ namespace Communication {
         for (auto &value: values) {
             parameters->AddAllocated(value.serialize());
         }
-
-        //for (auto value : values) {
-        //    parameters->AddAllocated(value.serialize().get());
-        //}
-
         return complete_synchronously(outer, timeout_millis).statement_result();
     }
 
@@ -338,12 +336,8 @@ namespace Communication {
                                                           uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
-
-
         org::polypheny::prism::ExecuteIndexedStatementBatchRequest *inner = outer.mutable_execute_indexed_statement_batch_request();
         inner->set_statement_id(statement_id);
-
-
         google::protobuf::RepeatedPtrField<org::polypheny::prism::IndexedParameters> *inner_parameter_batch = inner->mutable_parameters();
         for (const auto &param_batch: params_batch) {
             org::polypheny::prism::IndexedParameters *indexed_param = inner_parameter_batch->Add();
@@ -353,5 +347,46 @@ namespace Communication {
             }
         }
         return complete_synchronously(outer, timeout_millis).statement_batch_response();
+    }
+
+    org::polypheny::prism::StreamFrame
+    PrismInterfaceClient::fetch_stream(uint32_t statement_id, uint64_t stream_id, uint64_t position, int32_t length,
+                                       uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::StreamFetchRequest *inner = outer.mutable_stream_fetch_request();
+        inner->set_statement_id(statement_id);
+        inner->set_stream_id(statement_id);
+        inner->set_position(position);
+        inner->set_length(length);
+        return complete_synchronously(outer, timeout_millis).stream_frame();
+    }
+
+    org::polypheny::prism::StreamAcknowledgement
+    PrismInterfaceClient::streamBinary(const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
+                                       uint64_t stream_id, uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
+        inner->set_statement_id(statement_id);
+        inner->set_stream_id(statement_id);
+        org::polypheny::prism::StreamFrame* frame = inner->mutable_frame();
+        frame->set_binary(Utils::ProtoUtils::vector_to_string(bytes));
+        frame->set_is_last(is_last);
+        return complete_synchronously(outer, timeout_millis).stream_acknowledgement();
+    }
+
+    org::polypheny::prism::StreamAcknowledgement
+    PrismInterfaceClient::streamString(const std::string substring, bool is_last, uint32_t statement_id,
+                                       uint64_t stream_id, uint32_t timeout_millis) {
+        org::polypheny::prism::Request outer;
+        outer.set_id(request_id.fetch_add(1));
+        org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
+        inner->set_statement_id(statement_id);
+        inner->set_stream_id(statement_id);
+        org::polypheny::prism::StreamFrame* frame = inner->mutable_frame();
+        frame->set_string(substring);
+        frame->set_is_last(is_last);
+        return complete_synchronously(outer, timeout_millis).stream_acknowledgement();
     }
 } // namespace Communication

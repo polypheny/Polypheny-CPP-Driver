@@ -20,6 +20,8 @@
 #include "connection_responses.pb.h"
 #include "protointerface.pb.h"
 #include "types/TypedValue.h"
+#include "stream_requests.pb.h"
+#include "stream_responses.pb.h"
 
 namespace Communication {
 
@@ -111,6 +113,21 @@ namespace Communication {
         org::polypheny::prism::Frame
         fetch_result(uint32_t &statement_id, const uint32_t &fetch_size,
                      uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
+        org::polypheny::prism::StreamFrame fetch_stream(
+                uint32_t statement_id, uint64_t stream_id,
+                uint64_t position, int32_t length,
+                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS
+        );
+
+        org::polypheny::prism::StreamAcknowledgement streamBinary(
+                const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
+                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS
+        );
+
+        org::polypheny::prism::StreamAcknowledgement streamString(
+                const std::string substring, bool is_last, uint32_t statement_id,
+                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 
