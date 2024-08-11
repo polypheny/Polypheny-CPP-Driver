@@ -88,18 +88,19 @@ namespace Communication {
 
         org::polypheny::prism::StatementResult
         execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values,
-                                  const uint32_t &fetch_size,
+                                  const uint32_t &fetch_size, Streaming::StreamingIndex &streaming_index,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementBatchResponse
         execute_indexed_statement_batch(uint32_t &statement_id,
                                         const std::vector<std::vector<Types::TypedValue>> &params_batch,
+                                        Streaming::StreamingIndex &streaming_index,
                                         uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
         execute_named_statement(const uint32_t &statement_id,
                                 std::unordered_map<std::string, Types::TypedValue> &parameters,
-                                const uint32_t &fetch_size,
+                                const uint32_t &fetch_size, Streaming::StreamingIndex &streaming_index,
                                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
@@ -121,13 +122,13 @@ namespace Communication {
         );
 
         org::polypheny::prism::StreamAcknowledgement stream_binary(
-                const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
-                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS
+                std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
+                uint64_t stream_id, uint32_t timeout_millis = 0
         );
 
         org::polypheny::prism::StreamAcknowledgement stream_string(
-                const std::string substring, bool is_last, uint32_t statement_id,
-                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+                std::string substring, bool is_last, uint32_t statement_id,
+                uint64_t stream_id, uint32_t timeout_millis = 0);
 
         void send_message(const org::polypheny::prism::Request &request);
 
@@ -140,8 +141,6 @@ namespace Communication {
         org::polypheny::prism::Response
         complete_synchronously(const org::polypheny::prism::Request &request,
                                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
-
-        void close();
     };
 
 } // namespace Communication

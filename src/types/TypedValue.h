@@ -11,9 +11,9 @@
 #include <gmpxx.h>
 #include <chrono>
 #include "utils/ProtoUtils.h"
-#include "streaming/BinaryInputStream.h"
 #include "value.pb.h"
 #include "connection/PrismInterfaceClient.h"
+#include "streaming/StreamingIndex.h"
 
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
@@ -22,6 +22,8 @@ namespace Types {
     class Interval;
 
     class TypedValue;
+
+    class File;
 
     using Representation = std::variant<
             std::monostate,
@@ -37,7 +39,8 @@ namespace Types {
             std::string,
             std::vector<uint8_t>,
             std::list<std::unique_ptr<TypedValue>>,
-            std::unordered_map<std::string, std::unique_ptr<TypedValue>>
+            std::unordered_map<std::string, std::unique_ptr<TypedValue>>,
+            std::shared_ptr<File>
     >;
 }
 
@@ -64,6 +67,8 @@ namespace Types {
         void deserialize();
 
     public:
+        static uint32_t STREAMING_THRESHOLD;
+
         // Constructors for different types
         explicit TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
                             std::shared_ptr<Communication::PrismInterfaceClient> client);
@@ -155,7 +160,7 @@ namespace Types {
          *
          * @param document_value The document value.
          */
-        explicit TypedValue(org::polypheny::prism::ProtoValue document_value);
+        explicit TypedValue(const std::unordered_map<std::string, TypedValue> &document_value);
 
         /**
          * @brief Constructs an empty TypedValue object representing a null value.
@@ -176,19 +181,26 @@ namespace Types {
          */
         explicit TypedValue(char const *values);
 
-/**
+        /**
          * @brief Constructs a TypedValue object from a vector of bytes.
          *
          * @param value The vector of bytes.
          */
         explicit TypedValue(const std::string &value);
 
-/**
+        /**
          * @brief Constructs a TypedValue object from a vector of bytes.
          *
          * @param value The vector of bytes.
          */
         explicit TypedValue(const std::vector<uint8_t> &value);
+
+        /*
+        * @brief Constructs a TypedValue object from a file.
+        *
+        * @param value A file object.
+        */
+        explicit TypedValue(const File &value);
 
         TypedValue(const TypedValue &other);
 
@@ -198,7 +210,7 @@ namespace Types {
 
         friend std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value);
 
-        org::polypheny::prism::ProtoValue *serialize();
+        org::polypheny::prism::ProtoValue *serialize(Streaming::StreamingIndex& streaming_index);
 
         org::polypheny::prism::ProtoValue::ValueCase get_value_case();
 
@@ -322,6 +334,14 @@ namespace Types {
          * @throws std::runtime_error if the value is not a vector of bytes.
          */
         std::vector<uint8_t> as_bytes();
+
+        /**
+         * @brief Retrieves the value as a file.
+         *
+         * @return A file object.
+         * @throws std::runtime_error if the value is not a vector of bytes.
+         */
+        File as_file();
     };
 
 } // namespace Types

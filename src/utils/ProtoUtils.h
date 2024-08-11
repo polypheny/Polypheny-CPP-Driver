@@ -9,7 +9,7 @@
 #include "value.pb.h"
 #include "types/TypedValue.h"
 #include "types/Interval.h"
-#include "streaming/BinaryInputStream.h"
+#include "types/File.h"
 #include <gmpxx.h>
 
 namespace Types {
@@ -40,7 +40,7 @@ namespace Utils::ProtoUtils {
     std::unique_ptr<org::polypheny::prism::ProtoTime> time_to_proto(const std::chrono::milliseconds &time);
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
-    list_to_proto(std::list<Types::TypedValue> &typed_values);
+    list_to_proto(std::list<Types::TypedValue> &typed_values, Streaming::StreamingIndex& streaming_index);
 
     mpf_class bytes_to_mpf(const std::string &bytes);
 
@@ -48,7 +48,7 @@ namespace Utils::ProtoUtils {
 
     std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value);
 
-    std::vector<uint8_t> collect_binary_stream(Streaming::BinaryInputStream& stream);
+    std::vector<uint8_t> collect_file(Types::File& stream);
 } // namespace Utils
 
 #endif // POLYPHENY_CPP_DRIVER_PROTOUTILS_H

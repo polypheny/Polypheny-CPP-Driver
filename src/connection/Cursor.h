@@ -14,6 +14,7 @@
 #include "results/DocumentResult.h"
 #include "results/GraphResult.h"
 #include "results/ScalarResult.h"
+#include "streaming/StreamingIndex.h"
 
 namespace Connection {
     // forward declaration, include in .cpp
@@ -32,6 +33,7 @@ namespace Connection {
         bool is_statement_id_set{};
         bool is_prepared{};
         Connection &connection;
+        Streaming::StreamingIndex streaming_index;
 
         void reset_statement();
 

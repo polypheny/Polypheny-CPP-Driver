@@ -45,6 +45,7 @@ polypheny_src = files(
     'src/results/Edge.cpp',
     'src/results/Node.cpp',
     'src/types/Interval.cpp',
+    'src/types/File.cpp',
     'src/transport/SocketTransport.cpp',
     'src/transport/UnixTransport.cpp',
     'src/transport/PlainTcpTransport.cpp',
@@ -59,8 +60,11 @@ polypheny_src = files(
     'src/results/ScalarResult.cpp',
     'src/connection/ServerError.cpp',
     'src/types/TypedValue.cpp',
-    'src/streaming/BinaryInputStream.cpp',
-    'src/streaming/BinaryInputStreamBuffer.cpp'
+    'src/streaming/StreamingIndex.cpp',
+    'src/streaming/PrismOutputStream.cpp',
+    'src/streaming/BinaryPrismOutputStream.cpp',
+    'src/streaming/FilePrismOutputStream.cpp',
+    'src/streaming/StringPrismOutputStream.cpp'
 )
 
 polypheny_cpp_driver_lib = library('polypheny_cpp_library',

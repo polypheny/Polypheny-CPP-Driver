@@ -299,6 +299,7 @@ namespace Communication {
     org::polypheny::prism::StatementResult
     PrismInterfaceClient::execute_indexed_statement(const uint32_t &statement_id,
                                                     std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
+                                                    Streaming::StreamingIndex &streaming_index,
                                                     uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -308,7 +309,7 @@ namespace Communication {
         org::polypheny::prism::IndexedParameters *inner_parameters = inner->mutable_parameters();
         google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
         for (auto &value: values) {
-            parameters->AddAllocated(value.serialize());
+            parameters->AddAllocated(value.serialize(streaming_index));
         }
         return complete_synchronously(outer, timeout_millis).statement_result();
     }
@@ -316,6 +317,7 @@ namespace Communication {
     org::polypheny::prism::StatementResult PrismInterfaceClient::execute_named_statement(const uint32_t &statement_id,
                                                                                          std::unordered_map<std::string, Types::TypedValue> &values,
                                                                                          const uint32_t &fetch_size,
+                                                                                         Streaming::StreamingIndex &streaming_index,
                                                                                          uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -325,7 +327,7 @@ namespace Communication {
         org::polypheny::prism::NamedParameters *inner_parameters = inner->mutable_parameters();
         google::protobuf::Map<std::basic_string<char>, org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
         for (auto &entry: values) {
-            (*parameters)[entry.first] = *entry.second.serialize();
+            (*parameters)[entry.first] = *entry.second.serialize(streaming_index);
         }
         return complete_synchronously(outer, timeout_millis).statement_result();
     }
@@ -333,6 +335,7 @@ namespace Communication {
     org::polypheny::prism::StatementBatchResponse
     PrismInterfaceClient::execute_indexed_statement_batch(uint32_t &statement_id,
                                                           const std::vector<std::vector<Types::TypedValue>> &params_batch,
+                                                          Streaming::StreamingIndex &streaming_index,
                                                           uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -343,7 +346,7 @@ namespace Communication {
             org::polypheny::prism::IndexedParameters *indexed_param = inner_parameter_batch->Add();
             google::protobuf::RepeatedPtrField<org::polypheny::prism::ProtoValue> *inner_parameters = indexed_param->mutable_parameters();
             for (auto value: param_batch) {
-                inner_parameters->AddAllocated(&(*value.serialize()));
+                inner_parameters->AddAllocated(&(*value.serialize(streaming_index)));
             }
         }
         return complete_synchronously(outer, timeout_millis).statement_batch_response();
@@ -364,13 +367,13 @@ namespace Communication {
 
     org::polypheny::prism::StreamAcknowledgement
     PrismInterfaceClient::stream_binary(const std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
-                                       uint64_t stream_id, uint32_t timeout_millis) {
+                                        uint64_t stream_id, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
         inner->set_statement_id(statement_id);
         inner->set_stream_id(statement_id);
-        org::polypheny::prism::StreamFrame* frame = inner->mutable_frame();
+        org::polypheny::prism::StreamFrame *frame = inner->mutable_frame();
         frame->set_binary(Utils::ProtoUtils::vector_to_string(bytes));
         frame->set_is_last(is_last);
         return complete_synchronously(outer, timeout_millis).stream_acknowledgement();
@@ -378,13 +381,13 @@ namespace Communication {
 
     org::polypheny::prism::StreamAcknowledgement
     PrismInterfaceClient::stream_string(const std::string substring, bool is_last, uint32_t statement_id,
-                                       uint64_t stream_id, uint32_t timeout_millis) {
+                                        uint64_t stream_id, uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
         inner->set_statement_id(statement_id);
         inner->set_stream_id(statement_id);
-        org::polypheny::prism::StreamFrame* frame = inner->mutable_frame();
+        org::polypheny::prism::StreamFrame *frame = inner->mutable_frame();
         frame->set_string(substring);
         frame->set_is_last(is_last);
         return complete_synchronously(outer, timeout_millis).stream_acknowledgement();

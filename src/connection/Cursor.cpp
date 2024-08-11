@@ -5,30 +5,45 @@
 namespace Connection {
 
     // INFO: the statement_id set here is a placeholder value ignored as is_statement_id_set == false
-    Cursor::Cursor(Connection &connection) : connection(connection), statement_id(0), is_statement_id_set(false) {}
+    Cursor::Cursor(Connection &connection)
+            : connection(connection),
+              statement_id(0),
+              is_statement_id_set(false),
+              is_prepared(false),
+              streaming_index(std::shared_ptr<Communication::PrismInterfaceClient>(&connection.get_prism_interface_client(), [](Communication::PrismInterfaceClient*){}))
+    {
+    }
 
     Cursor::Cursor(const Cursor &other)
             : connection(other.connection),
               statement_id(other.statement_id),
-              is_statement_id_set(other.is_statement_id_set) {}
+              is_statement_id_set(other.is_statement_id_set),
+              is_prepared(other.is_prepared),
+              streaming_index(std::shared_ptr<Communication::PrismInterfaceClient>(&other.connection.get_prism_interface_client(), [](Communication::PrismInterfaceClient*){}))
+    {
+    }
 
+    /*
     Cursor &Cursor::operator=(const Cursor &other) {
         if (this == &other) {
             return *this;
         }
+
+        connection = other.connection;
         statement_id = other.statement_id;
         is_statement_id_set = other.is_statement_id_set;
+        is_prepared = other.is_prepared;
+        streaming_index = other.streaming_index;
+
         return *this;
     }
-
-    Cursor::~Cursor() {
-        // TODO: implement d'tor if needed or remove
-    }
+     */
 
     void Cursor::reset_statement() {
         if (is_statement_id_set) {
             connection.get_prism_interface_client().close_statement(statement_id);
             is_statement_id_set = false;
+            streaming_index.update(0, false);
         }
         if (is_prepared) {
             is_prepared = false;
@@ -65,6 +80,7 @@ namespace Connection {
 
             if (!is_statement_id_set) {
                 statement_id = statement_response.statement_id();
+                streaming_index.update(statement_id, true);
                 is_statement_id_set = true;
             }
 
@@ -124,7 +140,7 @@ namespace Connection {
             throw std::runtime_error("This operation requires a statement ot be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client().execute_indexed_statement(
-                statement_id, params, DEFAULT_FETCH_SIZE);
+                statement_id, params, DEFAULT_FETCH_SIZE, streaming_index);
         if (!result.has_frame()) {
             return std::make_unique<Results::ScalarResult>(result.scalar());
         }
@@ -137,7 +153,7 @@ namespace Connection {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client().execute_named_statement(
-                statement_id, params, DEFAULT_FETCH_SIZE);
+                statement_id, params, DEFAULT_FETCH_SIZE, streaming_index);
         if (!result.has_frame()) {
             return std::make_unique<Results::ScalarResult>(result.scalar());
         }
@@ -150,7 +166,7 @@ namespace Connection {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementBatchResponse response = connection.get_prism_interface_client().execute_indexed_statement_batch(
-                statement_id, params_batch);
+                statement_id, params_batch, streaming_index);
         std::vector<uint64_t> update_counts;
         for (auto count: response.scalars()) {
             update_counts.push_back(count);
@@ -175,6 +191,7 @@ namespace Connection {
 
             if (!is_statement_id_set) {
                 statement_id = statement_batch_response.batch_id();
+                streaming_index.update(statement_id, true);
                 is_statement_id_set = true;
             }
 

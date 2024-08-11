@@ -6,10 +6,17 @@
 
 #include <utility>
 #include "types/Interval.h"
+#include "types/File.h"
 #include "utils/TypedValueUtils.h"
 #include "utils/ProtoUtils.h"
+#include "streaming/BinaryPrismOutputStream.h"
+#include "File.h"
+#include "streaming/FilePrismOutputStream.h"
+#include "streaming/StringPrismOutputStream.h"
 
 namespace Types {
+
+    uint32_t TypedValue::STREAMING_THRESHOLD = 100000000;
 
     TypedValue::TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
                            std::shared_ptr<Communication::PrismInterfaceClient> client)
@@ -76,10 +83,9 @@ namespace Types {
     TypedValue::TypedValue(const Types::Interval &value)
             : value(std::make_unique<Types::Interval>(value)),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kInterval),
-
               is_deserialized(true) {}
 
-    TypedValue::TypedValue(org::polypheny::prism::ProtoValue document_value)
+    TypedValue::TypedValue(const std::unordered_map<std::string, TypedValue> &document_value)
             : value_case(org::polypheny::prism::ProtoValue::ValueCase::kDocument),
 
               is_deserialized(true) {
@@ -116,6 +122,11 @@ namespace Types {
     TypedValue::TypedValue(const std::vector<uint8_t> &value)
             : value(value),
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kBinary),
+              is_deserialized(true) {}
+
+    TypedValue::TypedValue(const File &value)
+            : value(std::make_unique<Types::File>(value)),
+              value_case(org::polypheny::prism::ProtoValue::ValueCase::kFile),
               is_deserialized(true) {}
 
     TypedValue::TypedValue(const TypedValue &other)
@@ -266,7 +277,7 @@ namespace Types {
         return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue &>(typed_value));
     }
 
-    org::polypheny::prism::ProtoValue *TypedValue::serialize() {
+    org::polypheny::prism::ProtoValue *TypedValue::serialize(Streaming::StreamingIndex &streaming_index) {
         auto proto_value = new org::polypheny::prism::ProtoValue;
 
         switch (value_case) {
@@ -308,17 +319,38 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kInterval:
                 *proto_value->mutable_interval() = *std::get<std::unique_ptr<Interval>>(value)->serialize();
                 break;
-            case org::polypheny::prism::ProtoValue::ValueCase::kString:
-                proto_value->mutable_string()->set_string(std::get<std::string>(value));
+            case org::polypheny::prism::ProtoValue::ValueCase::kString: {
+                org::polypheny::prism::ProtoString *proto_string = proto_value->mutable_string();
+                std::string string = std::get<std::string>(value);
+                if (string.length() * 2 < STREAMING_THRESHOLD) {
+                    proto_string->set_string(string);
+                    break;
+                }
+                std::shared_ptr<Streaming::StringPrismOutputStream> stream = std::make_shared<Streaming::StringPrismOutputStream>(
+                        string);
+                int64_t stream_id = streaming_index.register_stream(stream);
+                proto_string->set_stream_id(stream_id);
+                proto_string->set_is_forward_only(true);
                 break;
-            case org::polypheny::prism::ProtoValue::ValueCase::kBinary:
-                proto_value->mutable_binary()->set_binary(
-                        Utils::ProtoUtils::vector_to_string(std::get<std::vector<uint8_t>>(value)));
+            }
+            case org::polypheny::prism::ProtoValue::ValueCase::kBinary: {
+                org::polypheny::prism::ProtoBinary *proto_binary = proto_value->mutable_binary();
+                if (std::get<std::vector<uint8_t>>(value).size() < STREAMING_THRESHOLD) {
+                    proto_binary->set_binary(
+                            Utils::ProtoUtils::vector_to_string(std::get<std::vector<uint8_t>>(value)));
+                    break;
+                }
+                std::shared_ptr<Streaming::BinaryPrismOutputStream> stream = std::make_shared<Streaming::BinaryPrismOutputStream>(
+                        std::get<std::vector<uint8_t>>(value));
+                int64_t stream_id = streaming_index.register_stream(stream);
+                proto_binary->set_stream_id(stream_id);
+                proto_binary->set_is_forward_only(true);
                 break;
+            }
             case org::polypheny::prism::ProtoValue::ValueCase::kList: {
                 auto proto_list = proto_value->mutable_list();
                 for (const auto &item: std::get<std::list<std::unique_ptr<TypedValue>>>(value)) {
-                    *proto_list->add_values() = *item->serialize();
+                    *proto_list->add_values() = *item->serialize(streaming_index);
                 }
                 break;
             }
@@ -326,16 +358,22 @@ namespace Types {
                 auto proto_document = proto_value->mutable_document();
                 auto *entries = proto_document->mutable_entries();
                 for (const auto &pair: std::get<std::unordered_map<std::string, std::unique_ptr<TypedValue>>>(value)) {
-                    auto serialized_value = pair.second->serialize();
+                    auto serialized_value = pair.second->serialize(streaming_index);
                     entries->emplace(pair.first, *serialized_value);
                 }
                 break;
             }
 
-            case org::polypheny::prism::ProtoValue::ValueCase::kFile:
-                proto_value->mutable_file()->set_binary(
-                        Utils::ProtoUtils::vector_to_string(std::get<std::vector<uint8_t>>(value)));
+            case org::polypheny::prism::ProtoValue::ValueCase::kFile: {
+                org::polypheny::prism::ProtoFile *proto_file = proto_value->mutable_file();
+                std::shared_ptr<File> file = std::get<std::shared_ptr<File>>(value);
+                std::shared_ptr<Streaming::FilePrismOutputStream> stream = std::make_shared<Streaming::FilePrismOutputStream>(
+                        file);
+                int64_t stream_id = streaming_index.register_stream(stream);
+                proto_file->set_stream_id(stream_id);
+                proto_file->set_is_forward_only(true);
                 break;
+            }
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 proto_value->mutable_null();
                 break;
@@ -392,12 +430,13 @@ namespace Types {
                     value = Utils::ProtoUtils::string_to_vector(serialized->binary().binary());
                     break;
                 }
-                Streaming::BinaryInputStream stream(
+                Types::File file(
                         serialized->binary().statement_id(),
                         serialized->binary().stream_id(),
+                        serialized->binary().is_forward_only(),
                         client
                 );
-                value = Utils::ProtoUtils::collect_binary_stream(stream);
+                value = Utils::ProtoUtils::collect_file(file);
                 break;
             }
             case org::polypheny::prism::ProtoValue::ValueCase::kList: {
@@ -416,9 +455,21 @@ namespace Types {
                 value = std::move(map_value);
                 break;
             }
-            case org::polypheny::prism::ProtoValue::ValueCase::kFile:
-                value = Utils::ProtoUtils::string_to_vector(serialized->file().binary());
+            case org::polypheny::prism::ProtoValue::ValueCase::kFile: {
+                if (serialized->file().has_binary()) {
+                    value = std::make_unique<Types::File>(
+                            Types::File(Utils::ProtoUtils::string_to_vector(serialized->file().binary())));
+                    break;
+                }
+                Types::File file(
+                        serialized->file().statement_id(),
+                        serialized->file().stream_id(),
+                        serialized->file().is_forward_only(),
+                        client
+                );
+                value = std::make_shared<Types::File>(file);
                 break;
+            }
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 value = std::monostate{};
                 break;
@@ -581,10 +632,19 @@ namespace Types {
         return std::get<std::vector<uint8_t>>(value);
     }
 
+    File TypedValue::as_file() {
+        if (!is_deserialized) {
+            deserialize();
+        }
+        if (value_case != org::polypheny::prism::ProtoValue::ValueCase::kFile) {
+            throw std::runtime_error("This value can not be retrieved as a file.");
+        }
+        return *std::get<std::shared_ptr<File>>(value);
+    }
+
     org::polypheny::prism::ProtoValue::ValueCase TypedValue::get_value_case() {
         return value_case;
     }
 
     TypedValue::TypedValue(char const *value) : TypedValue(std::string(value)) {}
-
 } // namespace Types
