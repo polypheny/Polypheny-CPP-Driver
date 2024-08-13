@@ -1,4 +1,5 @@
 #include "RelationalResult.h"
+
 #include "src/connection/Cursor.h"
 #include "src/connection/Connection.h"
 
@@ -12,18 +13,19 @@ namespace Results {
 
     RelationalResult::~RelationalResult() {
         uint32_t statement_id = cursor->get_statement_id();
-        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+        cursor->get_connection().get_prism_interface_client()->close_result(statement_id);
     }
 
     void RelationalResult::add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame) {
+        std::shared_ptr<Communication::PrismInterfaceClient> client = cursor->get_connection().get_prism_interface_client();
         for (const auto &row : relationalFrame.rows()) {
-            rows.emplace_back(row, metadata);
+            rows.emplace_back(row, metadata, client);
         }
     }
 
     void RelationalResult::fetch_more() {
         uint32_t statement_id = cursor->get_statement_id();
-        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client().fetch_result(
+        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client()->fetch_result(
                 statement_id, DEFAULT_FETCH_SIZE);
 
         if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kRelationalFrame) {

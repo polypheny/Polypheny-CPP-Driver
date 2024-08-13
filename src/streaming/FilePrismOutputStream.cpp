@@ -4,6 +4,8 @@
 
 #include "FilePrismOutputStream.h"
 
+#include "types/TypedValue.h"
+
 namespace Streaming {
     FilePrismOutputStream::FilePrismOutputStream(std::shared_ptr<std::streambuf> fileStream)
             : fileStream(std::move(fileStream)) {}

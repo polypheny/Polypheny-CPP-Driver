@@ -10,10 +10,11 @@
 #include <unordered_map>
 #include <gmpxx.h>
 #include <chrono>
+
 #include "utils/ProtoUtils.h"
-#include "value.pb.h"
-#include "connection/PrismInterfaceClient.h"
 #include "streaming/StreamingIndex.h"
+
+#include "org/polypheny/prism/value.pb.h"
 
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
@@ -44,6 +45,10 @@ namespace Types {
     >;
 }
 
+namespace Communication {
+    class PrismInterfaceClient;
+}
+
 namespace Types {
     /**
      * @brief Represents a wrapper for all types used in the driver.
@@ -69,7 +74,6 @@ namespace Types {
     public:
         static uint32_t STREAMING_THRESHOLD;
 
-        // Constructors for different types
         explicit TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
                             std::shared_ptr<Communication::PrismInterfaceClient> client);
 
@@ -210,7 +214,7 @@ namespace Types {
 
         friend std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value);
 
-        org::polypheny::prism::ProtoValue *serialize(Streaming::StreamingIndex& streaming_index);
+        org::polypheny::prism::ProtoValue *serialize(std::shared_ptr<Streaming::StreamingIndex> streaming_index);
 
         org::polypheny::prism::ProtoValue::ValueCase get_value_case();
 

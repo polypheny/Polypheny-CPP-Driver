@@ -5,15 +5,17 @@
 #include "Edge.h"
 
 namespace Results {
-    Edge::Edge(const org::polypheny::prism::ProtoEdge &proto_edge)
-            : GraphElement(proto_edge.id(), proto_edge.name(), GraphElementType::EDGE),
+
+    Edge::Edge(const org::polypheny::prism::ProtoEdge &proto_edge,
+               std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client)
+            : GraphElement(proto_edge.id(), proto_edge.name(), GraphElementType::EDGE, prism_interface_client),
               left(proto_edge.left()),
               right(proto_edge.right()),
               direction(get_edge_direction_from_proto(proto_edge.direction())) {
 
         labels.assign(proto_edge.labels().begin(), proto_edge.labels().end());
         for (const auto &property: proto_edge.properties()) {
-            emplace(property.first, property.second);
+            emplace(property.first, Types::TypedValue(property.second, prism_interface_client));
         }
     }
 
@@ -44,4 +46,5 @@ namespace Results {
                 throw std::runtime_error("Should never be thrown.");
         }
     }
-} // Results
+
+} // namespace Results

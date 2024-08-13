@@ -2,8 +2,6 @@
 // Created by tobi on 11.06.24.
 //
 
-#include "utils/TypedValueUtils.h"
-#include "types/Interval.h"
 #include <iostream>
 #include <chrono>
 #include <list>
@@ -11,6 +9,9 @@
 #include <iomanip>
 #include <ctime>
 #include <gmpxx.h>
+
+#include "utils/TypedValueUtils.h"
+#include "types/Interval.h"
 
 namespace Utils::TypedValueUtils {
 

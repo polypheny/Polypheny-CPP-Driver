@@ -5,9 +5,10 @@
 #ifndef POLYPHENY_CPP_DRIVER_STRINGPRISMOUTPUTSTREAM_H
 #define POLYPHENY_CPP_DRIVER_STRINGPRISMOUTPUTSTREAM_H
 
-#include "PrismOutputStream.h"
 #include <string>
 #include <memory>
+
+#include "PrismOutputStream.h"
 #include "connection/PrismInterfaceClient.h"
 
 namespace Streaming {

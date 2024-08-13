@@ -5,10 +5,11 @@
 #ifndef POLYPHENY_CPP_DRIVER_SECURETCPTRANSPORT_H
 #define POLYPHENY_CPP_DRIVER_SECURETCPTRANSPORT_H
 
-#include "SocketTransport.h"
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string>
+
+#include "SocketTransport.h"
 
 namespace Transport {
 

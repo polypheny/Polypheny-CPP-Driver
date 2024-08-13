@@ -5,8 +5,9 @@
 #ifndef POLYPHENY_CPP_DRIVER_RELATIONALMETADATA_H
 #define POLYPHENY_CPP_DRIVER_RELATIONALMETADATA_H
 
-#include "relational_frame.pb.h"
 #include "RelationalColumnMetadata.h"
+
+#include "org/polypheny/prism/relational_frame.pb.h"
 
 namespace Results {
 

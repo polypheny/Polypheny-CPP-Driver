@@ -3,6 +3,7 @@
 //
 
 #include "ProtoUtils.h"
+#include "types/Interval.h"
 
 
 namespace Utils::ProtoUtils {
@@ -30,11 +31,11 @@ namespace Utils::ProtoUtils {
         return std::chrono::milliseconds(time.time());
     }
 
-    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list) {
+    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client) {
         google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> values = list.values();
         std::list<Types::TypedValue> result;
         for (const org::polypheny::prism::ProtoValue &value: values) {
-            result.emplace_back(value);
+            result.emplace_back(value, prism_interface_client);
         }
         return result;
     }
@@ -66,10 +67,10 @@ namespace Utils::ProtoUtils {
 
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
-    list_to_proto(std::list<Types::TypedValue> &typed_values, Streaming::StreamingIndex &streaming_index) {
+    list_to_proto(std::list<Types::TypedValue> &typed_values, std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
         auto proto_list = std::make_unique<org::polypheny::prism::ProtoList>();
         for (Types::TypedValue &typed_value: typed_values) {
-            *proto_list->add_values() = *typed_value.serialize(Streaming::StreamingIndex & streaming_index);
+            *proto_list->add_values() = *typed_value.serialize(streaming_index);
         }
         return proto_list;
     }

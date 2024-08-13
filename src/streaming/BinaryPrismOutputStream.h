@@ -8,10 +8,12 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+
 #include "PrismOutputStream.h"
 #include "connection/PrismInterfaceClient.h"
 #include "types/TypedValue.h"
-#include "stream_responses.pb.h"
+
+#include "org/polypheny/prism/stream_responses.pb.h"
 
 namespace Streaming {
 

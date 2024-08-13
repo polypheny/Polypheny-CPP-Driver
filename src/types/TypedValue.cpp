@@ -5,14 +5,15 @@
 #include "types/TypedValue.h"
 
 #include <utility>
+
 #include "types/Interval.h"
 #include "types/File.h"
 #include "utils/TypedValueUtils.h"
 #include "utils/ProtoUtils.h"
 #include "streaming/BinaryPrismOutputStream.h"
-#include "File.h"
 #include "streaming/FilePrismOutputStream.h"
 #include "streaming/StringPrismOutputStream.h"
+#include "connection/PrismInterfaceClient.h"
 
 namespace Types {
 
@@ -277,7 +278,7 @@ namespace Types {
         return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue &>(typed_value));
     }
 
-    org::polypheny::prism::ProtoValue *TypedValue::serialize(Streaming::StreamingIndex &streaming_index) {
+    org::polypheny::prism::ProtoValue *TypedValue::serialize(std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
         auto proto_value = new org::polypheny::prism::ProtoValue;
 
         switch (value_case) {
@@ -328,7 +329,7 @@ namespace Types {
                 }
                 std::shared_ptr<Streaming::StringPrismOutputStream> stream = std::make_shared<Streaming::StringPrismOutputStream>(
                         string);
-                int64_t stream_id = streaming_index.register_stream(stream);
+                int64_t stream_id = streaming_index->register_stream(stream);
                 proto_string->set_stream_id(stream_id);
                 proto_string->set_is_forward_only(true);
                 break;
@@ -342,7 +343,7 @@ namespace Types {
                 }
                 std::shared_ptr<Streaming::BinaryPrismOutputStream> stream = std::make_shared<Streaming::BinaryPrismOutputStream>(
                         std::get<std::vector<uint8_t>>(value));
-                int64_t stream_id = streaming_index.register_stream(stream);
+                int64_t stream_id = streaming_index->register_stream(stream);
                 proto_binary->set_stream_id(stream_id);
                 proto_binary->set_is_forward_only(true);
                 break;
@@ -369,7 +370,7 @@ namespace Types {
                 std::shared_ptr<File> file = std::get<std::shared_ptr<File>>(value);
                 std::shared_ptr<Streaming::FilePrismOutputStream> stream = std::make_shared<Streaming::FilePrismOutputStream>(
                         file);
-                int64_t stream_id = streaming_index.register_stream(stream);
+                int64_t stream_id = streaming_index->register_stream(stream);
                 proto_file->set_stream_id(stream_id);
                 proto_file->set_is_forward_only(true);
                 break;

@@ -1,7 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include "src/utils/ProtoUtils.h"
-#include "value.pb.h"
+#include "org/polypheny/prism/value.pb.h"
 #include "src/types/TypedValue.h"
+#include "src/types/Interval.h"
 
 constexpr long long MILLIS_PER_DAY = 86400000LL;
 
@@ -81,7 +82,8 @@ TEST_CASE("ProtoUtils::proto_to_list", "[ProtoUtils]") {
     auto *value2 = proto_list.add_values();
     value2->mutable_string()->set_string("value");
 
-    std::list<Types::TypedValue> converted_back = Utils::ProtoUtils::proto_to_list(proto_list);
+    std::shared_ptr<Communication::PrismInterfaceClient> client;
+    std::list<Types::TypedValue> converted_back = Utils::ProtoUtils::proto_to_list(proto_list, client);
 
     REQUIRE(1 < 2);
     REQUIRE(converted_back.size() == 2);
@@ -94,7 +96,9 @@ TEST_CASE("ProtoUtils::proto_to_list", "[ProtoUtils]") {
 TEST_CASE("ProtoUtils::list_to_proto", "[ProtoUtils]") {
     SKIP("Broken due to TypedValue not working correctly!");
     std::list<Types::TypedValue> original_list = {Types::TypedValue(42), Types::TypedValue(std::string("value"))};
-    auto proto_list = Utils::ProtoUtils::list_to_proto(original_list);
+
+    std::shared_ptr<Streaming::StreamingIndex> index;
+    auto proto_list = Utils::ProtoUtils::list_to_proto(original_list, index);
 
     REQUIRE(proto_list->values_size() == 2);
     REQUIRE(proto_list->values(0).integer().integer() == 42);

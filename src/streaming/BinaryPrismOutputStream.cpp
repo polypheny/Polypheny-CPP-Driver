@@ -3,6 +3,7 @@
 //
 
 #include "BinaryPrismOutputStream.h"
+
 #include <stdexcept>
 #include <algorithm>
 #include <cstring>

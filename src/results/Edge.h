@@ -6,7 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_EDGE_H
 
 #include "results/GraphElement.h"
-#include "graph_frame.pb.h"
+#include "org/polypheny/prism/graph_frame.pb.h"
 
 namespace Results {
 
@@ -34,31 +34,31 @@ namespace Results {
         static EdgeDirection get_edge_direction_from_proto(org::polypheny::prism::ProtoEdge_Direction direction);
 
     public:
-        explicit Edge(const org::polypheny::prism::ProtoEdge &proto_edge);
+        explicit Edge(const org::polypheny::prism::ProtoEdge &proto_edge,
+                      std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client);
 
         /**
          * @brief Gets the source node id of the edge.
          *
          * @return A reference to the left node string.
          */
-        const std::string &get_left() const;
-
+        [[nodiscard]] const std::string &get_left() const;
 
         /**
          * @brief Gets the target node id of the edge.
          *
          * @return A reference to the right node string.
          */
-        const std::string &get_right() const;
+        [[nodiscard]] const std::string &get_right() const;
 
         /**
          * @brief Gets the direction of the edge.
          *
          * @return The direction of the edge.
          */
-        EdgeDirection get_direction() const;
+        [[nodiscard]] EdgeDirection get_direction() const;
     };
 
-} // Results
+} // namespace Results
 
-#endif //POLYPHENY_CPP_DRIVER_EDGE_H
+#endif // POLYPHENY_CPP_DRIVER_EDGE_H

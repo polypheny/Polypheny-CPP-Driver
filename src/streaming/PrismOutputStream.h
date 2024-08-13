@@ -8,6 +8,7 @@
 #include <thread>
 #include <atomic>
 #include <stdexcept>
+
 #include "connection/PrismInterfaceClient.h"
 
 namespace Streaming {

@@ -5,11 +5,11 @@
 #include "Node.h"
 
 namespace Results {
-    Node::Node(const org::polypheny::prism::ProtoNode& proto_edge)
-            : GraphElement(proto_edge.id(), proto_edge.name(), GraphElementType::NODE) {
-        labels.assign(proto_edge.labels().begin(), proto_edge.labels().end());
-        for (const auto &property : proto_edge.properties()) {
-            emplace(property.first, property.second);
+    Node::Node(const org::polypheny::prism::ProtoNode& proto_node, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client)
+            : GraphElement(proto_node.id(), proto_node.name(), GraphElementType::NODE, prism_interface_client) {
+        labels.assign(proto_node.labels().begin(), proto_node.labels().end());
+        for (const auto &property : proto_node.properties()) {
+            emplace(property.first, Types::TypedValue(property.second, prism_interface_client));
         }
     }
 } // Results

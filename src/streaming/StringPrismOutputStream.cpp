@@ -1,8 +1,9 @@
 #include "StringPrismOutputStream.h"
 
 #include <utility>
-#include "connection/PrismInterfaceClient.h"
 #include <algorithm>
+
+#include "types/TypedValue.h"
 
 namespace Streaming {
 

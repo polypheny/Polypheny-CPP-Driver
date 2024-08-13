@@ -7,7 +7,7 @@
 
 #include "PrismOutputStream.h"
 #include <atomic>
-#include <memory>  // For std::shared_ptr
+#include <memory>
 #include "connection/PrismInterfaceClient.h"
 
 namespace Streaming {

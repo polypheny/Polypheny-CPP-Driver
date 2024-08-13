@@ -1,13 +1,12 @@
 #include "PrismInterfaceClient.h"
-#include "protointerface.pb.h"
-#include "connection_requests.pb.h"
-#include "connection_responses.pb.h"
-#include "statement_requests.pb.h"
-#include "statement_responses.pb.h"
-#include "transport/ConnectionClosedError.h"
+
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+
+#include "types/TypedValue.h"
+#include "transport/ConnectionClosedError.h"
+#include "types/Interval.h"
 
 namespace Communication {
 
@@ -299,7 +298,7 @@ namespace Communication {
     org::polypheny::prism::StatementResult
     PrismInterfaceClient::execute_indexed_statement(const uint32_t &statement_id,
                                                     std::vector<Types::TypedValue> &values, const uint32_t &fetch_size,
-                                                    Streaming::StreamingIndex &streaming_index,
+                                                    std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                                     uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -317,7 +316,7 @@ namespace Communication {
     org::polypheny::prism::StatementResult PrismInterfaceClient::execute_named_statement(const uint32_t &statement_id,
                                                                                          std::unordered_map<std::string, Types::TypedValue> &values,
                                                                                          const uint32_t &fetch_size,
-                                                                                         Streaming::StreamingIndex &streaming_index,
+                                                                                         std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                                                                          uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
@@ -335,7 +334,7 @@ namespace Communication {
     org::polypheny::prism::StatementBatchResponse
     PrismInterfaceClient::execute_indexed_statement_batch(uint32_t &statement_id,
                                                           const std::vector<std::vector<Types::TypedValue>> &params_batch,
-                                                          Streaming::StreamingIndex &streaming_index,
+                                                          std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                                           uint32_t timeout_millis) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));

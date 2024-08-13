@@ -8,8 +8,8 @@
 #include <unordered_set>
 #include <atomic>
 #include <memory>
+
 #include "connection/PrismInterfaceClient.h"
-#include "connection/Cursor.h"
 #include "streaming/PrismOutputStream.h"
 
 namespace Streaming {

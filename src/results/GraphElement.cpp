@@ -7,8 +7,8 @@
 #include <utility>
 
 namespace Results {
-    GraphElement::GraphElement(std::string id, std::string name, GraphElementType type)
-            : id(std::move(id)), name(std::move(name)), element_type(type) {}
+    GraphElement::GraphElement(std::string id, std::string name, GraphElementType type, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client)
+            : id(std::move(id)), name(std::move(name)), element_type(type), prism_interface_client(std::move(prism_interface_client)) {}
 
     const std::string &GraphElement::get_id() const {
         return id;

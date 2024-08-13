@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include "src/types/TypedValue.h"
 #include "src/types/Interval.h"
-#include "value.pb.h"
+#include "org/polypheny/prism/value.pb.h"
 
 TEST_CASE("TypedValue construction from boolean", "[TypedValue]") {
     Types::TypedValue boolean_value(true);

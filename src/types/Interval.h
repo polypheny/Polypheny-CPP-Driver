@@ -5,9 +5,11 @@
 #ifndef POLYPHENY_CPP_DRIVER_INTERVAL_H
 #define POLYPHENY_CPP_DRIVER_INTERVAL_H
 
-#include "NativeType.h"
-#include "value.pb.h"
 #include <string>
+
+#include "NativeType.h"
+
+#include "org/polypheny/prism/value.pb.h"
 
 namespace Types {
     /**

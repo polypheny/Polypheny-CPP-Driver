@@ -6,8 +6,9 @@
 #define POLYPHENY_CPP_DRIVER_DOCUMENTRESULT_H
 
 #include "results/Result.h"
-#include "document_frame.pb.h"
 #include "types/TypedValue.h"
+
+#include "org/polypheny/prism/document_frame.pb.h"
 
 namespace Connection {
     class Cursor;

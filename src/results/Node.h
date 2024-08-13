@@ -5,8 +5,9 @@
 #ifndef POLYPHENY_CPP_DRIVER_NODE_H
 #define POLYPHENY_CPP_DRIVER_NODE_H
 
-#include "graph_frame.pb.h"
 #include "results/GraphElement.h"
+
+#include "org/polypheny/prism/graph_frame.pb.h"
 
 namespace Results {
 
@@ -20,7 +21,8 @@ namespace Results {
      */
     class Node : public GraphElement {
     public:
-        explicit Node(const org::polypheny::prism::ProtoNode& proto_edge);
+        explicit Node(const org::polypheny::prism::ProtoNode& proto_node, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client);
+
     };
 
 } // Results

@@ -4,9 +4,11 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include "relational_frame.pb.h"
+
 #include "RelationalMetadata.h"
 #include "types/TypedValue.h"
+
+#include "org/polypheny/prism/relational_frame.pb.h"
 
 namespace Results {
 
@@ -19,7 +21,7 @@ namespace Results {
     class Row {
 
     public:
-        Row(const org::polypheny::prism::Row &row, std::shared_ptr<Results::RelationalMetadata> relational_metadata);
+        Row(const org::polypheny::prism::Row &row, std::shared_ptr<Results::RelationalMetadata> relational_metadata, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client);
 
         /**
          * @brief Gets the value at the specified zero based column index.
@@ -126,6 +128,7 @@ namespace Results {
     private:
         std::vector<Types::TypedValue> values;
         std::shared_ptr<Results::RelationalMetadata> relational_metadata;
+        std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client;
     };
 
 } // namespace Results

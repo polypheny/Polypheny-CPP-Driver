@@ -4,19 +4,20 @@
 namespace Connection {
 
     Connection::Connection(ConnectionProperties &connection_properties)
-            : prism_interface_client(connection_properties, std::make_unique<Transport::PlainTcpTransport>()) {
+            : prism_interface_client(std::make_shared<Communication::PrismInterfaceClient>(connection_properties, std::make_unique<Transport::PlainTcpTransport>())) {
     }
 
     Connection::Connection(ConnectionProperties &connection_properties, std::unique_ptr<Transport::Transport> &&transport)
-            : prism_interface_client(connection_properties, std::move(transport)) {
+            : prism_interface_client(std::make_shared<Communication::PrismInterfaceClient>(connection_properties, std::move(transport))) {
     }
 
     Connection::Connection(const std::string &host, const std::string &user, const std::string &password)
-            : prism_interface_client(build_connection_properties(user, password), std::make_unique<Transport::PlainTcpTransport>(host)) {
+            : prism_interface_client(std::make_shared<Communication::PrismInterfaceClient>(build_connection_properties(user, password), std::make_unique<Transport::PlainTcpTransport>(host))) {
     }
 
+
     Connection::~Connection() {
-        prism_interface_client.disconnect_and_close();
+        prism_interface_client->disconnect_and_close();
     }
 
 
@@ -28,7 +29,7 @@ namespace Connection {
         return connection_properties;
     }
 
-    Communication::PrismInterfaceClient &Connection::get_prism_interface_client() {
+    std::shared_ptr<Communication::PrismInterfaceClient> Connection::get_prism_interface_client() {
         return prism_interface_client;
     }
 

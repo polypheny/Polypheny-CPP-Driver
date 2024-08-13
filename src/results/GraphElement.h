@@ -5,13 +5,15 @@
 #ifndef POLYPHENY_CPP_DRIVER_GRAPHELEMENT_H
 #define POLYPHENY_CPP_DRIVER_GRAPHELEMENT_H
 
-#include "types/TypedValue.h"
-#include "results/GraphElementType.h"
 #include <unordered_map>
 #include <vector>
 #include <string>
 #include <stdexcept>
 #include <typeinfo>
+
+#include "types/TypedValue.h"
+#include "types/Interval.h"
+#include "results/GraphElementType.h"
 
 namespace Results {
 
@@ -27,6 +29,7 @@ namespace Results {
         std::string name;
         std::vector<std::string> labels;
         GraphElementType element_type;
+        std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client;
 
 
     public:
@@ -45,7 +48,7 @@ namespace Results {
             throw std::runtime_error("Not a wrapper for " + std::string(typeid(T).name()));
         }
 
-        GraphElement(std::string id, std::string name, GraphElementType type);
+        GraphElement(std::string id, std::string name, GraphElementType type, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client);
 
         /**
          * @brief Gets the unique identifier of the graph element.

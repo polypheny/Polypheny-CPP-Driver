@@ -6,16 +6,13 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
-#include "value.pb.h"
-#include "types/TypedValue.h"
-#include "types/Interval.h"
-#include "types/File.h"
 #include <gmpxx.h>
 
-namespace Types {
-    // forward declarations
-    class TypedValue;
-}
+#include "streaming/StreamingIndex.h"
+#include "types/TypedValue.h"
+#include "types/File.h"
+
+#include "org/polypheny/prism/value.pb.h"
 
 namespace Utils::ProtoUtils {
     std::vector<uint8_t> string_to_vector(const std::string &string);
@@ -29,7 +26,7 @@ namespace Utils::ProtoUtils {
 
     std::chrono::system_clock::time_point proto_to_date(const org::polypheny::prism::ProtoDate &date);
 
-    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list);
+    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client);
 
     std::unique_ptr<org::polypheny::prism::ProtoTimestamp>
     timestamp_to_proto(const std::chrono::system_clock::time_point &timestamp);
@@ -40,7 +37,7 @@ namespace Utils::ProtoUtils {
     std::unique_ptr<org::polypheny::prism::ProtoTime> time_to_proto(const std::chrono::milliseconds &time);
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
-    list_to_proto(std::list<Types::TypedValue> &typed_values, Streaming::StreamingIndex& streaming_index);
+    list_to_proto(std::list<Types::TypedValue> &typed_values, std::shared_ptr<Streaming::StreamingIndex> streaming_index);
 
     mpf_class bytes_to_mpf(const std::string &bytes);
 

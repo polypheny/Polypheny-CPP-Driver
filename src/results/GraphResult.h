@@ -7,10 +7,15 @@
 
 #include "results/Result.h"
 #include "results/GraphElement.h"
-#include "graph_frame.pb.h"
+
+#include "org/polypheny/prism/graph_frame.pb.h"
 
 namespace Connection {
     class Cursor;
+}
+
+namespace Results {
+    class GraphElement;
 }
 
 namespace Results {
@@ -46,7 +51,7 @@ namespace Results {
 
             bool operator!=(const GraphElementIterator &other) const;
 
-            std::shared_ptr<GraphElement> operator*();
+            std::shared_ptr<Results::GraphElement> operator*();
 
             GraphElementIterator &operator++();
 

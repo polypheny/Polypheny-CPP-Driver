@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include <sstream>
 #include "src/types/Interval.h"
-#include "protointerface.pb.h"
+#include "org/polypheny/prism/protointerface.pb.h"
 
 using namespace Types;
 

@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cstring>
+
 #include "connection/PrismInterfaceClient.h"
 
 namespace Types {

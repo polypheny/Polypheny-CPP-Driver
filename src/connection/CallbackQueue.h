@@ -6,7 +6,8 @@
 #include <condition_variable>
 #include <functional>
 #include <stdexcept>
-#include "protointerface.pb.h"
+
+#include "org/polypheny/prism/protointerface.pb.h"
 
 namespace Communication {
 

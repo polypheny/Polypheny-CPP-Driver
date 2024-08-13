@@ -5,9 +5,8 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+
 #include "types/TypedValue.h"
-#include "protointerface.pb.h"
-#include "statement_responses.pb.h"
 #include "types/Interval.h"
 #include "results/Result.h"
 #include "results/RelationalResult.h"
@@ -15,6 +14,9 @@
 #include "results/GraphResult.h"
 #include "results/ScalarResult.h"
 #include "streaming/StreamingIndex.h"
+
+#include "org/polypheny/prism/protointerface.pb.h"
+#include "org/polypheny/prism/statement_responses.pb.h"
 
 namespace Connection {
     // forward declaration, include in .cpp
@@ -33,7 +35,7 @@ namespace Connection {
         bool is_statement_id_set{};
         bool is_prepared{};
         Connection &connection;
-        Streaming::StreamingIndex streaming_index;
+        std::shared_ptr<Streaming::StreamingIndex> streaming_index;
 
         void reset_statement();
 
@@ -60,8 +62,6 @@ namespace Connection {
          * @param connection The connection to be used by this cursor.
          */
         Cursor(const Cursor &other);
-
-        Cursor &operator=(const Cursor &other);
 
         ~Cursor();
 

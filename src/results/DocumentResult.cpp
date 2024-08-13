@@ -1,11 +1,13 @@
 #include "DocumentResult.h"
-#include "connection/Cursor.h"
-#include "connection/Connection.h"
-#include "types/TypedValue.h"
+
 #include <unordered_map>
 #include <utility>
 #include <vector>
 #include <stdexcept>
+
+#include "connection/Cursor.h"
+#include "connection/Connection.h"
+#include "types/TypedValue.h"
 
 namespace Results {
 
@@ -17,14 +19,15 @@ namespace Results {
 
     DocumentResult::~DocumentResult() {
         uint32_t statement_id = cursor->get_statement_id();
-        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+        cursor->get_connection().get_prism_interface_client()->close_result(statement_id);
     }
 
     void DocumentResult::add_documents(const org::polypheny::prism::DocumentFrame &document_frame) {
         for (const auto &proto_document : document_frame.documents()) {
             std::unordered_map<std::string, Types::TypedValue> document;
+            std::shared_ptr<Communication::PrismInterfaceClient> client = cursor->get_connection().get_prism_interface_client();
             for (const auto &field : proto_document.entries()) {
-                document[field.first] = Types::TypedValue(field.second);
+                document[field.first] = Types::TypedValue(field.second, client);
             }
             documents.push_back(document);
         }
@@ -32,7 +35,7 @@ namespace Results {
 
     void DocumentResult::fetch_more() {
         uint32_t statement_id = cursor->get_statement_id();
-        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client().fetch_result(
+        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client()->fetch_result(
                 statement_id, DEFAULT_FETCH_SIZE);
 
         if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kDocumentFrame) {

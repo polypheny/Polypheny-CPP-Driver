@@ -6,7 +6,8 @@
 #define POLYPHENY_CPP_DRIVER_RELATIONALCOLUMNMETADATA_H
 
 #include <string>
-#include "relational_frame.pb.h"
+
+#include "org/polypheny/prism/relational_frame.pb.h"
 
 namespace Results {
 

@@ -1,13 +1,14 @@
 #ifndef POLYPHENY_CPP_DRIVER_RELATIONALRESULT_H
 #define POLYPHENY_CPP_DRIVER_RELATIONALRESULT_H
 
-#include "Result.h"
-#include "relational_frame.pb.h"
-#include "results/RelationalMetadata.h"
-#include "results/Row.h"
 #include <memory>
 #include <list>
 #include <iterator>
+
+#include "Result.h"
+#include "org/polypheny/prism/relational_frame.pb.h"
+#include "results/RelationalMetadata.h"
+#include "results/Row.h"
 
 namespace Connection {
     class Cursor;
@@ -68,7 +69,7 @@ namespace Results {
     private:
         std::shared_ptr<RelationalMetadata> metadata;
         Connection::Cursor *cursor;
-        std::list<Row> rows;
+        std::list<Results::Row> rows;
         bool is_fully_fetched;
 
         void add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame);

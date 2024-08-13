@@ -16,17 +16,18 @@ namespace Results {
 
     GraphResult::~GraphResult() {
         uint32_t statement_id = cursor->get_statement_id();
-        cursor->get_connection().get_prism_interface_client().close_result(statement_id);
+        cursor->get_connection().get_prism_interface_client()->close_result(statement_id);
     }
 
     void GraphResult::add_graph_elements(const org::polypheny::prism::GraphFrame &graph_frame) {
+        std::shared_ptr<Communication::PrismInterfaceClient> client = cursor->get_connection().get_prism_interface_client();
         for (const auto &element : graph_frame.element()) {
             switch(element.element_case()) {
                 case (org::polypheny::prism::GraphElement::kNode):
-                    elements.push_back(std::make_shared<Node>(element.node()));
+                    elements.push_back(std::make_shared<Node>(element.node(), client));
                     break;
                 case (org::polypheny::prism::GraphElement::kEdge):
-                    elements.push_back(std::make_shared<Edge>(element.edge()));
+                    elements.push_back(std::make_shared<Edge>(element.edge(), client));
                     break;
             }
         }
@@ -34,7 +35,7 @@ namespace Results {
 
     void GraphResult::fetch_more() {
         uint32_t statement_id = cursor->get_statement_id();
-        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client().fetch_result(
+        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client()->fetch_result(
                 statement_id, DEFAULT_FETCH_SIZE);
 
         if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kGraphFrame) {

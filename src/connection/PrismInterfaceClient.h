@@ -16,12 +16,20 @@
 #include "transport/PlainTcpTransport.h"
 #include "connection/ServerError.h"
 #include "connection/ConnectionProperties.h"
-#include "statement_responses.pb.h"
-#include "connection_responses.pb.h"
-#include "protointerface.pb.h"
-#include "types/TypedValue.h"
-#include "stream_requests.pb.h"
-#include "stream_responses.pb.h"
+
+#include "org/polypheny/prism/statement_responses.pb.h"
+#include "org/polypheny/prism/connection_responses.pb.h"
+#include "org/polypheny/prism/protointerface.pb.h"
+#include "org/polypheny/prism/stream_requests.pb.h"
+#include "org/polypheny/prism/stream_responses.pb.h"
+
+namespace Types {
+    class TypedValue;
+}
+
+namespace Streaming {
+    class StreamingIndex;
+}
 
 namespace Communication {
 
@@ -88,19 +96,19 @@ namespace Communication {
 
         org::polypheny::prism::StatementResult
         execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values,
-                                  const uint32_t &fetch_size, Streaming::StreamingIndex &streaming_index,
+                                  const uint32_t &fetch_size, std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                   uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementBatchResponse
         execute_indexed_statement_batch(uint32_t &statement_id,
                                         const std::vector<std::vector<Types::TypedValue>> &params_batch,
-                                        Streaming::StreamingIndex &streaming_index,
+                                        std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                         uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
         execute_named_statement(const uint32_t &statement_id,
                                 std::unordered_map<std::string, Types::TypedValue> &parameters,
-                                const uint32_t &fetch_size, Streaming::StreamingIndex &streaming_index,
+                                const uint32_t &fetch_size, std::shared_ptr<Streaming::StreamingIndex> streaming_index,
                                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);

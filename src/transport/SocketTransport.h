@@ -6,6 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_SOCKETTRANSPORT_H
 
 #include "Transport.h"
+
 #include <string>
 #include <vector>
 #include <mutex>
