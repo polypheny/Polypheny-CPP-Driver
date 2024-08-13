@@ -36,8 +36,8 @@ namespace Communication {
     class PrismInterfaceClient {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
-        static constexpr int MAJOR_API_VERSION = 1;
-        static constexpr int MINOR_API_VERSION = 10;
+        static constexpr int MAJOR_API_VERSION = 5;
+        static constexpr int MINOR_API_VERSION = 1;
 
         static const std::string AUTOCOMMIT_PROPERTY_KEY;
         static const std::string NAMESPACE_PROPERTY_KEY;
