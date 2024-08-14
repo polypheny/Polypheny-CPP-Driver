@@ -31,7 +31,7 @@ int main() {
     cursor.execute("sql", insert_statements, "public");
 
     // Insert one more entry using an indexed parameterized statement
-    cursor.prepare("sql", "INSERT INTO customers(id, name, year_joined) VALUES (?, ?, ?)", "public");
+    cursor.prepare_indexed("sql", "INSERT INTO customers(id, name, year_joined) VALUES (?, ?, ?)", "public");
     std::vector<Types::TypedValue> parameters = { Types::TypedValue(4), Types::TypedValue("Anna"), Types::TypedValue(2004)};
     cursor.execute_prepared(parameters);
 
@@ -43,7 +43,7 @@ int main() {
     cursor.execute_prepared(parameter_batch);
 
     // Insert the last entry using a named parameterized statement
-    cursor.prepare("sql", "INSERT INTO customers(id, name, year_joined) VALUES (:id, :name, :year_joined)", "public");
+    cursor.prepare_named("sql", "INSERT INTO customers(id, name, year_joined) VALUES (:id, :name, :year_joined)", "public");
     std::unordered_map<std::string, Types::TypedValue> named_parameters;
     named_parameters["id"] = Types::TypedValue(7);
     named_parameters["name"] = Types::TypedValue("Michael");

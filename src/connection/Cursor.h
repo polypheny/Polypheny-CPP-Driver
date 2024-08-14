@@ -117,29 +117,33 @@ namespace Connection {
         std::vector<uint64_t> execute(const std::string &language, const std::vector<std::string> &statements);
 
         /**
-         * @brief Prepares a statement in a specific language for execution in the default namespace of the underlying connection.
+         * @brief Prepares an indexed parameterized statement in a specific language for execution in the default namespace of the underlying connection.
          *
          * There are two supported kinds of parameterization for prepared statements. One is called indexed parametrization and the other is called names parameterization.
          * Indexed parameterization maps the parameters to placeholders inserted into the statement base don their order. Names parameterization uses named placeholders and parameters passed as a map to assign parameters.
          * Indexed parameterization uses "?" at arbitrary places in the statement to denote a placeholder (e.g. "INSERT INTO users (id, name, email) VALUES (?, ?, ?)").
          * Named parameterization would look like this: "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)", where :id, :name and :email are the placeholders.
-         * Placeholder names used when specifying the parameters are without hte leading ":".
+         * Placeholder names used when specifying the parameters are without thee leading ":".
+         *
+         * This method only supports indexed parameterized statements.
          *
          * After preparation the statement can be executed using one of the execute_prepared(...) methods.
          *
          * @param language The language of the statement.
          * @param statement The statement to prepare.
          */
-        void prepare(const std::string &language, const std::string &statement);
+        void prepare_indexed(const std::string &language, const std::string &statement);
 
         /**
-         * @brief Prepares a statement in a specific language for execution.
+         * @brief Prepares an indexed parameterized statement in a specific language for execution.
          *
          * There are two supported kinds of parameterization for prepared statements. One is called indexed parametrization and the other is called names parameterization.
          * Indexed parameterization maps the parameters to placeholders inserted into the statement base don their order. Names parameterization uses named placeholders and parameters passed as a map to assign parameters.
          * Indexed parameterization uses "?" at arbitrary places in the statement to denote a placeholder (e.g. "INSERT INTO users (id, name, email) VALUES (?, ?, ?)").
          * Named parameterization would look like this: "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)", where :id, :name and :email are the placeholders.
          * Placeholder names used when specifying the parameters are without hte leading ":".
+         *
+         * This method only supports indexed parameterized statements.
          *
          * After preparation the statement can be executed using one of the execute_prepared(...) methods.
          *
@@ -147,7 +151,44 @@ namespace Connection {
          * @param statement The statement to prepare.
          * @param nspace The namespace in which to prepare and later execute the statement.
          */
-        void prepare(const std::string &language, const std::string &statement, const std::string &nspace);
+        void prepare_indexed(const std::string &language, const std::string &statement, const std::string &nspace);
+
+        /**
+         * @brief Prepares a named parameterized statement in a specific language for execution in the default namespace of the underlying connection.
+         *
+         * There are two supported kinds of parameterization for prepared statements. One is called indexed parametrization and the other is called names parameterization.
+         * Indexed parameterization maps the parameters to placeholders inserted into the statement base don their order. Names parameterization uses named placeholders and parameters passed as a map to assign parameters.
+         * Indexed parameterization uses "?" at arbitrary places in the statement to denote a placeholder (e.g. "INSERT INTO users (id, name, email) VALUES (?, ?, ?)").
+         * Named parameterization would look like this: "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)", where :id, :name and :email are the placeholders.
+         * Placeholder names used when specifying the parameters are without the leading ":".
+         *
+         * This method only supports named parameterized statements.
+         *
+         * After preparation the statement can be executed using one of the execute_prepared(...) methods.
+         *
+         * @param language The language of the statement.
+         * @param statement The statement to prepare.
+         */
+        void prepare_named(const std::string &language, const std::string &statement);
+
+        /**
+         * @brief Prepares a named statement in a specific language for execution.
+         *
+         * There are two supported kinds of parameterization for prepared statements. One is called indexed parametrization and the other is called names parameterization.
+         * Indexed parameterization maps the parameters to placeholders inserted into the statement base don their order. Names parameterization uses named placeholders and parameters passed as a map to assign parameters.
+         * Indexed parameterization uses "?" at arbitrary places in the statement to denote a placeholder (e.g. "INSERT INTO users (id, name, email) VALUES (?, ?, ?)").
+         * Named parameterization would look like this: "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)", where :id, :name and :email are the placeholders.
+         * Placeholder names used when specifying the parameters are without the leading ":".
+         *
+         * This method only supports named parameterized statements.
+         *
+         * After preparation the statement can be executed using one of the execute_prepared(...) methods.
+         *
+         * @param language The language of the statement.
+         * @param statement The statement to prepare.
+         * @param nspace The namespace in which to prepare and later execute the statement.
+         */
+        void prepare_named(const std::string &language, const std::string &statement, const std::string &nspace);
 
         /**
          * @brief Executes an indexed parameterized prepared statement with the given parameters and returns the result.

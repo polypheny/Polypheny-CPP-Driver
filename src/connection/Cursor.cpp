@@ -21,7 +21,8 @@ namespace Connection {
               statement_id(other.statement_id),
               is_statement_id_set(other.is_statement_id_set),
               is_prepared(other.is_prepared),
-              streaming_index(std::make_shared<Streaming::StreamingIndex>(other.connection.get_prism_interface_client())) {
+              streaming_index(
+                      std::make_shared<Streaming::StreamingIndex>(other.connection.get_prism_interface_client())) {
     }
 
 
@@ -98,29 +99,30 @@ namespace Connection {
         return connection;
     }
 
-    void Cursor::prepare(const std::string &language, const std::string &statement) {
+    void Cursor::prepare_indexed(const std::string &language, const std::string &statement) {
         const std::string &nspace = connection.get_connection_properties().get_default_namespace();
-        return prepare(language, statement, nspace);
+        return prepare_indexed(language, statement, nspace);
     }
 
-    void Cursor::prepare(const std::string &language, const std::string &statement, const std::string &nspace) {
-        if (statement.find('?') != std::string::npos) {
-            org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_indexed_statement(
-                    nspace, language, statement);
-            statement_id = signature.statement_id();
-            streaming_index->update(statement_id, true);
-            is_prepared = true;
-            return;
-        }
-        if (statement.find(':') != std::string::npos) {
-            org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_named_statement(
-                    nspace, language, statement);
-            statement_id = signature.statement_id();
-            streaming_index->update(statement_id, true);
-            is_prepared = true;
-            return;
-        }
-        throw std::runtime_error("A statement to be prepared must contain either indexed or named placeholders.");
+    void Cursor::prepare_indexed(const std::string &language, const std::string &statement, const std::string &nspace) {
+        org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_indexed_statement(
+                nspace, language, statement);
+        statement_id = signature.statement_id();
+        streaming_index->update(statement_id, true);
+        is_prepared = true;
+    }
+
+    void Cursor::prepare_named(const std::string &language, const std::string &statement) {
+        const std::string &nspace = connection.get_connection_properties().get_default_namespace();
+        return prepare_named(language, statement, nspace);
+    }
+
+    void Cursor::prepare_named(const std::string &language, const std::string &statement, const std::string &nspace) {
+        org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_named_statement(
+                nspace, language, statement);
+        statement_id = signature.statement_id();
+        streaming_index->update(statement_id, true);
+        is_prepared = true;
     }
 
     std::unique_ptr<Results::Result> Cursor::execute_prepared(std::vector<Types::TypedValue> &params) {
