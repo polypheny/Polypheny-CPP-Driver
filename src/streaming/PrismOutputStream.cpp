@@ -6,6 +6,9 @@
 
 namespace Streaming {
 
+    PrismOutputStream::PrismOutputStream()
+            : is_stream_id_set(false), is_statement_id_set(false), statement_id(0), stream_id(0) {}
+
     PrismOutputStream::~PrismOutputStream() {
         if (streaming_thread.joinable()) {
             stop_flag.store(true);

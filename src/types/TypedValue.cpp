@@ -22,7 +22,7 @@ namespace Types {
     TypedValue::TypedValue(const org::polypheny::prism::ProtoValue &proto_value,
                            std::shared_ptr<Communication::PrismInterfaceClient> client)
             : serialized(std::make_shared<org::polypheny::prism::ProtoValue>(proto_value)),
-              client(std::move(client)),
+              client(client),
               is_deserialized(false),
               value_case(proto_value.value_case()) {}
 

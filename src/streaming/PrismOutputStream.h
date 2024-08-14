@@ -15,6 +15,8 @@ namespace Streaming {
 
     class PrismOutputStream {
     public:
+        PrismOutputStream();
+
         virtual ~PrismOutputStream();
 
         void set_statement_id(uint32_t statement_id);
@@ -27,12 +29,12 @@ namespace Streaming {
         virtual void run() = 0;
 
     protected:
-        std::atomic<uint32_t> statement_id;
-        std::atomic<uint64_t> stream_id;
+        std::atomic<uint32_t> statement_id{};
+        std::atomic<uint64_t> stream_id{};
         std::string name;
 
-        std::atomic<bool> is_statement_id_set;
-        std::atomic<bool> is_stream_id_set;
+        std::atomic<bool> is_statement_id_set{};
+        std::atomic<bool> is_stream_id_set{};
 
         std::thread streaming_thread;
         std::atomic<bool> stop_flag{false};

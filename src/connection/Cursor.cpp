@@ -108,6 +108,7 @@ namespace Connection {
             org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_indexed_statement(
                     nspace, language, statement);
             statement_id = signature.statement_id();
+            streaming_index->update(statement_id, true);
             is_prepared = true;
             return;
         }
@@ -115,6 +116,7 @@ namespace Connection {
             org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_named_statement(
                     nspace, language, statement);
             statement_id = signature.statement_id();
+            streaming_index->update(statement_id, true);
             is_prepared = true;
             return;
         }

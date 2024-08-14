@@ -36,6 +36,7 @@ namespace Communication {
     class PrismInterfaceClient {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
+        static constexpr uint32_t DEFAULT_STREAMING_TIMEOUT_MILLIS = 10 * 60 * 1000;
         static constexpr int MAJOR_API_VERSION = 5;
         static constexpr int MINOR_API_VERSION = 1;
 
@@ -97,19 +98,19 @@ namespace Communication {
         org::polypheny::prism::StatementResult
         execute_indexed_statement(const uint32_t &statement_id, std::vector<Types::TypedValue> &values,
                                   const uint32_t &fetch_size, std::shared_ptr<Streaming::StreamingIndex> streaming_index,
-                                  uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+                                  uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementBatchResponse
         execute_indexed_statement_batch(uint32_t &statement_id,
                                         const std::vector<std::vector<Types::TypedValue>> &params_batch,
                                         std::shared_ptr<Streaming::StreamingIndex> streaming_index,
-                                        uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+                                        uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS);
 
         org::polypheny::prism::StatementResult
         execute_named_statement(const uint32_t &statement_id,
                                 std::unordered_map<std::string, Types::TypedValue> &parameters,
                                 const uint32_t &fetch_size, std::shared_ptr<Streaming::StreamingIndex> streaming_index,
-                                uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+                                uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS);
 
         void commit_transaction(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
@@ -131,12 +132,12 @@ namespace Communication {
 
         org::polypheny::prism::StreamAcknowledgement stream_binary(
                 std::vector<uint8_t> bytes, bool is_last, uint32_t statement_id,
-                uint64_t stream_id, uint32_t timeout_millis = 0
+                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS
         );
 
         org::polypheny::prism::StreamAcknowledgement stream_string(
                 std::string substring, bool is_last, uint32_t statement_id,
-                uint64_t stream_id, uint32_t timeout_millis = 0);
+                uint64_t stream_id, uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS);
 
         void send_message(const org::polypheny::prism::Request &request);
 

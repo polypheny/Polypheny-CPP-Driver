@@ -13,14 +13,11 @@ namespace Types {
 
     class File : public std::streambuf {
     public:
-        // Constructor for a byte array
         explicit File(const std::vector<uint8_t>& data, bool forward_only = false);
 
-        // Constructor for the API endpoint
         File(uint32_t statement_id, uint64_t stream_id, bool is_forward_only,
              std::shared_ptr<Communication::PrismInterfaceClient> client);
 
-        // Constructor for a standard istream
         explicit File(std::istream& input_stream, bool forward_only = false);
 
         static const std::streamsize BUFFER_SIZE = 10000;

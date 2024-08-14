@@ -35,7 +35,6 @@ namespace Streaming {
             std::vector<uint8_t> frame_data(frame_size);
             std::memcpy(frame_data.data(), data.data() + offset, frame_size);
             bool isLast = (offset + frame_size) >= size;
-
             auto ack = client->stream_binary(frame_data, isLast, statement_id.load(), stream_id.load());
             if (ack.close_stream()) {
                 return;

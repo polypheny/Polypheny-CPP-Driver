@@ -358,7 +358,7 @@ namespace Communication {
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::StreamFetchRequest *inner = outer.mutable_stream_fetch_request();
         inner->set_statement_id(statement_id);
-        inner->set_stream_id(statement_id);
+        inner->set_stream_id(stream_id);
         inner->set_position(position);
         inner->set_length(length);
         return complete_synchronously(outer, timeout_millis).stream_frame();
@@ -371,7 +371,7 @@ namespace Communication {
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
         inner->set_statement_id(statement_id);
-        inner->set_stream_id(statement_id);
+        inner->set_stream_id(stream_id);
         org::polypheny::prism::StreamFrame *frame = inner->mutable_frame();
         frame->set_binary(Utils::ProtoUtils::vector_to_string(bytes));
         frame->set_is_last(is_last);
@@ -385,7 +385,7 @@ namespace Communication {
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::StreamSendRequest *inner = outer.mutable_stream_send_request();
         inner->set_statement_id(statement_id);
-        inner->set_stream_id(statement_id);
+        inner->set_stream_id(stream_id);
         org::polypheny::prism::StreamFrame *frame = inner->mutable_frame();
         frame->set_string(substring);
         frame->set_is_last(is_last);

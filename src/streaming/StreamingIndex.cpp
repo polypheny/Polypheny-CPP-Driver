@@ -12,6 +12,9 @@ namespace Streaming {
     int64_t StreamingIndex::register_stream(const std::shared_ptr<PrismOutputStream> &stream) {
         streams.insert(stream);
         long stream_id = stream_id_generator.fetch_add(1);
+        if (!is_statement_id_set) {
+            throw std::runtime_error("Statement id not set.");
+        }
         stream->build_and_run(statement_id, stream_id, prism_interface_client);
         return stream_id;
     }

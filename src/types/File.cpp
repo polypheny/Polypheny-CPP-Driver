@@ -12,7 +12,7 @@ namespace Types {
                std::shared_ptr<Communication::PrismInterfaceClient> client)
             : forward_only(is_forward_only), current_position(0), last_position(0), is_data_array(false),
               statement_id(statement_id), stream_id(stream_id), client(std::move(client)) {
-        setg(nullptr, nullptr, nullptr);  // Initialize empty buffer
+        setg(nullptr, nullptr, nullptr);
     }
 
     File::File(std::istream& input_stream, bool forward_only)
@@ -33,7 +33,6 @@ namespace Types {
                 setg((char*)data.data(), (char*)data.data() + current_position, (char*)data.data() + data.size());
                 gbump(static_cast<int>(current_position));
             } else if (input_stream) {
-                // Read data from the provided istream
                 buffer.resize(BUFFER_SIZE);
                 input_stream->read(reinterpret_cast<char*>(buffer.data()), BUFFER_SIZE);
                 std::streamsize bytes_read = input_stream->gcount();
@@ -67,10 +66,12 @@ namespace Types {
         while (bytes_read < count) {
             std::streamsize available = egptr() - gptr();
             std::streamsize to_read = std::min(count - bytes_read, available);
-            std::memcpy(s + bytes_read, gptr(), to_read);
-            gbump(static_cast<int>(to_read));
-            bytes_read += to_read;
-            current_position += to_read;
+            if (to_read > 0) {
+                std::memcpy(s + bytes_read, gptr(), to_read);
+                gbump(static_cast<int>(to_read));
+                bytes_read += to_read;
+                current_position += to_read;
+            }
 
             if (bytes_read < count) {
                 if (underflow() == traits_type::eof()) {
@@ -82,7 +83,7 @@ namespace Types {
     }
 
     std::streambuf::pos_type File::seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which) {
-        auto newpos = pos_type(off);
+        pos_type newpos = pos_type(off);
         if (way == std::ios_base::cur) {
             newpos = pos_type(current_position + (gptr() - eback()) + off);
         } else if (way == std::ios_base::end) {
@@ -91,6 +92,8 @@ namespace Types {
             } else {
                 throw std::runtime_error("Seeking relative to the end is only supported for data arrays.");
             }
+        } else if (way == std::ios_base::beg) {
+            newpos = pos_type(off);
         }
 
         return seekpos(newpos, which);
@@ -108,6 +111,7 @@ namespace Types {
             setg((char*)data.data(), (char*)data.data() + current_position, (char*)data.data() + data.size());
         } else {
             current_position = position;
+            setg(nullptr, nullptr, nullptr);  // Invalidate the buffer pointers to force a reload
         }
         return pos_type(current_position);
     }
@@ -121,7 +125,7 @@ namespace Types {
         org::polypheny::prism::StreamFrame frame = client->fetch_stream(statement_id, stream_id, position, length);
         is_last = frame.is_last();
 
-        if (frame.data_case() != org::polypheny::prism::BINARY) {
+        if (frame.data_case() != org::polypheny::prism::StreamFrame::kBinary) {
             throw std::runtime_error("Stream type must be binary.");
         }
 

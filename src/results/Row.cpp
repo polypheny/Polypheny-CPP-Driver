@@ -11,7 +11,7 @@
 namespace Results {
 
     Row::Row(const org::polypheny::prism::Row &row, std::shared_ptr<Results::RelationalMetadata> relational_metadata, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client)
-            : relational_metadata(std::move(relational_metadata)), prism_interface_client(std::move(prism_interface_client)) {
+            : relational_metadata(std::move(relational_metadata)), prism_interface_client(prism_interface_client) {
         for (const auto& value : row.values()) {
             values.emplace_back(value, prism_interface_client);
         }
