@@ -50,7 +50,7 @@ std::vector<uint8_t> collectStream(std::streambuf *buf) {
     return buffer;
 }
 
-/*
+
 TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
 
     Connection::Connection db_conn("localhost", "pa", "");
@@ -106,19 +106,18 @@ TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
         result->unwrap<Results::ScalarResult>();
 
         std::unique_ptr<Results::Result> result2 = cursor.execute("sql", FILE_QUERY, "public");
-        auto* relational_result = result2->unwrap<Results::RelationalResult>();
+        auto *relational_result = result2->unwrap<Results::RelationalResult>();
 
         auto row = relational_result->begin();
         auto file = (*row)["data"].as_file();
         auto received = collectStream(&file);
 
         REQUIRE(expected == received);
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         FAIL(e.what());
     }
 }
 
-*/
 
 TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
 
