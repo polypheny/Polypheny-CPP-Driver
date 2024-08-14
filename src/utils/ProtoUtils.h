@@ -9,6 +9,7 @@
 #include <gmpxx.h>
 
 #include "streaming/StreamingIndex.h"
+#include "streaming/StringPrismInputStream.h"
 #include "types/TypedValue.h"
 #include "types/File.h"
 
@@ -46,6 +47,8 @@ namespace Utils::ProtoUtils {
     std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value);
 
     std::vector<uint8_t> collect_file(Types::File& stream);
+
+    std::string collect_string(Streaming::StringPrismInputStream &stream);
 } // namespace Utils
 
 #endif // POLYPHENY_CPP_DRIVER_PROTOUTILS_H

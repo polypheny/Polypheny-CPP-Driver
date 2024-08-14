@@ -64,7 +64,8 @@ polypheny_src = files(
     'src/streaming/PrismOutputStream.cpp',
     'src/streaming/BinaryPrismOutputStream.cpp',
     'src/streaming/FilePrismOutputStream.cpp',
-    'src/streaming/StringPrismOutputStream.cpp'
+    'src/streaming/StringPrismOutputStream.cpp',
+    'src/streaming/StringPrismInputStream.cpp'
 )
 
 polypheny_cpp_driver_lib = library('polypheny_cpp_library',

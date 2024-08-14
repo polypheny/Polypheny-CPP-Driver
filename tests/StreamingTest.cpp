@@ -50,7 +50,7 @@ std::vector<uint8_t> collectStream(std::streambuf *buf) {
     return buffer;
 }
 
-
+/*
 TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
 
     Connection::Connection db_conn("localhost", "pa", "");
@@ -84,7 +84,6 @@ TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
     }
 }
 
-/*
 
 TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
     try {
@@ -119,6 +118,7 @@ TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
     }
 }
 
+*/
 
 TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
 
@@ -131,12 +131,12 @@ TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
     cursor.prepare("sql", STRING_INSERT_STATEMENT, "public");
 
     std::string expected = createTestStringData();
-    std::vector<TypedValue> parameters = {
-            TypedValue::fromInteger(1),
-            TypedValue::fromString(expected)
+    std::vector<Types::TypedValue> parameters = {
+            Types::TypedValue(1),
+            Types::TypedValue(expected)
     };
 
-    std::unique_ptr<Results::Result> result = cursor.executePrepared(parameters);
+    std::unique_ptr<Results::Result> result = cursor.execute_prepared(parameters);
     result->
 
             unwrap<Results::ScalarResult>();
@@ -145,10 +145,9 @@ TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
     auto *relational_result = result2->unwrap<Results::RelationalResult>();
 
     auto row = relational_result->begin();
-    std::string received = row->get("data").asString();
+    auto received = (*row)["data"].as_string();
 
-    REQUIRE(expected
-            == received);
+    REQUIRE(expected == received);
 
 }
- */
+

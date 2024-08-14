@@ -125,7 +125,7 @@ namespace Connection {
 
     std::unique_ptr<Results::Result> Cursor::execute_prepared(std::vector<Types::TypedValue> &params) {
         if (!is_prepared) {
-            throw std::runtime_error("This operation requires a statement ot be prepared first");
+            throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client()->execute_indexed_statement(
                 statement_id, params, DEFAULT_FETCH_SIZE, streaming_index);

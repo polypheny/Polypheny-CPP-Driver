@@ -5,7 +5,6 @@
 #include "ProtoUtils.h"
 #include "types/Interval.h"
 
-
 namespace Utils::ProtoUtils {
     constexpr long long MILLIS_PER_DAY = 86400000LL;
 
@@ -31,7 +30,8 @@ namespace Utils::ProtoUtils {
         return std::chrono::milliseconds(time.time());
     }
 
-    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list, std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client) {
+    std::list<Types::TypedValue> proto_to_list(const org::polypheny::prism::ProtoList &list,
+                                               std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client) {
         google::protobuf::RepeatedPtrField<::org::polypheny::prism::ProtoValue> values = list.values();
         std::list<Types::TypedValue> result;
         for (const org::polypheny::prism::ProtoValue &value: values) {
@@ -67,7 +67,8 @@ namespace Utils::ProtoUtils {
 
 
     std::unique_ptr<org::polypheny::prism::ProtoList>
-    list_to_proto(std::list<Types::TypedValue> &typed_values, std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
+    list_to_proto(std::list<Types::TypedValue> &typed_values,
+                  std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
         auto proto_list = std::make_unique<org::polypheny::prism::ProtoList>();
         for (Types::TypedValue &typed_value: typed_values) {
             *proto_list->add_values() = *typed_value.serialize(streaming_index);
@@ -126,6 +127,26 @@ namespace Utils::ProtoUtils {
                 break;
             }
         }
+        return collected_data;
+    }
+
+    std::string collect_string(Streaming::StringPrismInputStream &stream) {
+        std::string collected_data;
+        std::vector<char> buffer(Streaming::StringPrismInputStream::BUFFER_SIZE);
+
+        while (true) {
+            std::streamsize bytes_read = stream.sgetn(buffer.data(), buffer.size());
+            if (bytes_read > 0) {
+                collected_data.append(buffer.data(), bytes_read);
+            }
+            if (bytes_read < static_cast<std::streamsize>(buffer.size())) {
+                break;
+            }
+            if (bytes_read == 0) {
+                break;
+            }
+        }
+
         return collected_data;
     }
 }
