@@ -1,0 +1,104 @@
+name: C++ source release
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'meson.build'
+      - 'scripts/package-release.sh'
+      - 'subprojects/**'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package source and dependencies
+    if: ${{ github.event_name != 'release' || !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Meson
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson
+      - name: Create source archive
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: bash scripts/package-release.sh dist "$RELEASE_TAG"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cpp-source
+          path: dist/
+          if-no-files-found: error
+
+  validate:
+    name: Check packaged source (${{ matrix.protocol }})
+    runs-on: ubuntu-latest
+    needs: package
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - protocol: Prism 2.2
+            streaming: 'false'
+          - protocol: Experimental streaming
+            streaming: 'true'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: cpp-source
+          path: dist/
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ meson ninja-build pkg-config protobuf-compiler libprotobuf-dev libssl-dev libgmp-dev catch2
+      - name: Check checksum and extract source
+        run: |
+          (cd dist && sha256sum -c -- *.sha256)
+          mkdir source
+          tar -xzf dist/*.tar.gz --directory source --strip-components=1
+      - name: Build and test from the archive
+        env:
+          PRISM_STREAMING: ${{ matrix.streaming }}
+        run: |
+          meson setup build source --wrap-mode=nodownload -Dprism_streaming="$PRISM_STREAMING"
+          meson compile -C build
+          meson test -C build --print-errorlogs
+
+  publish:
+    name: Attach verified source archive to GitHub Release
+    if: ${{ github.event_name == 'release' && !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    needs: validate
+    permissions:
+      contents: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: cpp-source
+          path: dist/
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          assets=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')
+          for path in dist/*; do
+            name=${path##*/}
+            if grep -Fxq "$name" <<< "$assets"; then
+              gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+                --pattern "$name" --dir "$RUNNER_TEMP/attached"
+              cmp "$path" "$RUNNER_TEMP/attached/$name"
+            else
+              gh release upload "$RELEASE_TAG" "$path" --repo "$GITHUB_REPOSITORY"
+            fi
+          done
