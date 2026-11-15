@@ -15,6 +15,17 @@ meson test -C build --print-errorlogs
 
 The build verifies the checksum of the Prism Protobuf archive before generating the C++ bindings. The default test suite runs without a Polypheny instance.
 
+The versioned release tarball includes both pinned Prism archives and the pinned Catch2 source. Download the tarball and its `.sha256` file from GitHub Releases, then use the version in the filenames below. System build dependencies still need to be installed. [GitHub Releases](https://github.com/polypheny/Polypheny-CPP-Driver/releases)
+
+```sh
+sha256sum -c Polypheny-CPP-Driver-1.0.0.tar.gz.sha256
+tar -xzf Polypheny-CPP-Driver-1.0.0.tar.gz
+cd Polypheny-CPP-Driver-1.0.0
+meson setup build --wrap-mode=nodownload
+meson compile -C build
+meson test -C build --print-errorlogs
+```
+
 For an application built with Meson, add this repository as a subproject and link the `polypheny_cpp_driver_dep` dependency. Include `PolyphenyCPPDriver.h` in your application. The examples cover SQL, MQL and graph queries. [Query examples](examples)
 
 ## Read document collection metadata
