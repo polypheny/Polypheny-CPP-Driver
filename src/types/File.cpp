@@ -3,36 +3,65 @@
 namespace Types {
 
     File::File(const std::vector<uint8_t>& data, bool forward_only)
-            : data(data), forward_only(forward_only), current_position(0), last_position(0), is_data_array(true),
-              statement_id(0), stream_id(0) {
-        setg((char*)data.data(), (char*)data.data(), (char*)data.data() + data.size());
+            : data(data), is_data_array(true), forward_only(forward_only), current_position(0), last_position(0) {
+        if (!this->data.empty()) {
+            auto *start = reinterpret_cast<char *>(this->data.data());
+            setg(start, start, start + this->data.size());
+        }
     }
 
     File::File(uint32_t statement_id, uint64_t stream_id, bool is_forward_only,
                std::shared_ptr<Communication::PrismInterfaceClient> client)
-            : forward_only(is_forward_only), current_position(0), last_position(0), is_data_array(false),
-              statement_id(statement_id), stream_id(stream_id), client(std::move(client)) {
+            : client(std::move(client)), statement_id(statement_id), stream_id(stream_id),
+              forward_only(is_forward_only), current_position(0), last_position(0) {
         setg(nullptr, nullptr, nullptr);
     }
 
     File::File(std::istream& input_stream, bool forward_only)
-            : forward_only(forward_only), input_stream(&input_stream), current_position(0), last_position(0), is_data_array(false) {
+            : forward_only(forward_only), current_position(0), last_position(0), input_stream(&input_stream) {
         setg(nullptr, nullptr, nullptr);
     }
 
+    File::File(const File &other) : current_position(0), last_position(0) {
+        *this = other;
+    }
+
+    File &File::operator=(const File &other) {
+        if (this == &other) {
+            return *this;
+        }
+        auto copied_data = other.data;
+        auto copied_buffer = other.buffer;
+        data = std::move(copied_data);
+        buffer = std::move(copied_buffer);
+        client = other.client;
+        statement_id = other.statement_id;
+        stream_id = other.stream_id;
+        is_data_array = other.is_data_array;
+        forward_only = other.forward_only;
+        is_last = other.is_last;
+        current_position = other.current_position;
+        last_position = other.last_position;
+        input_stream = other.input_stream;
+        if (other.eback()) {
+            auto *start = reinterpret_cast<char *>((is_data_array ? data : buffer).data());
+            setg(start, start + (other.gptr() - other.eback()), start + (other.egptr() - other.eback()));
+        } else {
+            setg(nullptr, nullptr, nullptr);
+        }
+        return *this;
+    }
+
     std::streambuf::int_type File::underflow() {
+        if (is_data_array) {
+            return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
+        }
         if (gptr() == egptr()) {
             if (is_last && current_position >= last_position + buffer.size()) {
                 return traits_type::eof();
             }
 
-            if (is_data_array) {
-                if (current_position >= data.size()) {
-                    return traits_type::eof();
-                }
-                setg((char*)data.data(), (char*)data.data() + current_position, (char*)data.data() + data.size());
-                gbump(static_cast<int>(current_position));
-            } else if (input_stream) {
+            if (input_stream) {
                 buffer.resize(BUFFER_SIZE);
                 input_stream->read(reinterpret_cast<char*>(buffer.data()), BUFFER_SIZE);
                 std::streamsize bytes_read = input_stream->gcount();
@@ -64,7 +93,7 @@ namespace Types {
     std::streamsize File::xsgetn(char_type* s, std::streamsize count) {
         std::streamsize bytes_read = 0;
         while (bytes_read < count) {
-            std::streamsize available = egptr() - gptr();
+            std::streamsize available = gptr() ? egptr() - gptr() : 0;
             std::streamsize to_read = std::min(count - bytes_read, available);
             if (to_read > 0) {
                 std::memcpy(s + bytes_read, gptr(), to_read);
@@ -85,7 +114,9 @@ namespace Types {
     std::streambuf::pos_type File::seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which) {
         pos_type newpos = pos_type(off);
         if (way == std::ios_base::cur) {
-            newpos = pos_type(current_position + (gptr() - eback()) + off);
+            const auto offset = gptr() ? gptr() - eback() : 0;
+            const auto position = is_data_array ? offset : current_position + offset;
+            newpos = pos_type(position + off);
         } else if (way == std::ios_base::end) {
             if (is_data_array) {
                 newpos = pos_type(data.size() + off);
@@ -100,15 +131,19 @@ namespace Types {
     }
 
     std::streambuf::pos_type File::seekpos(pos_type position, std::ios_base::openmode which) {
-        if (forward_only && position < pos_type(current_position)) {
+        const auto current = is_data_array && gptr() ? gptr() - eback() : current_position;
+        if (position < pos_type(0) || (forward_only && position < pos_type(current))) {
             return pos_type(-1);
         }
         if (is_data_array) {
-            if (position >= pos_type(data.size())) {
+            if (position > pos_type(data.size())) {
                 return pos_type(-1);
             }
             current_position = position;
-            setg((char*)data.data(), (char*)data.data() + current_position, (char*)data.data() + data.size());
+            if (!data.empty()) {
+                auto *start = reinterpret_cast<char *>(data.data());
+                setg(start, start + current_position, start + data.size());
+            }
         } else {
             current_position = position;
             setg(nullptr, nullptr, nullptr);  // Invalidate the buffer pointers to force a reload
@@ -117,6 +152,7 @@ namespace Types {
     }
 
     void File::fetchBytes(std::streamsize position, std::streamsize length) {
+#if POLYPHENY_PRISM_STREAMING
         if (forward_only && position < last_position + buffer.size()) {
             throw std::runtime_error("Cannot fetch data before the current position in forward-only mode.");
         }
@@ -131,5 +167,8 @@ namespace Types {
 
         buffer.assign(frame.binary().begin(), frame.binary().end());
         last_position = position;
+#else
+        throw std::logic_error("Prism 2.2 does not support remote file streams");
+#endif
     }
 }  // namespace Types

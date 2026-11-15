@@ -6,6 +6,7 @@
 #define POLYPHENY_CPP_DRIVER_RESULT_H
 
 #include <stdexcept>
+#include <cstdint>
 #include <string>
 #include <typeinfo>
 

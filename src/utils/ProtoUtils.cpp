@@ -71,7 +71,7 @@ namespace Utils::ProtoUtils {
                   std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
         auto proto_list = std::make_unique<org::polypheny::prism::ProtoList>();
         for (Types::TypedValue &typed_value: typed_values) {
-            *proto_list->add_values() = *typed_value.serialize(streaming_index);
+            proto_list->mutable_values()->AddAllocated(typed_value.serialize(streaming_index));
         }
         return proto_list;
     }

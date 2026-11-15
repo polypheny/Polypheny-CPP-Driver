@@ -1,5 +1,7 @@
-[wrap-git]
-directory = polypheny_prism_api
-url = https://github.com/polypheny/Polypheny-Prism-API.git
-revision = streaming
-depth = 1
+[wrap-file]
+directory = polypheny_prism_api-2.2
+source_url = https://github.com/polypheny/Polypheny-Prism-API/releases/download/2.2/protobuf-files-2.2.zip
+source_filename = protobuf-files-2.2.zip
+source_hash = ba7a3976b80955d24d57f2b89476cd9bcb35b8e6889da26fd63f2d2c57511af7
+lead_directory_missing = true
+patch_directory = prism-meson

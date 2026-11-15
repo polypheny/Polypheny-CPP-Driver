@@ -10,10 +10,12 @@
 
 namespace Communication {
 
+#if POLYPHENY_PRISM_STREAMING
     const std::string PrismInterfaceClient::AUTOCOMMIT_PROPERTY_KEY = "autocommit";
     const std::string PrismInterfaceClient::NAMESPACE_PROPERTY_KEY = "namespace";
     const std::string PrismInterfaceClient::SERVER_STREAMING_FEATURE = "client_streaming";
     const std::string PrismInterfaceClient::CLIENT_STREAMING_FEATURE = "server_streaming";
+#endif
 
 
     PrismInterfaceClient::PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties,
@@ -21,14 +23,20 @@ namespace Communication {
             std::move(transport)) {
         this->transport->connect();
         response_reader = std::thread(&PrismInterfaceClient::read_responses, this);
-        connect(connection_properties);
+        try {
+            connect(connection_properties);
+        } catch (...) {
+            close_transport();
+            throw;
+        }
     }
 
     PrismInterfaceClient::~PrismInterfaceClient() {
-        if (has_sent_disconnect) {
-            return;
+        try {
+            disconnect_and_close();
+        } catch (const std::exception &) {
+            // Destruction must finish even if the final request failed.
         }
-        disconnect_and_close();
     }
 
     org::polypheny::prism::ConnectionResponse
@@ -44,16 +52,25 @@ namespace Communication {
             inner->set_password(connection_properties.get_password());
         }
 
-        google::protobuf::RepeatedPtrField<std::string> *features = inner->mutable_features();
+#if POLYPHENY_PRISM_STREAMING
+        auto *features = inner->mutable_features();
         features->Add(std::string(CLIENT_STREAMING_FEATURE));
         features->Add(std::string(SERVER_STREAMING_FEATURE));
 
         google::protobuf::Map<std::string, std::string> *properties = inner->mutable_properties();
         properties->emplace(AUTOCOMMIT_PROPERTY_KEY, connection_properties.get_is_auto_commit() ? "true" : "false");
         properties->emplace(NAMESPACE_PROPERTY_KEY, connection_properties.get_default_namespace());
+#else
+        auto *properties = inner->mutable_connection_properties();
+        properties->set_is_auto_commit(connection_properties.get_is_auto_commit());
+        properties->set_namespace_name(connection_properties.get_default_namespace());
+#endif
 
-        org::polypheny::prism::ConnectionResponse response = complete_synchronously(outer,
-                                                                                    timeout_millis).connection_response();
+        auto reply = complete_synchronously(outer, timeout_millis);
+        if (!reply.has_connection_response()) {
+            throw std::runtime_error("Prism did not return a connection response");
+        }
+        auto response = reply.connection_response();
         if (!response.is_compatible()) {
             std::string server_api_version =
                     std::to_string(response.major_api_version()) + "." + std::to_string(response.minor_api_version());
@@ -63,17 +80,52 @@ namespace Communication {
                     "Incompatible API version. Server expected " + server_api_version + ", client has " +
                     client_api_version);
         }
+        server_api_version = {response.major_api_version(), response.minor_api_version()};
         return response;
     }
 
+    std::pair<int, int> PrismInterfaceClient::get_server_api_version() const noexcept {
+        return server_api_version;
+    }
+
+    org::polypheny::prism::EntitiesResponse
+    PrismInterfaceClient::search_entities(const std::string &namespace_name,
+                                           const std::optional<std::string> &pattern, uint32_t timeout_millis) {
+        org::polypheny::prism::Request request;
+        request.set_id(request_id.fetch_add(1));
+        auto *entities = request.mutable_entities_request();
+        entities->set_namespace_name(namespace_name);
+        if (pattern) {
+            entities->set_entity_pattern(*pattern);
+        }
+        auto response = complete_synchronously(request, timeout_millis);
+        if (!response.has_entities_response()) {
+            throw std::runtime_error("Prism did not return an entities response");
+        }
+        return response.entities_response();
+    }
 
     void PrismInterfaceClient::disconnect_and_close(uint32_t timeout_millis) {
-        org::polypheny::prism::Request outer;
-        outer.set_id(request_id.fetch_add(1));
-        outer.mutable_disconnect_request();
-        has_sent_disconnect = true;
-        complete_synchronously(outer, timeout_millis);
+        if (has_sent_disconnect.exchange(true)) {
+            return;
+        }
+        try {
+            if (!is_closed) {
+                org::polypheny::prism::Request outer;
+                outer.set_id(request_id.fetch_add(1));
+                outer.mutable_disconnect_request();
+                complete_synchronously(outer, timeout_millis);
+            }
+        } catch (...) {
+            close_transport();
+            throw;
+        }
+        close_transport();
+    }
+
+    void PrismInterfaceClient::close_transport() {
         is_closed = true;
+        transport->shutdown();
         if (response_reader.joinable()) {
             response_reader.join();
         }
@@ -88,7 +140,10 @@ namespace Communication {
         inner->set_namespace_name(namespace_name);
         inner->set_language_name(language_name);
         inner->set_statement(statement);
-        callback_queues.emplace(outer.id(), callback_queue);
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            callback_queues.emplace(outer.id(), callback_queue);
+        }
         send_message(outer);
     }
 
@@ -106,7 +161,10 @@ namespace Communication {
             inner_statement->set_language_name(language_name);
             inner_statement->set_statement(statement);
         }
-        callback_queues.emplace(outer.id(), callback_queue);
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            callback_queues.emplace(outer.id(), callback_queue);
+        }
         send_message(outer);
     }
 
@@ -172,7 +230,7 @@ namespace Communication {
 
     void PrismInterfaceClient::read_responses() {
         try {
-            while (!has_sent_disconnect) {
+            while (!is_closed) {
                 org::polypheny::prism::Response response = receive_message();
                 if (response.id() == 0) {
                     throw std::runtime_error("Invalid message id");
@@ -182,28 +240,23 @@ namespace Communication {
                     auto it = callbacks.find(response.id());
                     if (it != callbacks.end()) {
                         complete_callback_unsafe(response, it->second);
-                        continue;
+                    } else {
+                        handle_callback_queue_unsafe(response);
                     }
-                    handle_callback_queue_unsafe(response);
                 } // end locked region
+                if (response.has_disconnect_response()) {
+                    return;
+                }
             }
-        } catch (const Errors::ConnectionClosedError &e) {
+        } catch (...) {
             handle_connection_closure(std::current_exception());
-            if (!has_sent_disconnect) { // this is not a logic error: has_sent_disconnect is modified by another thread!
-                std::rethrow_exception(std::current_exception());
-            }
-        } catch (const std::runtime_error &e) {
-            handle_connection_closure(std::current_exception());
-            std::rethrow_exception(std::current_exception());
         }
     }
 
     void PrismInterfaceClient::complete_callback_unsafe(const org::polypheny::prism::Response &response,
                                                         std::promise<org::polypheny::prism::Response> &callback) {
         std::promise<org::polypheny::prism::Response> moved_callback = std::move(callback);
-        if (response.last()) {
-            callbacks.erase(response.id());
-        }
+        callbacks.erase(response.id());
         moved_callback.set_value(response);
     }
 
@@ -213,7 +266,7 @@ namespace Communication {
             return;
         }
 
-        auto &callback_queue = it->second;
+        auto callback_queue = it->second;
         if (response.has_error_response()) {
             callback_queues.erase(response.id());
             callback_queue->on_error(
@@ -232,11 +285,13 @@ namespace Communication {
         std::lock_guard<std::mutex> lock(mutex);
         is_closed = true;
         for (auto &[id, callback]: callbacks) {
-            callback.set_exception(std::make_exception_ptr(exception));
+            callback.set_exception(exception);
         }
         for (auto &[id, callback_queue]: callback_queues) {
-            callback_queue->on_error(std::make_exception_ptr(exception));
+            callback_queue->on_error(exception);
         }
+        callbacks.clear();
+        callback_queues.clear();
     }
 
     org::polypheny::prism::Response
@@ -262,9 +317,15 @@ namespace Communication {
             callbacks[request.id()] = std::move(promise);
         }
 
-        send_message(request);
-
-        org::polypheny::prism::Response response = wait_for_completion(future, timeout_millis);
+        org::polypheny::prism::Response response;
+        try {
+            send_message(request);
+            response = wait_for_completion(future, timeout_millis);
+        } catch (...) {
+            std::lock_guard<std::mutex> lock(mutex);
+            callbacks.erase(request.id());
+            throw;
+        }
         if (response.has_error_response()) {
             throw Errors::ServerError(response.error_response().message());
         }
@@ -351,6 +412,7 @@ namespace Communication {
         return complete_synchronously(outer, timeout_millis).statement_batch_response();
     }
 
+#if POLYPHENY_PRISM_STREAMING
     org::polypheny::prism::StreamFrame
     PrismInterfaceClient::fetch_stream(uint32_t statement_id, uint64_t stream_id, uint64_t position, int32_t length,
                                        uint32_t timeout_millis) {
@@ -391,4 +453,5 @@ namespace Communication {
         frame->set_is_last(is_last);
         return complete_synchronously(outer, timeout_millis).stream_acknowledgement();
     }
+#endif
 } // namespace Communication

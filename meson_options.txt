@@ -1,0 +1,2 @@
+option('prism_streaming', type : 'boolean', value : false,
+       description : 'Build against the experimental Prism 5.1 streaming protocol')

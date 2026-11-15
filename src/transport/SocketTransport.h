@@ -29,13 +29,18 @@ namespace Transport {
         ~SocketTransport() override;
         void send_message(const std::string &message) override;
         std::string receive_message() override;
+        void shutdown() noexcept override;
 
     protected:
-        int socket_fd;
+        int socket_fd = -1;
         std::mutex write_mutex;
         void exchange_version();
         [[nodiscard]] virtual std::string get_version() const = 0;
-        void close_socket() const;
+        void close_socket();
+
+    private:
+        void send_all(const char *data, size_t size);
+        void receive_all(char *data, size_t size);
     };
 
 } // namespace Transport

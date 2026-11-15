@@ -75,7 +75,6 @@ TEST_CASE("ProtoUtils::time_to_proto", "[ProtoUtils]") {
 }
 
 TEST_CASE("ProtoUtils::proto_to_list", "[ProtoUtils]") {
-    SKIP("Broken due to TypedValue not working correctly!");
     org::polypheny::prism::ProtoList proto_list;
     auto *value1 = proto_list.add_values();
     value1->mutable_integer()->set_integer(42);
@@ -85,7 +84,6 @@ TEST_CASE("ProtoUtils::proto_to_list", "[ProtoUtils]") {
     std::shared_ptr<Communication::PrismInterfaceClient> client;
     std::list<Types::TypedValue> converted_back = Utils::ProtoUtils::proto_to_list(proto_list, client);
 
-    REQUIRE(1 < 2);
     REQUIRE(converted_back.size() == 2);
     auto it = converted_back.begin();
     REQUIRE(it->as_int32_t() == 42);
@@ -94,7 +92,6 @@ TEST_CASE("ProtoUtils::proto_to_list", "[ProtoUtils]") {
 }
 
 TEST_CASE("ProtoUtils::list_to_proto", "[ProtoUtils]") {
-    SKIP("Broken due to TypedValue not working correctly!");
     std::list<Types::TypedValue> original_list = {Types::TypedValue(42), Types::TypedValue(std::string("value"))};
 
     std::shared_ptr<Streaming::StreamingIndex> index;

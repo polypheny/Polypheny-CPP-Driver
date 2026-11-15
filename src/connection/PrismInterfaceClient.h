@@ -8,6 +8,8 @@
 #include <future>
 #include <mutex>
 #include <memory>
+#include <optional>
+#include <utility>
 #include <iostream>
 #include <stdexcept>
 
@@ -16,12 +18,14 @@
 #include "transport/PlainTcpTransport.h"
 #include "connection/ServerError.h"
 #include "connection/ConnectionProperties.h"
+#include "PrismConfiguration.h"
 
 #include "org/polypheny/prism/statement_responses.pb.h"
 #include "org/polypheny/prism/connection_responses.pb.h"
 #include "org/polypheny/prism/protointerface.pb.h"
-#include "org/polypheny/prism/stream_requests.pb.h"
+#if POLYPHENY_PRISM_STREAMING
 #include "org/polypheny/prism/stream_responses.pb.h"
+#endif
 
 namespace Types {
     class TypedValue;
@@ -37,6 +41,7 @@ namespace Communication {
     private:
         static constexpr uint32_t DEFAULT_TIMEOUT_MILLIS = 10000;
         static constexpr uint32_t DEFAULT_STREAMING_TIMEOUT_MILLIS = 10 * 60 * 1000;
+#if POLYPHENY_PRISM_STREAMING
         static constexpr int MAJOR_API_VERSION = 5;
         static constexpr int MINOR_API_VERSION = 1;
 
@@ -44,13 +49,17 @@ namespace Communication {
         static const std::string NAMESPACE_PROPERTY_KEY;
         static const std::string SERVER_STREAMING_FEATURE;
         static const std::string CLIENT_STREAMING_FEATURE;
+#else
+        static constexpr int MAJOR_API_VERSION = 2;
+        static constexpr int MINOR_API_VERSION = 2;
+#endif
 
         std::atomic<long> request_id{1};
         std::unique_ptr<Transport::Transport> transport;
         std::thread response_reader;
-        volatile bool is_closed = false;
-        volatile bool has_sent_disconnect = false;
-        std::exception_ptr error = nullptr;
+        std::atomic<bool> is_closed{false};
+        std::atomic<bool> has_sent_disconnect{false};
+        std::pair<int, int> server_api_version{};
         std::map<uint64_t, std::promise<org::polypheny::prism::Response>> callbacks;
         std::map<uint64_t, std::shared_ptr<CallbackQueue>> callback_queues;
         std::mutex mutex;
@@ -63,6 +72,7 @@ namespace Communication {
         void handle_callback_queue_unsafe(const org::polypheny::prism::Response &response);
 
         void handle_connection_closure(const std::exception_ptr &exception);
+        void close_transport();
 
     public:
         explicit PrismInterfaceClient(const Connection::ConnectionProperties &connection_properties,
@@ -75,6 +85,12 @@ namespace Communication {
                 uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void disconnect_and_close(uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
+        [[nodiscard]] std::pair<int, int> get_server_api_version() const noexcept;
+
+        [[nodiscard]] org::polypheny::prism::EntitiesResponse
+        search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern,
+                        uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
@@ -124,6 +140,7 @@ namespace Communication {
         fetch_result(uint32_t &statement_id, const uint32_t &fetch_size,
                      uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
 
+#if POLYPHENY_PRISM_STREAMING
         org::polypheny::prism::StreamFrame fetch_stream(
                 uint32_t statement_id, uint64_t stream_id,
                 uint64_t position, int32_t length,
@@ -138,6 +155,7 @@ namespace Communication {
         org::polypheny::prism::StreamAcknowledgement stream_string(
                 std::string substring, bool is_last, uint32_t statement_id,
                 uint64_t stream_id, uint32_t timeout_millis = DEFAULT_STREAMING_TIMEOUT_MILLIS);
+#endif
 
         void send_message(const org::polypheny::prism::Request &request);
 

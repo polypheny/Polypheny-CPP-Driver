@@ -1,37 +1,37 @@
-project('Polypheny-CPP-Driver', 'cpp', version : '1.0.0', default_options : ['cpp_std=c++17'])
-add_project_arguments('-Wall', '-Wextra', '-w', '-fcompare-debug-second', language : 'cpp')
-add_project_link_arguments('-lm', language : 'cpp')
+project('Polypheny-CPP-Driver', 'cpp', version : '1.0.0', meson_version : '>=1.0',
+        default_options : ['cpp_std=c++17'])
 
 # ========================
 # Dependencies
 # ========================
 
 # prism api
-polypheny_prism_api_subproject = subproject('polypheny_prism_api')
+prism_streaming = get_option('prism_streaming')
+polypheny_prism_api_subproject = subproject(prism_streaming ? 'polypheny_prism_streaming' : 'polypheny_prism_api')
 polypheny_prism_api_dep = polypheny_prism_api_subproject.get_variable('polypheny_prism_api_dep')
+prism_config = configuration_data()
+prism_config.set10('POLYPHENY_PRISM_STREAMING', prism_streaming)
+configure_file(output : 'PrismConfiguration.h', configuration : prism_config)
 # pthreads
 pthread_dep = dependency('threads')
 # GNU Multiple Precision Arithmetic Library (used for BigDecimals)
-gmp_dep = dependency('gmp', required : true, fallback : ['gmp', 'gmp_dep'])
-gmpxx_dep = dependency('gmpxx', required : true, fallback : ['gmp', 'gmpxx_dep'])
+gmp_dep = dependency('gmp')
+gmpxx_dep = dependency('gmpxx')
 # open ssl for transport security
-openssl_subproject = subproject('openssl')
-ssl_dep = openssl_subproject.get_variable('openssl_dep')
+ssl_dep = dependency('openssl')
 
 # ========================
 # Test Dependencies
 # ========================
 
 # unit test system
-catch2_subproject = subproject('catch2')
-catch2_dep = catch2_subproject.get_variable('catch2_with_main_dep')
+catch2_dep = dependency('catch2-with-main', version : '>=3', fallback : ['catch2', 'catch2_with_main_dep'])
 
 # ========================
 # Library and Dependencies
 # ========================
 
-polypheny_inc = include_directories('include')
-polypheny_src_inc = include_directories('src')
+polypheny_inc = include_directories('.', 'include', 'src')
 
 polypheny_src = files(
     'src/connection/CallbackQueue.cpp',
@@ -62,23 +62,29 @@ polypheny_src = files(
     'src/types/TypedValue.cpp',
     'src/streaming/StreamingIndex.cpp',
     'src/streaming/PrismOutputStream.cpp',
-    'src/streaming/BinaryPrismOutputStream.cpp',
-    'src/streaming/FilePrismOutputStream.cpp',
-    'src/streaming/StringPrismOutputStream.cpp',
-    'src/streaming/StringPrismInputStream.cpp'
 )
+if prism_streaming
+    polypheny_src += files(
+        'src/streaming/BinaryPrismOutputStream.cpp',
+        'src/streaming/FilePrismOutputStream.cpp',
+        'src/streaming/StringPrismOutputStream.cpp',
+        'src/streaming/StringPrismInputStream.cpp',
+    )
+endif
+
+driver_dependencies = [pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep, ssl_dep]
 
 polypheny_cpp_driver_lib = library('polypheny_cpp_library',
                                    polypheny_src,
-                                   dependencies : [pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep, ssl_dep],
-                                   include_directories : [polypheny_inc, polypheny_src_inc],
+                                   dependencies : driver_dependencies,
+                                   include_directories : polypheny_inc,
 )
 
 
 polypheny_cpp_driver_dep = declare_dependency(
     link_with : polypheny_cpp_driver_lib,
-    include_directories : [polypheny_inc, polypheny_src_inc],
-    dependencies : [pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep]
+    include_directories : polypheny_inc,
+    dependencies : driver_dependencies
 )
 
 # ========================
@@ -91,16 +97,18 @@ test_src = files(
     'tests/CallbackQueueTest.cpp',
     'tests/ConnectionClosedErrorTest.cpp',
     'tests/ConnectionPropertiesTest.cpp',
+    'tests/SocketTransportTest.cpp',
     'tests/ProtoUtilsTest.cpp',
     'tests/TypedValueTest.cpp',
-    'tests/StreamingTest.cpp',
+    'tests/DocumentMetadataTest.cpp',
 )
+if prism_streaming
+    test_src += files('tests/StreamingTest.cpp')
+endif
 
 test_exe = executable('runTests',
-                      test_src + polypheny_src,
-                      dependencies : [catch2_dep, pthread_dep, polypheny_prism_api_dep, gmp_dep, gmpxx_dep, ssl_dep],
-                      include_directories : [polypheny_inc, polypheny_src_inc],
-                      install : true
+                      test_src,
+                      dependencies : [catch2_dep, polypheny_cpp_driver_dep],
 )
 
 test('runTests', test_exe)
