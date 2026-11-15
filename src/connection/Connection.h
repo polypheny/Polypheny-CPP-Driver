@@ -2,9 +2,13 @@
 #define POLYPHENY_CPP_DRIVER_CONNECTION_H
 
 #include <list>
+#include <optional>
+#include <utility>
+#include <vector>
 
 #include "ConnectionProperties.h"
 #include "PrismInterfaceClient.h"
+#include "results/DocumentMetadata.h"
 
 namespace Results {
     class RelationalResult;
@@ -26,8 +30,8 @@ namespace Connection {
      */
     class Connection {
     private:
-        std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client;
         ConnectionProperties connection_properties;
+        std::shared_ptr<Communication::PrismInterfaceClient> prism_interface_client;
         std::list<Cursor> cursors;
 
         static ConnectionProperties
@@ -76,6 +80,16 @@ namespace Connection {
          * @param transport A unique pointer to a transport object used for communication with the Polypheny instance.
          */
         Connection(ConnectionProperties& connection_properties, std::unique_ptr<Transport::Transport> &&transport);
+
+        [[nodiscard]] std::pair<int, int> get_server_api_version() const noexcept;
+
+        /** Search entities in a namespace using the server's optional pattern filter. */
+        [[nodiscard]] org::polypheny::prism::EntitiesResponse
+        search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern = {});
+
+        /** Return collection metadata from a server supporting Prism 2.2 document metadata. */
+        [[nodiscard]] std::vector<Results::DocumentMetadata>
+        get_document_collections(const std::string &namespace_name, const std::optional<std::string> &pattern = {});
     };
 
 } // Connection

@@ -17,6 +17,7 @@
 #include "results/RelationalMetadata.h"
 #include "results/RelationalColumnMetadata.h"
 #include "results/Row.h"
+#include "results/DocumentMetadata.h"
 #include "results/DocumentResult.h"
 #include "results/GraphResult.h"
 

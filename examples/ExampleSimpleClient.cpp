@@ -1,5 +1,6 @@
 #include <sstream>
 #include "PolyphenyCPPDriver.h"
+#include <iomanip>
 #include "transport/UnixTransport.h"
 
 void print_separator(const std::vector<int>& column_widths) {

@@ -20,6 +20,9 @@ namespace Types {
 
         explicit File(std::istream& input_stream, bool forward_only = false);
 
+        File(const File &other);
+        File &operator=(const File &other);
+
         static const std::streamsize BUFFER_SIZE = 10000;
 
     protected:
@@ -35,8 +38,8 @@ namespace Types {
     private:
         std::shared_ptr<Communication::PrismInterfaceClient> client;
 
-        uint32_t statement_id;
-        uint64_t stream_id;
+        uint32_t statement_id = 0;
+        uint64_t stream_id = 0;
 
         std::vector<uint8_t> data;
         std::vector<uint8_t> buffer;

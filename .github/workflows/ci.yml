@@ -1,0 +1,36 @@
+name: C++ driver checks
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.protocol }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - protocol: Prism 2.2
+            streaming: 'false'
+          - protocol: Experimental streaming
+            streaming: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ meson ninja-build pkg-config protobuf-compiler libprotobuf-dev libssl-dev libgmp-dev catch2
+      - name: Configure
+        env:
+          PRISM_STREAMING: ${{ matrix.streaming }}
+        run: meson setup build -Dprism_streaming="$PRISM_STREAMING"
+      - name: Build
+        run: meson compile -C build
+      - name: Test
+        run: meson test -C build --print-errorlogs

@@ -14,6 +14,13 @@ namespace Transport {
         virtual std::string receive_message() = 0;
 
         virtual void connect() = 0;
+
+        /**
+         * Interrupt a pending receive when closing the connection.
+         * Custom transports whose receive_message() can block must override this
+         * method to unblock that call.
+         */
+        virtual void shutdown() noexcept {}
     };
 
 }

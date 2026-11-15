@@ -51,7 +51,7 @@ std::vector<uint8_t> collectStream(std::streambuf *buf) {
 }
 
 
-TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
+TEST_CASE("Simple File Streaming Test", "[.streaming]") {
 
     Connection::Connection db_conn("localhost", "pa", "");
     Connection::Cursor cursor(db_conn);
@@ -59,7 +59,7 @@ TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
     cursor.execute("sql", FILE_DROP_IF_STATEMENT, "public");
     cursor.execute("sql", FILE_CREATE_STATEMENT, "public");
 
-    cursor.prepare("sql", FILE_INSERT_STATEMENT, "public");
+    cursor.prepare_indexed("sql", FILE_INSERT_STATEMENT, "public");
 
     auto expected = createTestData();
     std::vector<Types::TypedValue> parameters = {
@@ -85,7 +85,7 @@ TEST_CASE("Simple File Streaming Test", "[StreamingTest]") {
 }
 
 
-TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
+TEST_CASE("Simple File Streaming Test 2", "[.streaming]") {
     try {
         Connection::Connection db_conn("localhost", "pa", "");
         Connection::Cursor cursor(db_conn);
@@ -93,7 +93,7 @@ TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
         cursor.execute("sql", FILE_DROP_IF_STATEMENT, "public");
         cursor.execute("sql", FILE_CREATE_STATEMENT, "public");
 
-        cursor.prepare("sql", FILE_INSERT_STATEMENT, "public");
+        cursor.prepare_indexed("sql", FILE_INSERT_STATEMENT, "public");
 
         auto expected = createTestData();
         std::istringstream istream(std::string(expected.begin(), expected.end()));
@@ -119,7 +119,7 @@ TEST_CASE("Simple File Streaming Test 2", "[StreamingTest]") {
 }
 
 
-TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
+TEST_CASE("Simple String Streaming Test", "[.streaming]") {
 
     Connection::Connection db_conn("localhost", "pa", "");
     Connection::Cursor cursor(db_conn);
@@ -127,7 +127,7 @@ TEST_CASE("Simple String Streaming Test", "[StreamingTest]") {
     cursor.execute("sql", STRING_DROP_IF_STATEMENT, "public");
     cursor.execute("sql", STRING_CREATE_STATEMENT, "public");
 
-    cursor.prepare("sql", STRING_INSERT_STATEMENT, "public");
+    cursor.prepare_indexed("sql", STRING_INSERT_STATEMENT, "public");
 
     std::string expected = createTestStringData();
     std::vector<Types::TypedValue> parameters = {

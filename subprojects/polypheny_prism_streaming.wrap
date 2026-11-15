@@ -1,0 +1,6 @@
+[wrap-file]
+directory = Polypheny-Prism-API-e449564529037d6512e7433aae499e8e7849845b
+source_url = https://codeload.github.com/polypheny/Polypheny-Prism-API/tar.gz/e449564529037d6512e7433aae499e8e7849845b
+source_filename = prism-streaming-e449564.tar.gz
+source_hash = c70d4c4bc977e0b949b2f0439214f519141bba43472be5c53bc353bd12fe062f
+patch_directory = prism-meson

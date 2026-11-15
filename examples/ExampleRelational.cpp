@@ -1,4 +1,6 @@
 #include "PolyphenyCPPDriver.h"
+#include <iomanip>
+#include <sstream>
 
 void print_separator(const std::vector<int>& column_widths) {
     for (int width : column_widths) {
