@@ -37,8 +37,11 @@ namespace Connection {
         Connection &connection;
         std::shared_ptr<Streaming::StreamingIndex> streaming_index;
         uint32_t fetch_size = 100;
+        std::shared_ptr<Communication::StatementState> statement_state;
+        std::weak_ptr<Results::Result::State> active_result;
 
         void reset_statement();
+        void close_active_result();
         void discard_failed_statement() noexcept;
 
         std::unique_ptr<Results::Result>
@@ -57,9 +60,10 @@ namespace Connection {
         explicit Cursor(Connection &connection);
 
         /**
-         * @brief Constructs a Cursor object associated with a specific connection.
+         * @brief Creates an independent cursor on the same connection with the same fetch size.
          *
-         * @param connection The connection to be used by this cursor.
+         * Prepared statements and active results are not copied.
+         * @param other The cursor whose connection and settings are used.
          */
         Cursor(const Cursor &other);
 

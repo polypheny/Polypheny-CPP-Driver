@@ -282,6 +282,9 @@ namespace Types {
          */
         mpf_class as_big_decimal();
 
+        /** Return an exact decimal string without binary floating-point rounding. */
+        std::string as_decimal_string();
+
         /**
          * @brief Retrieves the value as a float.
          *

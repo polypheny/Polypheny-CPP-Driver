@@ -10,18 +10,18 @@ namespace Types {
 
     }
 
-    Interval::Interval(uint64_t months, uint64_t milliseconds)
+    Interval::Interval(int64_t months, int64_t milliseconds)
             : months(months), milliseconds(milliseconds) {}
 
-    uint64_t Interval::get_months() const {
+    int64_t Interval::get_months() const {
         return months;
     }
 
-    uint64_t Interval::get_milliseconds() const {
+    int64_t Interval::get_milliseconds() const {
         return milliseconds;
     }
 
-    std::string Interval::plural(uint64_t count, const std::string &word) {
+    std::string Interval::plural(int64_t count, const std::string &word) {
         return std::to_string(count) + " " + (count != 1 ? word + "s" : word);
     }
 

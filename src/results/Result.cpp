@@ -4,7 +4,8 @@ namespace Results {
 
     Result::Result(ResultType type, std::shared_ptr<Communication::PrismInterfaceClient> client,
                    uint32_t statement_id, uint32_t fetch_size)
-            : resultType(type), client(std::move(client)), statement_id(statement_id), fetch_size(fetch_size) {}
+            : state(std::make_shared<State>(State{client, nullptr, statement_id})),
+              resultType(type), client(std::move(client)), statement_id(statement_id), fetch_size(fetch_size) {}
 
     Result::~Result() {
         try {
@@ -15,17 +16,23 @@ namespace Results {
     }
 
     void Result::close() {
+        if (state) {
+            state->close();
+        }
+    }
+
+    void Result::State::close() {
         if (closed) {
             return;
         }
         closed = true;
-        if (client) {
+        if (client && (!statement || !statement->closed)) {
             client->close_result(statement_id);
         }
     }
 
     org::polypheny::prism::Frame Result::fetch_frame() {
-        if (closed) {
+        if (is_closed()) {
             throw std::runtime_error("The result is closed");
         }
         try {

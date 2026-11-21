@@ -1,5 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include "src/types/TypedValue.h"
+#include <limits>
 #include "src/types/Interval.h"
 #include "org/polypheny/prism/value.pb.h"
 
@@ -902,4 +903,36 @@ TEST_CASE("TypedValue print bytes", "[TypedValue]") {
     std::ostringstream oss;
     oss << bytes_value;
     REQUIRE(oss.str() == "616263"); // Hex representation of 'a', 'b', 'c'
+}
+
+TEST_CASE("Decoded decimals preserve precision and scale through copies and serialization", "[decimal-regression]") {
+    for (const auto scale : {int32_t(0), int32_t(31), int32_t(-3)}) {
+        org::polypheny::prism::ProtoValue encoded;
+        encoded.mutable_big_decimal()->set_unscaled_value(std::string(1, char(1)) + std::string(40, '\0'));
+        encoded.mutable_big_decimal()->set_scale(scale);
+        mpz_class integer = mpz_class(1) << 320;
+        auto expected = integer.get_str();
+        if (scale > 0) expected.insert(expected.size() - scale, 1, '.');
+        if (scale < 0) expected.append(-scale, '0');
+        Types::TypedValue decoded(encoded, nullptr);
+        CHECK(decoded.as_decimal_string() == expected);
+        if (scale == 0) CHECK(decoded.as_big_decimal() == mpf_class(integer, 512));
+        else CHECK_NOTHROW(decoded.as_big_decimal());
+        Types::TypedValue copy(decoded);
+        Types::TypedValue assigned(mpf_class("1"));
+        assigned = decoded;
+        for (auto *value : {&decoded, &copy, &assigned}) {
+            CHECK(value->as_decimal_string() == expected);
+            std::unique_ptr<org::polypheny::prism::ProtoValue> roundtrip(value->serialize(nullptr));
+            CHECK(roundtrip->big_decimal().unscaled_value() == encoded.big_decimal().unscaled_value());
+            CHECK(roundtrip->big_decimal().scale() == scale);
+        }
+    }
+    CHECK(Types::TypedValue(mpf_class("-1")).as_decimal_string() == "-1");
+    CHECK(Types::TypedValue(mpf_class("0")).as_decimal_string() == "0");
+    CHECK_THROWS_AS(Types::TypedValue(1).as_decimal_string(), std::runtime_error);
+    org::polypheny::prism::ProtoValue extreme;
+    extreme.mutable_big_decimal()->set_unscaled_value("\x01");
+    extreme.mutable_big_decimal()->set_scale(std::numeric_limits<int32_t>::min());
+    CHECK(Types::TypedValue(extreme, nullptr).as_decimal_string() == "1e2147483648");
 }

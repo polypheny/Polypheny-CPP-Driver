@@ -168,4 +168,15 @@ TEST_CASE("Graph values remain typed inside nested lists and documents", "[graph
     Types::TypedValue missing(unknown, nullptr);
     CHECK_THROWS_AS(missing.serialize(nullptr), std::runtime_error);
 }
+
+TEST_CASE("Graph property decimals retain their exact signed wire representation", "[graph][decimal-regression]") {
+    org::polypheny::prism::ProtoValue encoded;
+    *encoded.mutable_node() = node("alice");
+    auto *amount = (*encoded.mutable_node()->mutable_properties())["amount"].mutable_big_decimal();
+    amount->set_unscaled_value(std::string{char(0xff), char(0x7f)});
+    amount->set_scale(3);
+    Types::TypedValue value(encoded, nullptr);
+    CHECK(value.as_node().at("amount").as_decimal_string() == "-0.129");
+    preserves_value(encoded);
+}
 #endif

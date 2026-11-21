@@ -11,6 +11,9 @@
 #include <typeinfo>
 #include <memory>
 #include "connection/PrismInterfaceClient.h"
+#include "connection/StatementState.h"
+
+namespace Connection { class Cursor; }
 
 namespace Results {
 
@@ -28,6 +31,15 @@ namespace Results {
      */
     class Result {
     private:
+        friend class Connection::Cursor;
+        struct State {
+            std::shared_ptr<Communication::PrismInterfaceClient> client;
+            std::shared_ptr<Communication::StatementState> statement;
+            uint32_t statement_id;
+            bool closed = false;
+            void close();
+        };
+        std::shared_ptr<State> state;
         ResultType resultType;
 
     protected:
@@ -38,11 +50,14 @@ namespace Results {
         std::shared_ptr<Communication::PrismInterfaceClient> client;
         uint32_t statement_id = 0;
         uint32_t fetch_size = 100;
-        bool closed = false;
+        [[nodiscard]] bool is_closed() const noexcept { return state && state->closed; }
         [[nodiscard]] org::polypheny::prism::Frame fetch_frame();
 
     public:
         virtual ~Result();
+
+        Result(const Result &) = delete;
+        Result &operator=(const Result &) = delete;
 
         /** Close the server-side result. Calling close repeatedly is safe. */
         void close();

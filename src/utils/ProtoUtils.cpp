@@ -4,9 +4,24 @@
 
 #include "ProtoUtils.h"
 #include "types/Interval.h"
+#include <limits>
 
 namespace Utils::ProtoUtils {
     constexpr long long MILLIS_PER_DAY = 86400000LL;
+
+    namespace {
+        std::chrono::system_clock::time_point checked_time_point(int64_t millis) {
+            using Duration = std::chrono::system_clock::duration;
+            if constexpr (std::ratio_less_equal<typename Duration::period, std::milli>::value) {
+                const auto minimum = std::chrono::duration_cast<std::chrono::milliseconds>(Duration::min()).count();
+                const auto maximum = std::chrono::duration_cast<std::chrono::milliseconds>(Duration::max()).count();
+                if (millis < minimum || millis > maximum) {
+                    throw std::out_of_range("Prism date or timestamp exceeds system_clock's range");
+                }
+            }
+            return std::chrono::system_clock::time_point(std::chrono::duration_cast<Duration>(std::chrono::milliseconds(millis)));
+        }
+    }
 
     std::vector<uint8_t> string_to_vector(const std::string &string) {
         return {string.begin(), string.end()};
@@ -18,12 +33,15 @@ namespace Utils::ProtoUtils {
 
     std::chrono::system_clock::time_point
     proto_to_timestamp(const org::polypheny::prism::ProtoTimestamp &timestamp) {
-        return std::chrono::system_clock::time_point(std::chrono::milliseconds(timestamp.timestamp()));
+        return checked_time_point(timestamp.timestamp());
     }
 
     std::chrono::system_clock::time_point proto_to_date(const org::polypheny::prism::ProtoDate &date) {
-        uint64_t millis_since_epoch = date.date() * MILLIS_PER_DAY;
-        return std::chrono::system_clock::time_point(std::chrono::milliseconds(millis_since_epoch));
+        if (date.date() < std::numeric_limits<int64_t>::min() / MILLIS_PER_DAY
+                || date.date() > std::numeric_limits<int64_t>::max() / MILLIS_PER_DAY) {
+            throw std::out_of_range("Prism date exceeds the supported millisecond range");
+        }
+        return checked_time_point(date.date() * MILLIS_PER_DAY);
     }
 
     std::chrono::milliseconds proto_to_time(const org::polypheny::prism::ProtoTime &time) {
@@ -51,9 +69,9 @@ namespace Utils::ProtoUtils {
     std::unique_ptr<org::polypheny::prism::ProtoDate>
     date_to_proto(const std::chrono::system_clock::time_point &date) {
         auto proto_date = std::make_unique<org::polypheny::prism::ProtoDate>();
-        uint64_t millis_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
-                date.time_since_epoch()).count();
-        proto_date->set_date(millis_since_epoch / MILLIS_PER_DAY);
+        using Days = std::chrono::duration<int64_t, std::ratio<86400>>;
+        const auto days = std::chrono::floor<Days>(date.time_since_epoch()).count();
+        proto_date->set_date(days);
         return proto_date;
     }
 
@@ -76,39 +94,91 @@ namespace Utils::ProtoUtils {
         return proto_list;
     }
 
+    namespace {
+        mpz_class signed_integer(const std::string &input) {
+            mpz_class integer;
+            mpz_import(integer.get_mpz_t(), input.size(), 1, 1, 0, 0, input.data());
+            if (!input.empty() && (static_cast<unsigned char>(input.front()) & 0x80)) {
+                integer -= mpz_class(1) << (input.size() * 8);
+            }
+            return integer;
+        }
+
+        std::string signed_bytes(const mpz_class &integer) {
+            const auto size = (mpz_sizeinbase(integer.get_mpz_t(), 2) + 7) / 8;
+            mpz_class encoded = integer;
+            if (integer < 0) {
+                encoded += mpz_class(1) << (size * 8);
+            }
+            std::string bytes(size, '\0');
+            size_t count = 0;
+            mpz_export(bytes.data(), &count, 1, 1, 0, 0, encoded.get_mpz_t());
+            bytes.resize(count);
+            if (bytes.empty()) {
+                return std::string(1, '\0');
+            }
+            const bool high_bit = (static_cast<unsigned char>(bytes.front()) & 0x80) != 0;
+            if ((integer < 0) != high_bit) {
+                bytes.insert(bytes.begin(), integer < 0 ? char(0xff) : char(0));
+            }
+            return bytes;
+        }
+    }
+
     mpf_class bytes_to_mpf(const std::string &input) {
-        mpz_t temp;
-        mpz_init(temp);
-        mpz_import(temp, input.size(), 1, sizeof(char), 0, 0, input.data());
-        mpf_class result;
-        mpf_set_z(result.get_mpf_t(), temp);
-        mpz_clear(temp);
-        return result;
+        const auto integer = signed_integer(input);
+        return mpf_class(integer, std::max<mp_bitcnt_t>(64, input.size() * 8 + 64));
     }
 
     void scale_by_10_to_neg_x(mpf_class &number, int32_t x) {
-        mpf_class scale_factor;
-        mpf_init_set_ui(scale_factor.get_mpf_t(), 10);
-        mpf_pow_ui(scale_factor.get_mpf_t(), scale_factor.get_mpf_t(), x);
-        number /= scale_factor;
+        mpf_class scale_factor(10, number.get_prec());
+        const auto exponent = x < 0 ? -static_cast<int64_t>(x) : static_cast<int64_t>(x);
+        mpf_pow_ui(scale_factor.get_mpf_t(), scale_factor.get_mpf_t(), exponent);
+        if (x < 0) {
+            number *= scale_factor;
+        } else {
+            number /= scale_factor;
+        }
     }
 
 
     std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value) {
         mp_exp_t exponent;
         std::string str_val = mpf_value.get_str(exponent, 10);
-        std::string::size_type point_pos = str_val.find('.');
-        if (point_pos != std::string::npos) {
-            str_val.erase(point_pos, 1);
+        if (str_val.empty()) {
+            return {std::string(1, '\0'), 0};
         }
         mpz_class mantissa(str_val, 10);
-        int32_t scale = str_val.length() - exponent;
-        size_t count;
-        auto binary_data = mpz_export(nullptr, &count, 1, 1, 0, 0, mantissa.get_mpz_t());
-        std::string unscaled_value(reinterpret_cast<char *>(binary_data), count);
-        free(binary_data);
+        const auto digits = str_val.size() - (str_val.front() == '-' ? 1 : 0);
+        const auto scale = static_cast<int64_t>(digits) - exponent;
+        if (scale < std::numeric_limits<int32_t>::min() || scale > std::numeric_limits<int32_t>::max()) {
+            throw std::out_of_range("Decimal scale exceeds Prism's signed 32-bit range");
+        }
+        return {signed_bytes(mantissa), static_cast<int32_t>(scale)};
+    }
 
-        return std::make_pair(unscaled_value, scale);
+    std::string decimal_to_string(const org::polypheny::prism::ProtoBigDecimal &decimal) {
+        auto digits = signed_integer(decimal.unscaled_value()).get_str();
+        const int64_t scale = decimal.scale();
+        if (scale == 0) {
+            return digits;
+        }
+        // Avoid allocating gigabytes for a valid extreme-scale value.
+        if (scale > 10000 || scale < -10000) {
+            return digits + "e" + std::to_string(-scale);
+        }
+        const bool negative = digits.front() == '-';
+        if (negative) {
+            digits.erase(digits.begin());
+        }
+        if (scale < 0) {
+            digits.append(static_cast<size_t>(-scale), '0');
+        } else if (static_cast<size_t>(scale) >= digits.size()) {
+            digits = "0." + std::string(static_cast<size_t>(scale) - digits.size(), '0') + digits;
+        } else {
+            digits.insert(digits.size() - scale, 1, '.');
+        }
+        return (negative ? "-" : "") + digits;
     }
 
 

@@ -6,6 +6,8 @@
 #define POLYPHENY_CPP_DRIVER_INTERVAL_H
 
 #include <string>
+#include <cstdint>
+#include <memory>
 
 #include "NativeType.h"
 
@@ -18,10 +20,10 @@ namespace Types {
      */
     class Interval : public NativeType  {
     private:
-        uint64_t months;
-        uint64_t milliseconds;
+        int64_t months;
+        int64_t milliseconds;
 
-        static std::string plural(uint64_t count, const std::string &word);
+        static std::string plural(int64_t count, const std::string &word);
 
     public:
         Interval(const org::polypheny::prism::ProtoInterval& value);
@@ -29,24 +31,24 @@ namespace Types {
         /**
          * @brief Constructs an Interval object with the specified number of months and milliseconds.
          *
-         * @param months The number of months in the interval.
-         * @param milliseconds The number of milliseconds in the interval.
+         * @param months The signed number of months in the interval.
+         * @param milliseconds The signed number of milliseconds in the interval.
          */
-        Interval(uint64_t months, uint64_t milliseconds);
+        Interval(int64_t months, int64_t milliseconds);
 
         /**
          * @brief Gets the number of months in the interval.
          *
          * @return The number of months.
          */
-        uint64_t get_months() const;
+        int64_t get_months() const;
 
         /**
         * @brief Gets the number of milliseconds in the interval.
         *
         * @return The number of milliseconds.
         */
-        uint64_t get_milliseconds() const;
+        int64_t get_milliseconds() const;
 
         /**
          * @brief Checks if this interval is equal to another interval.

@@ -1,4 +1,5 @@
 #include <catch2/catch_all.hpp>
+#include <limits>
 #include "src/utils/ProtoUtils.h"
 #include "org/polypheny/prism/value.pb.h"
 #include "src/types/TypedValue.h"
@@ -154,3 +155,40 @@ TEST_CASE("Utils::mpf_get_unscaled_value_and_scale - scale 0", "[Utils]") {
     REQUIRE(result.second == expected_scale);
 }
 
+
+TEST_CASE("Prism decimal integers use signed two's-complement bytes", "[decimal-regression]") {
+    CHECK(Utils::ProtoUtils::bytes_to_mpf(std::string(1, char(0xff))) == -1);
+    CHECK(Utils::ProtoUtils::bytes_to_mpf(std::string{char(0x00), char(0x80)}) == 128);
+    CHECK(Utils::ProtoUtils::bytes_to_mpf(std::string{char(0xff), char(0x7f)}) == -129);
+    for (const auto &entry : std::vector<std::pair<std::string, std::string>>{
+            {"-1", std::string(1, char(0xff))}, {"128", std::string{char(0x00), char(0x80)}},
+            {"-129", std::string{char(0xff), char(0x7f)}}, {"0", std::string(1, '\0')}}) {
+        const auto encoded = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(mpf_class(entry.first));
+        CHECK(encoded.first == entry.second);
+        CHECK(encoded.second == 0);
+    }
+    mpf_class number(123);
+    Utils::ProtoUtils::scale_by_10_to_neg_x(number, -3);
+    CHECK(number == 123000);
+}
+
+TEST_CASE("Dates preserve pre-epoch days and reject system clock overflow", "[ProtoUtils]") {
+    using Clock = std::chrono::system_clock;
+    const auto before_epoch = Clock::time_point(std::chrono::milliseconds(-1));
+    CHECK(Utils::ProtoUtils::date_to_proto(before_epoch)->date() == -1);
+    CHECK(Utils::ProtoUtils::date_to_proto(Clock::time_point(Clock::duration(-1)))->date() == -1);
+    org::polypheny::prism::ProtoDate encoded;
+    encoded.set_date(-1);
+    const auto decoded = Utils::ProtoUtils::proto_to_date(encoded);
+    CHECK(std::chrono::duration_cast<std::chrono::milliseconds>(decoded.time_since_epoch()).count() == -MILLIS_PER_DAY);
+    CHECK(Utils::ProtoUtils::date_to_proto(decoded)->date() == -1);
+    if constexpr (std::ratio_less<Clock::duration::period, std::milli>::value) {
+        org::polypheny::prism::ProtoTimestamp timestamp;
+        timestamp.set_timestamp(std::numeric_limits<int64_t>::max());
+        CHECK_THROWS_AS(Utils::ProtoUtils::proto_to_timestamp(timestamp), std::out_of_range);
+        encoded.set_date(std::numeric_limits<int64_t>::min());
+        CHECK_THROWS_AS(Utils::ProtoUtils::proto_to_date(encoded), std::out_of_range);
+    }
+    encoded.set_date(std::numeric_limits<int64_t>::max());
+    CHECK_THROWS_AS(Utils::ProtoUtils::proto_to_date(encoded), std::out_of_range);
+}

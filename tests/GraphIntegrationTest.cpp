@@ -65,6 +65,27 @@ namespace {
         }
     };
 
+    class RelationalFixture {
+    public:
+        std::unique_ptr<Connection::Connection> connection = open_connection();
+        Connection::Cursor cursor{*connection};
+        std::string name = "cpp_scalar_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+
+        RelationalFixture() {
+            cursor.execute("sql", "CREATE TABLE " + name + " (v INTEGER PRIMARY KEY)", "public");
+            cursor.execute("sql", "INSERT INTO " + name + " VALUES (1), (2), (3)", "public");
+        }
+
+        ~RelationalFixture() {
+            try {
+                Connection::Cursor cleanup(*connection);
+                cleanup.execute("sql", "DROP TABLE IF EXISTS " + name, "public");
+            } catch (const std::exception &error) {
+                std::cerr << "Scalar test cleanup failed: " << error.what() << '\n';
+            }
+        }
+    };
+
     int64_t integer(Types::TypedValue value) {
         if (value.get_value_case() == org::polypheny::prism::ProtoValue::kString) {
             return std::stoll(value.as_string());
@@ -312,5 +333,56 @@ TEST_CASE("Live Cypher graph result cleanup preserves manual transaction control
         CHECK(integer((*result->unwrap<Results::RelationalResult>()->begin())["count"]) == 0);
     }
     connection->commit();
+}
+TEST_CASE("Live Cypher decimals preserve negative and large scalar values", "[.graph-integration]") {
+    GraphFixture fixture;
+    auto result = fixture.query("RETURN -1 AS negative, 128 AS positive, -1.25 AS fraction, 0 AS zero");
+    auto &row = *result->unwrap<Results::RelationalResult>()->begin();
+    CHECK(row["negative"].as_decimal_string() == "-1");
+    CHECK(row["negative"].as_big_decimal() == -1);
+    CHECK(row["positive"].as_decimal_string() == "128");
+    CHECK(row["fraction"].as_double() == -1.25);
+    CHECK(row["zero"].as_decimal_string() == "0");
+    result->close();
+    RelationalFixture sql;
+    auto large = sql.cursor.execute("sql", "SELECT CAST('-123456789012345678901234567890.12345678' AS DECIMAL(38,8)) FROM " + sql.name + " WHERE v = 1", "public");
+    CHECK((*large->unwrap<Results::RelationalResult>()->begin())[0].as_decimal_string()
+          == "-123456789012345678901234567890.12345678");
+}
+
+TEST_CASE("Live results retain statement ownership when their cursor is destroyed", "[.graph-integration]") {
+    GraphFixture fixture;
+    std::unique_ptr<Results::Result> result;
+    {
+        Connection::Cursor temporary(*fixture.connection);
+        temporary.set_fetch_size(1);
+        result = temporary.execute("cypher", "MATCH (n:Person) RETURN n", fixture.name);
+    }
+    size_t count = 0;
+    for (auto node : *result->unwrap<Results::GraphResult>()) {
+        CHECK(node->get_element_type() == GraphElementType::NODE);
+        ++count;
+    }
+    CHECK(count == 4);
+    result.reset();
+    CHECK(fixture.names().size() == 4);
+}
+
+TEST_CASE("Live prepared SQL replacement does not let an old result close the new one", "[.graph-integration]") {
+    RelationalFixture fixture;
+    Connection::Cursor cursor(*fixture.connection);
+    cursor.set_fetch_size(1);
+    cursor.prepare_indexed("sql", "SELECT v FROM " + fixture.name + " WHERE v >= ? ORDER BY v", "public");
+    std::vector<Types::TypedValue> parameters{Types::TypedValue(2)};
+    auto first = cursor.execute_prepared(parameters);
+    auto second = cursor.execute_prepared(parameters);
+    CHECK_THROWS_AS(first->unwrap<Results::RelationalResult>()->begin(), std::runtime_error);
+    first.reset();
+    size_t count = 0;
+    for (auto &row : *second->unwrap<Results::RelationalResult>()) {
+        CHECK(row.size() == 1);
+        ++count;
+    }
+    CHECK(count == 2);
 }
 #endif

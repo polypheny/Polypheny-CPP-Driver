@@ -61,7 +61,7 @@ namespace Results {
     }
 
     void GraphResult::ensure_available(size_t index) {
-        if (closed) {
+        if (is_closed()) {
             throw std::runtime_error("The result is closed");
         }
         while (index >= elements.size() && !is_fully_fetched) {
