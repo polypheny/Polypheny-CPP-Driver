@@ -133,13 +133,15 @@ namespace Communication {
 
     void PrismInterfaceClient::execute_unparameterized_statement(std::string namespace_name, std::string language_name,
                                                                  std::string statement,
-                                                                 std::shared_ptr<CallbackQueue> &callback_queue) {
+                                                                 std::shared_ptr<CallbackQueue> &callback_queue,
+                                                                 uint32_t fetch_size) {
         org::polypheny::prism::Request outer;
         outer.set_id(request_id.fetch_add(1));
         org::polypheny::prism::ExecuteUnparameterizedStatementRequest *inner = outer.mutable_execute_unparameterized_statement_request();
         inner->set_namespace_name(namespace_name);
         inner->set_language_name(language_name);
         inner->set_statement(statement);
+        inner->set_fetch_size(fetch_size);
         {
             std::lock_guard<std::mutex> lock(mutex);
             callback_queues.emplace(outer.id(), callback_queue);

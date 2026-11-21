@@ -12,8 +12,11 @@ namespace Communication {
 
     org::polypheny::prism::Response CallbackQueue::take_next() {
         std::unique_lock<std::mutex> lock(queue_mutex);
-        has_next.wait(lock, [this] { return !message_queue.empty() || propagated_exception != nullptr; });
+        has_next.wait(lock, [this] { return !message_queue.empty() || b_is_completed || propagated_exception != nullptr; });
         throw_received_exception();
+        if (message_queue.empty()) {
+            throw std::runtime_error("Prism response completed without the expected result");
+        }
         org::polypheny::prism::Response message = message_queue.front();
         message_queue.pop();
         return message;
@@ -43,6 +46,7 @@ namespace Communication {
             b_is_completed = true;
         }
         is_completed.notify_all();
+        has_next.notify_all();
     }
 
     void CallbackQueue::throw_received_exception() {

@@ -36,15 +36,15 @@ namespace Connection {
         bool is_prepared{};
         Connection &connection;
         std::shared_ptr<Streaming::StreamingIndex> streaming_index;
+        uint32_t fetch_size = 100;
 
         void reset_statement();
+        void discard_failed_statement() noexcept;
 
         std::unique_ptr<Results::Result>
         get_result_from_frame(const org::polypheny::prism::Frame &frame);
 
     protected:
-        const uint32_t DEFAULT_FETCH_SIZE = 100;
-
         [[nodiscard]] uint32_t get_statement_id() const;
 
         Connection& get_connection();
@@ -64,6 +64,10 @@ namespace Connection {
         Cursor(const Cursor &other);
 
         ~Cursor();
+
+        /** Set the maximum source rows requested per result frame. */
+        void set_fetch_size(uint32_t size);
+        [[nodiscard]] uint32_t get_fetch_size() const noexcept;
 
         /**
          * @brief Executes a statement in a specified language and returns the result.

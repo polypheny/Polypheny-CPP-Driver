@@ -18,7 +18,7 @@
 namespace Results {
 
     /**
-     * @brief Base class for all graph elements (nodes, edges, and paths).
+     * @brief Base class for graph elements (nodes and edges).
      *
      * This class provides common properties and methods for all graph elements,
      * including an ID, name, and labels.
@@ -33,8 +33,10 @@ namespace Results {
 
 
     public:
+        virtual ~GraphElement() = default;
+
         /**
-         * @brief Template method to unwrap the graph element to a specific derived type (Node, Edge, Path).
+         * @brief Template method to unwrap the graph element to Node or Edge.
          *
          * @tparam T The type to unwrap to.
          * @return The unwrapped type.

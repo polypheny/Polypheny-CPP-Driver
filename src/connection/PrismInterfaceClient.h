@@ -51,7 +51,7 @@ namespace Communication {
         static const std::string CLIENT_STREAMING_FEATURE;
 #else
         static constexpr int MAJOR_API_VERSION = 2;
-        static constexpr int MINOR_API_VERSION = 2;
+        static constexpr int MINOR_API_VERSION = 3;
 #endif
 
         std::atomic<long> request_id{1};
@@ -94,7 +94,8 @@ namespace Communication {
 
         void
         execute_unparameterized_statement(std::string namespace_name, std::string language_name, std::string statement,
-                                          std::shared_ptr<CallbackQueue> &callback_queue);
+                                          std::shared_ptr<CallbackQueue> &callback_queue,
+                                          uint32_t fetch_size = 100);
 
         void
         execute_unparameterized_statement_batch(std::string namespace_name, std::string language_name,

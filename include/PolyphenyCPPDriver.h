@@ -20,6 +20,10 @@
 #include "results/DocumentMetadata.h"
 #include "results/DocumentResult.h"
 #include "results/GraphResult.h"
+#include "results/Node.h"
+#include "results/Edge.h"
+#include "results/Path.h"
+#include "results/Graph.h"
 
 // native types
 #include "types/NativeType.h"

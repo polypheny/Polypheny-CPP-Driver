@@ -31,10 +31,9 @@ namespace Results {
         /**
          * @brief Destructor for the DocumentResult class.
          *
-         * It's the programmer's responsibility to call this destructor once a result is no longer needed.
-         * This internally tells the connected Polypheny instance to free the associated resources.
+         * Destruction automatically closes the server-side result. Use close() to release it earlier.
          */
-        ~DocumentResult();
+        ~DocumentResult() override = default;
 
         /**
          * @brief Iterator class for iterating over documents in the document result.
@@ -73,10 +72,10 @@ namespace Results {
     private:
         void add_documents(const org::polypheny::prism::DocumentFrame &document_frame);
         void fetch_more();
+        void ensure_available(size_t index);
 
         std::vector<std::unordered_map<std::string, Types::TypedValue>> documents;
         bool is_fully_fetched;
-        Connection::Cursor *cursor;
     };
 
 } // Results

@@ -11,6 +11,10 @@
 #include "utils/TypedValueUtils.h"
 #include "utils/ProtoUtils.h"
 #include "connection/PrismInterfaceClient.h"
+#include "results/Node.h"
+#include "results/Edge.h"
+#include "results/Path.h"
+#include "results/Graph.h"
 #if POLYPHENY_PRISM_STREAMING
 #include "streaming/BinaryPrismOutputStream.h"
 #include "streaming/FilePrismOutputStream.h"
@@ -132,8 +136,26 @@ namespace Types {
               value_case(org::polypheny::prism::ProtoValue::ValueCase::kFile),
               is_deserialized(true) {}
 
+#if !POLYPHENY_PRISM_STREAMING
+    TypedValue::TypedValue(const Results::Node &value)
+            : value(std::make_shared<Results::Node>(value)), value_case(org::polypheny::prism::ProtoValue::kNode),
+              is_deserialized(true) {}
+
+    TypedValue::TypedValue(const Results::Edge &value)
+            : value(std::make_shared<Results::Edge>(value)), value_case(org::polypheny::prism::ProtoValue::kEdge),
+              is_deserialized(true) {}
+
+    TypedValue::TypedValue(const Results::Path &value)
+            : value(std::make_shared<Results::Path>(value)), value_case(org::polypheny::prism::ProtoValue::kPath),
+              is_deserialized(true) {}
+
+    TypedValue::TypedValue(const Results::Graph &value)
+            : value(std::make_shared<Results::Graph>(value)), value_case(org::polypheny::prism::ProtoValue::kGraph),
+              is_deserialized(true) {}
+#endif
+
     TypedValue::TypedValue(const TypedValue &other)
-            : value_case(other.value_case),
+            : client(other.client), value_case(other.value_case),
               is_deserialized(other.is_deserialized) {
         if (!other.is_deserialized) {
             serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
@@ -196,6 +218,20 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kFile:
                 value = std::make_shared<File>(*std::get<std::shared_ptr<File>>(other.value));
                 break;
+#if !POLYPHENY_PRISM_STREAMING
+            case org::polypheny::prism::ProtoValue::kNode:
+                value = std::make_shared<Results::Node>(*std::get<std::shared_ptr<Results::Node>>(other.value));
+                break;
+            case org::polypheny::prism::ProtoValue::kEdge:
+                value = std::make_shared<Results::Edge>(*std::get<std::shared_ptr<Results::Edge>>(other.value));
+                break;
+            case org::polypheny::prism::ProtoValue::kPath:
+                value = std::make_shared<Results::Path>(*std::get<std::shared_ptr<Results::Path>>(other.value));
+                break;
+            case org::polypheny::prism::ProtoValue::kGraph:
+                value = std::make_shared<Results::Graph>(*std::get<std::shared_ptr<Results::Graph>>(other.value));
+                break;
+#endif
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 value = std::monostate{};
                 break;
@@ -207,6 +243,7 @@ namespace Types {
 
     TypedValue &TypedValue::operator=(const TypedValue &other) {
         if (this != &other) {
+            client = other.client;
             value_case = other.value_case;
             is_deserialized = other.is_deserialized;
             if (!other.is_deserialized) {
@@ -272,6 +309,20 @@ namespace Types {
                 case org::polypheny::prism::ProtoValue::ValueCase::kFile:
                     value = std::make_shared<File>(*std::get<std::shared_ptr<File>>(other.value));
                     break;
+#if !POLYPHENY_PRISM_STREAMING
+                case org::polypheny::prism::ProtoValue::kNode:
+                    value = std::make_shared<Results::Node>(*std::get<std::shared_ptr<Results::Node>>(other.value));
+                    break;
+                case org::polypheny::prism::ProtoValue::kEdge:
+                    value = std::make_shared<Results::Edge>(*std::get<std::shared_ptr<Results::Edge>>(other.value));
+                    break;
+                case org::polypheny::prism::ProtoValue::kPath:
+                    value = std::make_shared<Results::Path>(*std::get<std::shared_ptr<Results::Path>>(other.value));
+                    break;
+                case org::polypheny::prism::ProtoValue::kGraph:
+                    value = std::make_shared<Results::Graph>(*std::get<std::shared_ptr<Results::Graph>>(other.value));
+                    break;
+#endif
                 case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                     value = std::monostate{};
                     break;
@@ -285,6 +336,61 @@ namespace Types {
     std::ostream &operator<<(std::ostream &os, const TypedValue &typed_value) {
         return Utils::TypedValueUtils::write_typed_value_to_stream(os, const_cast<TypedValue &>(typed_value));
     }
+
+#if !POLYPHENY_PRISM_STREAMING
+    namespace {
+
+        template<typename Element, typename ProtoElement>
+        void serialize_element(const Element &element, ProtoElement &proto,
+                               const std::shared_ptr<Streaming::StreamingIndex> &streaming_index) {
+            proto.set_id(element.get_id());
+            proto.set_name(element.get_name());
+            for (const auto &label : element.get_labels()) {
+                proto.add_labels(label);
+            }
+            for (const auto &[name, value] : element) {
+                TypedValue property(value);
+                std::unique_ptr<org::polypheny::prism::ProtoValue> encoded(property.serialize(streaming_index));
+                (*proto.mutable_properties())[name] = *encoded;
+            }
+        }
+
+        void serialize_node(const Results::Node &node, org::polypheny::prism::ProtoNode &proto,
+                            const std::shared_ptr<Streaming::StreamingIndex> &streaming_index) {
+            serialize_element(node, proto, streaming_index);
+        }
+
+        void serialize_edge(const Results::Edge &edge, org::polypheny::prism::ProtoEdge &proto,
+                            const std::shared_ptr<Streaming::StreamingIndex> &streaming_index) {
+            serialize_element(edge, proto, streaming_index);
+            proto.set_left(edge.get_left());
+            proto.set_right(edge.get_right());
+            switch (edge.get_direction()) {
+                case Results::EdgeDirection::LEFT_TO_RIGHT:
+                    proto.set_direction(org::polypheny::prism::ProtoEdge::LEFT_TO_RIGHT);
+                    break;
+                case Results::EdgeDirection::RIGHT_TO_LEFT:
+                    proto.set_direction(org::polypheny::prism::ProtoEdge::RIGHT_TO_LEFT);
+                    break;
+                case Results::EdgeDirection::NONE:
+                    proto.set_direction(org::polypheny::prism::ProtoEdge::NONE);
+                    break;
+            }
+        }
+
+        template<typename GraphValue, typename ProtoGraphValue>
+        void serialize_graph(const GraphValue &value, ProtoGraphValue &proto,
+                             const std::shared_ptr<Streaming::StreamingIndex> &streaming_index) {
+            for (const auto &node : value.get_nodes()) {
+                serialize_node(node, *proto.add_nodes(), streaming_index);
+            }
+            for (const auto &edge : value.get_edges()) {
+                serialize_edge(edge, *proto.add_edges(), streaming_index);
+            }
+        }
+
+    }
+#endif
 
     org::polypheny::prism::ProtoValue *
     TypedValue::serialize(std::shared_ptr<Streaming::StreamingIndex> streaming_index) {
@@ -394,6 +500,20 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 proto_value->mutable_null();
                 break;
+#if !POLYPHENY_PRISM_STREAMING
+            case org::polypheny::prism::ProtoValue::kNode:
+                serialize_node(*std::get<std::shared_ptr<Results::Node>>(value), *proto_value->mutable_node(), streaming_index);
+                break;
+            case org::polypheny::prism::ProtoValue::kEdge:
+                serialize_edge(*std::get<std::shared_ptr<Results::Edge>>(value), *proto_value->mutable_edge(), streaming_index);
+                break;
+            case org::polypheny::prism::ProtoValue::kPath:
+                serialize_graph(*std::get<std::shared_ptr<Results::Path>>(value), *proto_value->mutable_path(), streaming_index);
+                break;
+            case org::polypheny::prism::ProtoValue::kGraph:
+                serialize_graph(*std::get<std::shared_ptr<Results::Graph>>(value), *proto_value->mutable_graph(), streaming_index);
+                break;
+#endif
             default:
                 throw std::runtime_error("Encountered unknown data type");
         }
@@ -505,6 +625,20 @@ namespace Types {
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 value = std::monostate{};
                 break;
+#if !POLYPHENY_PRISM_STREAMING
+            case org::polypheny::prism::ProtoValue::kNode:
+                value = std::make_shared<Results::Node>(serialized->node(), client);
+                break;
+            case org::polypheny::prism::ProtoValue::kEdge:
+                value = std::make_shared<Results::Edge>(serialized->edge(), client);
+                break;
+            case org::polypheny::prism::ProtoValue::kPath:
+                value = std::make_shared<Results::Path>(serialized->path(), client);
+                break;
+            case org::polypheny::prism::ProtoValue::kGraph:
+                value = std::make_shared<Results::Graph>(serialized->graph(), client);
+                break;
+#endif
             default:
                 throw std::runtime_error("Encountered unknown data type");
         }
@@ -679,4 +813,38 @@ namespace Types {
     }
 
     TypedValue::TypedValue(char const *value) : TypedValue(std::string(value)) {}
+
+#if !POLYPHENY_PRISM_STREAMING
+    Results::Node TypedValue::as_node() {
+        deserialize();
+        if (value_case != org::polypheny::prism::ProtoValue::kNode) {
+            throw std::runtime_error("Value is not a graph node");
+        }
+        return *std::get<std::shared_ptr<Results::Node>>(value);
+    }
+
+    Results::Edge TypedValue::as_edge() {
+        deserialize();
+        if (value_case != org::polypheny::prism::ProtoValue::kEdge) {
+            throw std::runtime_error("Value is not a graph edge");
+        }
+        return *std::get<std::shared_ptr<Results::Edge>>(value);
+    }
+
+    Results::Path TypedValue::as_path() {
+        deserialize();
+        if (value_case != org::polypheny::prism::ProtoValue::kPath) {
+            throw std::runtime_error("Value is not a graph path");
+        }
+        return *std::get<std::shared_ptr<Results::Path>>(value);
+    }
+
+    Results::Graph TypedValue::as_graph() {
+        deserialize();
+        if (value_case != org::polypheny::prism::ProtoValue::kGraph) {
+            throw std::runtime_error("Value is not a graph");
+        }
+        return *std::get<std::shared_ptr<Results::Graph>>(value);
+    }
+#endif
 } // namespace Types

@@ -9,20 +9,21 @@ namespace Connection {
 
     // INFO: the statement_id set here is a placeholder value ignored as is_statement_id_set == false
     Cursor::Cursor(Connection &connection)
-            : connection(connection),
-              statement_id(0),
+            : statement_id(0),
               is_statement_id_set(false),
               is_prepared(false),
+              connection(connection),
               streaming_index(std::make_shared<Streaming::StreamingIndex>(connection.get_prism_interface_client())) {
     }
 
     Cursor::Cursor(const Cursor &other)
-            : connection(other.connection),
-              statement_id(other.statement_id),
+            : statement_id(other.statement_id),
               is_statement_id_set(other.is_statement_id_set),
               is_prepared(other.is_prepared),
+              connection(other.connection),
               streaming_index(
-                      std::make_shared<Streaming::StreamingIndex>(other.connection.get_prism_interface_client())) {
+                      std::make_shared<Streaming::StreamingIndex>(other.connection.get_prism_interface_client())),
+              fetch_size(other.fetch_size) {
     }
 
 
@@ -33,6 +34,15 @@ namespace Connection {
             streaming_index->update(0, false);
         }
         if (is_prepared) {
+            is_prepared = false;
+        }
+    }
+
+    void Cursor::discard_failed_statement() noexcept {
+        try {
+            reset_statement();
+        } catch (const std::exception &) {
+            is_statement_id_set = false;
             is_prepared = false;
         }
     }
@@ -56,9 +66,10 @@ namespace Connection {
         reset_statement();
         auto callback = std::make_shared<Communication::CallbackQueue>();
         connection.get_prism_interface_client()->execute_unparameterized_statement(nspace, language, statement,
-                                                                                   callback);
+                                                                                   callback, fetch_size);
 
-        while (true) {
+        try {
+            while (true) {
             org::polypheny::prism::Response response = callback->take_next();
             if (!response.has_statement_response()) {
                 throw std::runtime_error("Received illegal response type on statement execution");
@@ -82,6 +93,10 @@ namespace Connection {
             }
 
             return get_result_from_frame(statement_response.result().frame());
+            }
+        } catch (...) {
+            discard_failed_statement();
+            throw;
         }
     }
 
@@ -105,9 +120,11 @@ namespace Connection {
     }
 
     void Cursor::prepare_indexed(const std::string &language, const std::string &statement, const std::string &nspace) {
+        reset_statement();
         org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_indexed_statement(
                 nspace, language, statement);
         statement_id = signature.statement_id();
+        is_statement_id_set = true;
         streaming_index->update(statement_id, true);
         is_prepared = true;
     }
@@ -118,9 +135,11 @@ namespace Connection {
     }
 
     void Cursor::prepare_named(const std::string &language, const std::string &statement, const std::string &nspace) {
+        reset_statement();
         org::polypheny::prism::PreparedStatementSignature signature = connection.get_prism_interface_client()->prepare_named_statement(
                 nspace, language, statement);
         statement_id = signature.statement_id();
+        is_statement_id_set = true;
         streaming_index->update(statement_id, true);
         is_prepared = true;
     }
@@ -130,7 +149,7 @@ namespace Connection {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client()->execute_indexed_statement(
-                statement_id, params, DEFAULT_FETCH_SIZE, streaming_index);
+                statement_id, params, fetch_size, streaming_index);
         if (!result.has_frame()) {
             return std::make_unique<Results::ScalarResult>(result.scalar());
         }
@@ -143,7 +162,7 @@ namespace Connection {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client()->execute_named_statement(
-                statement_id, params, DEFAULT_FETCH_SIZE, streaming_index);
+                statement_id, params, fetch_size, streaming_index);
         if (!result.has_frame()) {
             return std::make_unique<Results::ScalarResult>(result.scalar());
         }
@@ -185,7 +204,7 @@ namespace Connection {
                 is_statement_id_set = true;
             }
 
-            if (statement_batch_response.scalars_size() == 0) {
+            if (statement_batch_response.scalars_size() == 0 && !response.last()) {
                 continue;
             }
 
@@ -204,4 +223,15 @@ namespace Connection {
     }
 
     Cursor::~Cursor() = default;
+
+    void Cursor::set_fetch_size(uint32_t size) {
+        if (size == 0) {
+            throw std::invalid_argument("Fetch size must be greater than zero");
+        }
+        fetch_size = size;
+    }
+
+    uint32_t Cursor::get_fetch_size() const noexcept {
+        return fetch_size;
+    }
 } // namespace Connection

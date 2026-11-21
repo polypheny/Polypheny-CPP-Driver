@@ -35,7 +35,7 @@ namespace {
                 REQUIRE(connection.features_size() == 2);
 #else
                 REQUIRE(connection.major_api_version() == 2);
-                REQUIRE(connection.minor_api_version() == 2);
+                REQUIRE(connection.minor_api_version() == 3);
                 REQUIRE(connection.connection_properties().namespace_name() == "inventory");
                 REQUIRE(connection.connection_properties().has_is_auto_commit());
                 REQUIRE_FALSE(connection.connection_properties().is_auto_commit());

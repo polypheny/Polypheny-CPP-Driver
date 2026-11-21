@@ -1,6 +1,6 @@
 # Polypheny C++ Driver
 
-Connect to Polypheny from C++17 over the Prism Query Interface. The default build uses the released Prism 2.2 definitions. It connects to servers that advertise compatibility with Prism 2.x. Document collection metadata requires server support introduced in Prism 2.2. [Prism API 2.2](https://github.com/polypheny/Polypheny-Prism-API/releases/tag/2.2)
+Connect to Polypheny from C++17 over the Prism Query Interface. The default build uses the released Prism 2.3 definitions. Run Cypher on a server with Prism graph support. Graph-only projections yield a stream of nodes and edges, and mixed projections expose typed node, edge, path, and graph values in rows. [Prism API 2.3](https://github.com/polypheny/Polypheny-Prism-API/releases/tag/2.3)
 
 ## Build and test
 

@@ -47,6 +47,14 @@ namespace Connection {
         return prism_interface_client->get_server_api_version();
     }
 
+    void Connection::commit() {
+        prism_interface_client->commit_transaction();
+    }
+
+    void Connection::rollback() {
+        prism_interface_client->rollback_transaction();
+    }
+
     org::polypheny::prism::EntitiesResponse
     Connection::search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern) {
         return prism_interface_client->search_entities(namespace_name, pattern);
