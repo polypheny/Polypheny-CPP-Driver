@@ -18,9 +18,9 @@ The build verifies the checksum of the Prism Protobuf archive before generating 
 The versioned release tarball includes both pinned Prism archives and the pinned Catch2 source. Download the tarball and its `.sha256` file from GitHub Releases, then use the version in the filenames below. System build dependencies still need to be installed. [GitHub Releases](https://github.com/polypheny/Polypheny-CPP-Driver/releases)
 
 ```sh
-sha256sum -c Polypheny-CPP-Driver-1.0.0.tar.gz.sha256
-tar -xzf Polypheny-CPP-Driver-1.0.0.tar.gz
-cd Polypheny-CPP-Driver-1.0.0
+sha256sum -c Polypheny-CPP-Driver-2.0.0.tar.gz.sha256
+tar -xzf Polypheny-CPP-Driver-2.0.0.tar.gz
+cd Polypheny-CPP-Driver-2.0.0
 meson setup build --wrap-mode=nodownload
 meson compile -C build
 meson test -C build --print-errorlogs
