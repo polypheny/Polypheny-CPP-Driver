@@ -389,7 +389,8 @@ namespace Communication {
         org::polypheny::prism::NamedParameters *inner_parameters = inner->mutable_parameters();
         google::protobuf::Map<std::basic_string<char>, org::polypheny::prism::ProtoValue> *parameters = inner_parameters->mutable_parameters();
         for (auto &entry: values) {
-            (*parameters)[entry.first] = *entry.second.serialize(streaming_index);
+            std::unique_ptr<org::polypheny::prism::ProtoValue> parameter(entry.second.serialize(streaming_index));
+            (*parameters)[entry.first] = *parameter;
         }
         return complete_synchronously(outer, timeout_millis).statement_result();
     }

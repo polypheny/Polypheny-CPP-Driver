@@ -46,6 +46,8 @@ namespace Utils::ProtoUtils {
 
     std::pair<std::string, int32_t> mpf_get_unscaled_value_and_scale(const mpf_class &mpf_value);
 
+    std::string decimal_to_string(const org::polypheny::prism::ProtoBigDecimal &decimal);
+
     std::vector<uint8_t> collect_file(Types::File& stream);
 
     std::string collect_string(Streaming::StringPrismInputStream &stream);

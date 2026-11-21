@@ -17,19 +17,22 @@ namespace Connection {
     }
 
     Cursor::Cursor(const Cursor &other)
-            : statement_id(other.statement_id),
-              is_statement_id_set(other.is_statement_id_set),
-              is_prepared(other.is_prepared),
-              connection(other.connection),
-              streaming_index(
-                      std::make_shared<Streaming::StreamingIndex>(other.connection.get_prism_interface_client())),
-              fetch_size(other.fetch_size) {
+            : Cursor(other.connection) {
+        fetch_size = other.fetch_size;
     }
 
+    void Cursor::close_active_result() {
+        if (auto result = active_result.lock()) {
+            result->close();
+        }
+        active_result.reset();
+    }
 
     void Cursor::reset_statement() {
+        close_active_result();
         if (is_statement_id_set) {
-            connection.get_prism_interface_client()->close_statement(statement_id);
+            statement_state->close();
+            statement_state.reset();
             is_statement_id_set = false;
             streaming_index->update(0, false);
         }
@@ -44,21 +47,30 @@ namespace Connection {
         } catch (const std::exception &) {
             is_statement_id_set = false;
             is_prepared = false;
+            statement_state.reset();
+            streaming_index->update(0, false);
         }
     }
 
     std::unique_ptr<Results::Result> Cursor::get_result_from_frame(const org::polypheny::prism::Frame &frame) {
         bool is_last = frame.is_last();
+        std::unique_ptr<Results::Result> result;
         switch (frame.result_case()) {
             case org::polypheny::prism::Frame::ResultCase::kRelationalFrame:
-                return std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last, this);
+                result = std::make_unique<Results::RelationalResult>(frame.relational_frame(), is_last, this);
+                break;
             case org::polypheny::prism::Frame::ResultCase::kDocumentFrame:
-                return std::make_unique<Results::DocumentResult>(frame.document_frame(), is_last, this);
+                result = std::make_unique<Results::DocumentResult>(frame.document_frame(), is_last, this);
+                break;
             case org::polypheny::prism::Frame::ResultCase::kGraphFrame:
-                return std::make_unique<Results::GraphResult>(frame.graph_frame(), is_last, this);
+                result = std::make_unique<Results::GraphResult>(frame.graph_frame(), is_last, this);
+                break;
             default:
                 throw std::runtime_error("Frame of illegal result type encountered");
         }
+        result->state->statement = statement_state;
+        active_result = result->state;
+        return result;
     }
 
     std::unique_ptr<Results::Result>
@@ -80,6 +92,8 @@ namespace Connection {
                 statement_id = statement_response.statement_id();
                 streaming_index->update(statement_id, true);
                 is_statement_id_set = true;
+                statement_state = std::make_shared<Communication::StatementState>(
+                        connection.get_prism_interface_client(), statement_id);
             }
 
             if (!statement_response.has_result()) {
@@ -125,6 +139,8 @@ namespace Connection {
                 nspace, language, statement);
         statement_id = signature.statement_id();
         is_statement_id_set = true;
+        statement_state = std::make_shared<Communication::StatementState>(
+                connection.get_prism_interface_client(), statement_id);
         streaming_index->update(statement_id, true);
         is_prepared = true;
     }
@@ -140,6 +156,8 @@ namespace Connection {
                 nspace, language, statement);
         statement_id = signature.statement_id();
         is_statement_id_set = true;
+        statement_state = std::make_shared<Communication::StatementState>(
+                connection.get_prism_interface_client(), statement_id);
         streaming_index->update(statement_id, true);
         is_prepared = true;
     }
@@ -148,6 +166,7 @@ namespace Connection {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
+        close_active_result();
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client()->execute_indexed_statement(
                 statement_id, params, fetch_size, streaming_index);
         if (!result.has_frame()) {
@@ -161,6 +180,7 @@ namespace Connection {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
+        close_active_result();
         org::polypheny::prism::StatementResult result = connection.get_prism_interface_client()->execute_named_statement(
                 statement_id, params, fetch_size, streaming_index);
         if (!result.has_frame()) {
@@ -174,6 +194,7 @@ namespace Connection {
         if (!is_prepared) {
             throw std::runtime_error("This operation requires a statement to be prepared first");
         }
+        close_active_result();
         org::polypheny::prism::StatementBatchResponse response = connection.get_prism_interface_client()->execute_indexed_statement_batch(
                 statement_id, params_batch, streaming_index);
         std::vector<uint64_t> update_counts;
@@ -202,6 +223,8 @@ namespace Connection {
                 statement_id = statement_batch_response.batch_id();
                 streaming_index->update(statement_id, true);
                 is_statement_id_set = true;
+                statement_state = std::make_shared<Communication::StatementState>(
+                        connection.get_prism_interface_client(), statement_id);
             }
 
             if (statement_batch_response.scalars_size() == 0 && !response.last()) {

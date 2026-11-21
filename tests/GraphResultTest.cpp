@@ -318,3 +318,69 @@ TEST_CASE("Malformed statement responses and an empty batch cannot hang the curs
     CHECK_THROWS_AS(cursor.execute("cypher", "MATCH (n) RETURN n"), std::runtime_error);
     CHECK(cursor.execute("cypher", std::vector<std::string>{}).empty());
 }
+
+TEST_CASE("Prepared reexecution closes the previous result before replacing it", "[ownership-regression]") {
+    int executed = 0;
+    int closed = 0;
+    auto transport = std::make_unique<GraphTestTransport>([&](const prism::Request &request) {
+        prism::Response response;
+        if (request.has_prepare_indexed_statement_request()) {
+            response.mutable_prepared_statement_signature()->set_statement_id(7);
+        } else if (request.has_execute_indexed_statement_request()) {
+            ++executed;
+            *response.mutable_statement_result()->mutable_frame() = relational_page(executed, true);
+        } else if (request.has_close_result_request()) {
+            ++closed;
+            response.mutable_close_result_response();
+        } else if (request.has_close_statement_request()) {
+            response.mutable_close_statement_response();
+        }
+        return response;
+    });
+    Connection::ConnectionProperties properties;
+    Connection::Connection connection(properties, std::move(transport));
+    Connection::Cursor cursor(connection);
+    cursor.prepare_indexed("sql", "VALUES (?)");
+    std::vector<Types::TypedValue> values{Types::TypedValue(1)};
+    auto first = cursor.execute_prepared(values);
+    auto second = cursor.execute_prepared(values);
+    CHECK(closed == 1);
+    CHECK_THROWS_AS(first->unwrap<Results::RelationalResult>()->begin(), std::runtime_error);
+    first.reset();
+    CHECK(closed == 1);
+    second->close();
+    CHECK(closed == 2);
+}
+
+TEST_CASE("Copied cursors do not share prepared statement ownership", "[ownership-regression]") {
+    int statement_closes = 0;
+    auto transport = std::make_unique<GraphTestTransport>([&](const prism::Request &request) {
+        prism::Response response;
+        if (request.has_prepare_indexed_statement_request()) {
+            response.mutable_prepared_statement_signature()->set_statement_id(7);
+        } else if (request.has_close_statement_request()) {
+            ++statement_closes;
+            response.mutable_close_statement_response();
+        } else if (request.has_execute_indexed_statement_request()) {
+            response.mutable_statement_result()->set_scalar(1);
+        }
+        return response;
+    });
+    Connection::ConnectionProperties properties;
+    Connection::Connection connection(properties, std::move(transport));
+    {
+        Connection::Cursor original(connection);
+        original.set_fetch_size(3);
+        original.prepare_indexed("sql", "VALUES (?)");
+        {
+            Connection::Cursor copy(original);
+            CHECK(copy.get_fetch_size() == 3);
+            std::vector<Types::TypedValue> params{Types::TypedValue(1)};
+            CHECK_THROWS_AS(copy.execute_prepared(params), std::runtime_error);
+        }
+        CHECK(statement_closes == 0);
+        std::vector<Types::TypedValue> params{Types::TypedValue(1)};
+        CHECK_NOTHROW(original.execute_prepared(params));
+    }
+    CHECK(statement_closes == 1);
+}

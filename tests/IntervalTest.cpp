@@ -1,6 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include <sstream>
+#include <limits>
 #include "src/types/Interval.h"
+#include "src/types/TypedValue.h"
 #include "org/polypheny/prism/protointerface.pb.h"
 
 using namespace Types;
@@ -69,4 +71,23 @@ TEST_CASE("Interval Serialization", "[Interval]") {
 
     REQUIRE(proto_interval->months() == 2);
     REQUIRE(proto_interval->milliseconds() == 4000);
+}
+
+TEST_CASE("Intervals preserve signed components through typed values", "[Interval]") {
+    org::polypheny::prism::ProtoValue encoded;
+    encoded.mutable_interval()->set_months(-2);
+    encoded.mutable_interval()->set_milliseconds(-3000);
+    Types::TypedValue value(encoded, nullptr);
+    auto interval = value.as_interval();
+    CHECK(interval.get_months() == -2);
+    CHECK(interval.get_milliseconds() == -3000);
+    std::ostringstream output;
+    output << interval;
+    CHECK(output.str() == "-2 months -3000 milliseconds");
+    std::unique_ptr<org::polypheny::prism::ProtoValue> roundtrip(value.serialize(nullptr));
+    CHECK(roundtrip->interval().months() == -2);
+    CHECK(roundtrip->interval().milliseconds() == -3000);
+    Types::Interval minimum(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::min());
+    CHECK(minimum.serialize()->months() == std::numeric_limits<int64_t>::min());
+    CHECK(minimum.serialize()->milliseconds() == std::numeric_limits<int64_t>::min());
 }

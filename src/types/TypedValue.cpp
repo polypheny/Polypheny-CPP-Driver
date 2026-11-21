@@ -156,9 +156,9 @@ namespace Types {
 
     TypedValue::TypedValue(const TypedValue &other)
             : client(other.client), value_case(other.value_case),
+              serialized(other.serialized ? std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized) : nullptr),
               is_deserialized(other.is_deserialized) {
         if (!other.is_deserialized) {
-            serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
             return;
         }
         switch (value_case) {
@@ -246,9 +246,7 @@ namespace Types {
             client = other.client;
             value_case = other.value_case;
             is_deserialized = other.is_deserialized;
-            if (!other.is_deserialized) {
-                serialized = std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized);
-            }
+            serialized = other.serialized ? std::make_shared<org::polypheny::prism::ProtoValue>(*other.serialized) : nullptr;
             if (!other.is_deserialized) {
                 return *this;
             }
@@ -263,7 +261,7 @@ namespace Types {
                     value = std::get<int64_t>(other.value);
                     break;
                 case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal:
-                    value = std::get<mpf_class>(other.value);
+                    value.emplace<mpf_class>(std::get<mpf_class>(other.value));
                     break;
                 case org::polypheny::prism::ProtoValue::ValueCase::kFloat:
                     value = std::get<float>(other.value);
@@ -408,6 +406,10 @@ namespace Types {
                 proto_value->mutable_long_()->set_long_(std::get<int64_t>(value));
                 break;
             case org::polypheny::prism::ProtoValue::ValueCase::kBigDecimal: {
+                if (serialized && serialized->has_big_decimal()) {
+                    *proto_value = *serialized;
+                    break;
+                }
                 auto unscale_value_and_scale = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(
                         std::get<mpf_class>(value));
                 auto *big_decimal = proto_value->mutable_big_decimal();
@@ -687,6 +689,20 @@ namespace Types {
             throw std::runtime_error("This value can not be retrieved as a big decimal.");
         }
         return std::get<mpf_class>(value);
+    }
+
+    std::string TypedValue::as_decimal_string() {
+        if (value_case != org::polypheny::prism::ProtoValue::kBigDecimal) {
+            throw std::runtime_error("This value can not be retrieved as a decimal string.");
+        }
+        if (serialized && serialized->has_big_decimal()) {
+            return Utils::ProtoUtils::decimal_to_string(serialized->big_decimal());
+        }
+        const auto encoded = Utils::ProtoUtils::mpf_get_unscaled_value_and_scale(std::get<mpf_class>(value));
+        org::polypheny::prism::ProtoBigDecimal decimal;
+        decimal.set_unscaled_value(encoded.first);
+        decimal.set_scale(encoded.second);
+        return Utils::ProtoUtils::decimal_to_string(decimal);
     }
 
     float TypedValue::as_float() {
