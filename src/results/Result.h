@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <string>
 #include <typeinfo>
+#include <memory>
+#include "connection/PrismInterfaceClient.h"
 
 namespace Results {
 
@@ -31,9 +33,19 @@ namespace Results {
     protected:
         explicit Result(ResultType resultType) : resultType(resultType) {}
 
-        const uint32_t DEFAULT_FETCH_SIZE = 100;
+        Result(ResultType type, std::shared_ptr<Communication::PrismInterfaceClient> client,
+               uint32_t statement_id, uint32_t fetch_size);
+        std::shared_ptr<Communication::PrismInterfaceClient> client;
+        uint32_t statement_id = 0;
+        uint32_t fetch_size = 100;
+        bool closed = false;
+        [[nodiscard]] org::polypheny::prism::Frame fetch_frame();
+
     public:
-        virtual ~Result() = default;
+        virtual ~Result();
+
+        /** Close the server-side result. Calling close repeatedly is safe. */
+        void close();
 
         /**
          * @brief Gets the type of the result.

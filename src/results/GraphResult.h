@@ -23,7 +23,8 @@ namespace Results {
     /**
      * @brief Represents the result of a graph query.
      *
-     * This class provides access to graph elements (nodes, edges, paths) resulting from a graph query,
+     * This class provides access to nodes and edges resulting from a graph query,
+     * including paths flattened into alternating node and edge elements,
      * and supports iteration over them.
      */
     class GraphResult : public Result {
@@ -33,13 +34,12 @@ namespace Results {
         /**
          * @brief Destructor for the GraphResult class.
          *
-         * It's the programmer's responsibility to call this destructor once a result is no longer needed.
-         * This internally tells the connected Polypheny instance to free the associated resources.
+         * Destruction automatically closes the server-side result. Use close() to release it earlier.
          */
-        ~GraphResult();
+        ~GraphResult() override = default;
 
         /**
-         * @brief Iterator class for iterating over graph elements (nodes, edges, paths) in the graph result.
+         * @brief Iterator class for nodes and edges, including flattened path traversals.
          *
          * New elements are automatically fetched providing seamless iteration over the result of a query.
          */
@@ -78,10 +78,10 @@ namespace Results {
         void add_graph_elements(const org::polypheny::prism::GraphFrame &graph_frame);
 
         void fetch_more();
+        void ensure_available(size_t index);
 
         std::vector<std::shared_ptr<GraphElement>> elements;
         bool is_fully_fetched;
-        Connection::Cursor *cursor;
     };
 
 } // Results

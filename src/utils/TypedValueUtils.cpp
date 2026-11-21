@@ -12,6 +12,10 @@
 
 #include "utils/TypedValueUtils.h"
 #include "types/Interval.h"
+#include "results/Node.h"
+#include "results/Edge.h"
+#include "results/Path.h"
+#include "results/Graph.h"
 
 namespace Utils::TypedValueUtils {
 
@@ -67,6 +71,26 @@ namespace Utils::TypedValueUtils {
             case org::polypheny::prism::ProtoValue::ValueCase::kNull:
                 os << "null";
                 break;
+#if !POLYPHENY_PRISM_STREAMING
+            case org::polypheny::prism::ProtoValue::kNode:
+                os << "Node(" << typed_value.as_node().get_id() << ")";
+                break;
+            case org::polypheny::prism::ProtoValue::kEdge: {
+                const auto edge = typed_value.as_edge();
+                os << "Edge(" << edge.get_id() << ", " << edge.get_left() << ", " << edge.get_right() << ")";
+                break;
+            }
+            case org::polypheny::prism::ProtoValue::kPath: {
+                const auto path = typed_value.as_path();
+                os << "Path(" << path.get_nodes().size() << " nodes, " << path.get_edges().size() << " edges)";
+                break;
+            }
+            case org::polypheny::prism::ProtoValue::kGraph: {
+                const auto graph = typed_value.as_graph();
+                os << "Graph(" << graph.get_nodes().size() << " nodes, " << graph.get_edges().size() << " edges)";
+                break;
+            }
+#endif
             default:
                 throw std::runtime_error("Encountered unknown data type");
         }

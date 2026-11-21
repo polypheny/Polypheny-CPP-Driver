@@ -83,6 +83,10 @@ namespace Connection {
 
         [[nodiscard]] std::pair<int, int> get_server_api_version() const noexcept;
 
+        /** Complete or discard the current user transaction when autocommit is disabled. */
+        void commit();
+        void rollback();
+
         /** Search entities in a namespace using the server's optional pattern filter. */
         [[nodiscard]] org::polypheny::prism::EntitiesResponse
         search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern = {});

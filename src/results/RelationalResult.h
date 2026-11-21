@@ -36,10 +36,9 @@ namespace Results {
         /**
          * @brief Destructor for the RelationalResult class.
          *
-         * It's the programmers responsibility to call this destructor once a result is no longer needed.
-         * This internally tells the connected Polypheny instance to free the associated resources.
+         * Destruction automatically closes the server-side result. Use close() to release it earlier.
          */
-        ~RelationalResult();
+        ~RelationalResult() override = default;
 
         /**
          * @brief Iterator class for iterating over rows in the relational result.
@@ -68,13 +67,13 @@ namespace Results {
 
     private:
         std::shared_ptr<RelationalMetadata> metadata;
-        Connection::Cursor *cursor;
         std::list<Results::Row> rows;
         bool is_fully_fetched;
 
         void add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame);
 
         void fetch_more();
+        void ensure_available(size_t index);
 
     };
 

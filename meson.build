@@ -40,10 +40,13 @@ polypheny_src = files(
     'src/connection/ConnectionProperties.cpp',
     'src/connection/Cursor.cpp',
     'src/results/DocumentResult.cpp',
+    'src/results/Result.cpp',
     'src/results/GraphElement.cpp',
     'src/results/GraphResult.cpp',
     'src/results/Edge.cpp',
     'src/results/Node.cpp',
+    'src/results/Path.cpp',
+    'src/results/Graph.cpp',
     'src/types/Interval.cpp',
     'src/types/File.cpp',
     'src/transport/SocketTransport.cpp',
@@ -101,6 +104,9 @@ test_src = files(
     'tests/ProtoUtilsTest.cpp',
     'tests/TypedValueTest.cpp',
     'tests/DocumentMetadataTest.cpp',
+    'tests/GraphValueTest.cpp',
+    'tests/GraphResultTest.cpp',
+    'tests/GraphIntegrationTest.cpp',
 )
 if prism_streaming
     test_src += files('tests/StreamingTest.cpp')

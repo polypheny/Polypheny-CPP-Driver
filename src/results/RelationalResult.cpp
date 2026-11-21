@@ -2,31 +2,26 @@
 
 #include "src/connection/Cursor.h"
 #include "src/connection/Connection.h"
+#include <limits>
 
 namespace Results {
     RelationalResult::RelationalResult(const org::polypheny::prism::RelationalFrame &relational_frame,
                                        bool is_last, Connection::Cursor *cursor)
-            : Result(ResultType::RELATIONAL), is_fully_fetched(is_last), cursor(cursor) {
+            : Result(ResultType::RELATIONAL, cursor->get_connection().get_prism_interface_client(),
+                     cursor->get_statement_id(), cursor->get_fetch_size()),
+              is_fully_fetched(is_last) {
         metadata = std::make_shared<RelationalMetadata>(relational_frame);
         add_rows(relational_frame);
     }
 
-    RelationalResult::~RelationalResult() {
-        uint32_t statement_id = cursor->get_statement_id();
-        cursor->get_connection().get_prism_interface_client()->close_result(statement_id);
-    }
-
     void RelationalResult::add_rows(const org::polypheny::prism::RelationalFrame &relationalFrame) {
-        std::shared_ptr<Communication::PrismInterfaceClient> client = cursor->get_connection().get_prism_interface_client();
         for (const auto &row : relationalFrame.rows()) {
             rows.emplace_back(row, metadata, client);
         }
     }
 
     void RelationalResult::fetch_more() {
-        uint32_t statement_id = cursor->get_statement_id();
-        org::polypheny::prism::Frame frame = cursor->get_connection().get_prism_interface_client()->fetch_result(
-                statement_id, DEFAULT_FETCH_SIZE);
+        const auto frame = fetch_frame();
 
         if (frame.result_case() != org::polypheny::prism::Frame::ResultCase::kRelationalFrame) {
             throw std::runtime_error("Statement returned a result of illegal type.");
@@ -41,18 +36,36 @@ namespace Results {
     }
 
     RelationalResult::RowIterator RelationalResult::begin() {
+        ensure_available(0);
         return {std::shared_ptr<RelationalResult>(this, [](RelationalResult*){}), 0};
     }
 
     RelationalResult::RowIterator RelationalResult::end() {
-        return {std::shared_ptr<RelationalResult>(this, [](RelationalResult*){}), rows.size()};
+        return {std::shared_ptr<RelationalResult>(this, [](RelationalResult*){}), std::numeric_limits<size_t>::max()};
+    }
+
+    void RelationalResult::ensure_available(size_t index) {
+        if (closed) {
+            throw std::runtime_error("The result is closed");
+        }
+        while (index >= rows.size() && !is_fully_fetched) {
+            fetch_more();
+        }
     }
 
     RelationalResult::RowIterator::RowIterator(std::shared_ptr<RelationalResult> result, size_t index)
             : result(result), index(index) {}
 
     bool RelationalResult::RowIterator::operator==(const RowIterator &other) const {
-        return index == other.index && result == other.result;
+        if (result != other.result) {
+            return false;
+        }
+        const auto sentinel = std::numeric_limits<size_t>::max();
+        if (index == sentinel || other.index == sentinel) {
+            const auto position = index == sentinel ? other.index : index;
+            return position == sentinel || (result->is_fully_fetched && position >= result->rows.size());
+        }
+        return index == other.index;
     }
 
     bool RelationalResult::RowIterator::operator!=(const RowIterator &other) const {
@@ -60,14 +73,16 @@ namespace Results {
     }
 
     Row &RelationalResult::RowIterator::operator*() {
+        result->ensure_available(index);
+        if (index >= result->rows.size()) {
+            throw std::out_of_range("Relational result iterator is at the end");
+        }
         return *std::next(result->rows.begin(), index);
     }
 
     RelationalResult::RowIterator &RelationalResult::RowIterator::operator++() {
         ++index;
-        if (index >= result->rows.size() && !result->is_fully_fetched) {
-            result->fetch_more();
-        }
+        result->ensure_available(index);
         return *this;
     }
 

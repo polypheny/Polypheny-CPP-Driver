@@ -16,6 +16,13 @@
 
 #include "org/polypheny/prism/value.pb.h"
 
+namespace Results {
+    class Node;
+    class Edge;
+    class Path;
+    class Graph;
+}
+
 // Forward declarations to avoid cyclic dependencies
 namespace Types {
     class Document;
@@ -41,7 +48,11 @@ namespace Types {
             std::vector<uint8_t>,
             std::list<std::unique_ptr<TypedValue>>,
             std::unordered_map<std::string, std::unique_ptr<TypedValue>>,
-            std::shared_ptr<File>
+            std::shared_ptr<File>,
+            std::shared_ptr<Results::Node>,
+            std::shared_ptr<Results::Edge>,
+            std::shared_ptr<Results::Path>,
+            std::shared_ptr<Results::Graph>
     >;
 }
 
@@ -205,6 +216,18 @@ namespace Types {
         * @param value A file object.
         */
         explicit TypedValue(const File &value);
+
+#if !POLYPHENY_PRISM_STREAMING
+        explicit TypedValue(const Results::Node &value);
+        explicit TypedValue(const Results::Edge &value);
+        explicit TypedValue(const Results::Path &value);
+        explicit TypedValue(const Results::Graph &value);
+
+        Results::Node as_node();
+        Results::Edge as_edge();
+        Results::Path as_path();
+        Results::Graph as_graph();
+#endif
 
         TypedValue(const TypedValue &other);
 

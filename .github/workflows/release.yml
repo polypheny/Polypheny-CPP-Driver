@@ -47,7 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - protocol: Prism 2.2
+          - protocol: Prism 2.3
             streaming: 'false'
           - protocol: Experimental streaming
             streaming: 'true'
