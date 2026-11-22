@@ -56,6 +56,17 @@ namespace {
         }
     }
 
+    void require_protocol_error(const std::function<void()> &operation, const char *message) {
+        try {
+            operation();
+            FAIL("Expected a Prism protocol error");
+        } catch (const Errors::ServerError &error) {
+            FAIL("Received ServerError with SQLSTATE " << error.get_sql_state().value_or("<absent>"));
+        } catch (const std::runtime_error &error) {
+            CHECK(std::string(error.what()) == message);
+        }
+    }
+
 }
 
 TEST_CASE("Prism login errors preserve the legacy message and server details", "[prism]") {
@@ -188,12 +199,29 @@ TEST_CASE("An invalid Prism response ID remains a protocol error", "[prism]") {
     Connection::Connection connection(properties, std::move(transport));
     Connection::Cursor cursor(connection);
 
-    try {
-        cursor.execute("sql", "SELECT * FROM items");
-        FAIL("Expected the invalid response ID to fail");
-    } catch (const Errors::ServerError &) {
-        FAIL("An invalid response ID must remain a protocol error");
-    } catch (const std::runtime_error &error) {
-        CHECK(std::string(error.what()) == "Invalid message id");
+    require_protocol_error([&] { cursor.execute("sql", "SELECT * FROM items"); }, "Invalid message id");
+}
+
+TEST_CASE("A non-terminal Prism error response is a protocol error", "[prism][framing]") {
+    Connection::ConnectionProperties properties;
+    auto transport = std::make_unique<ScriptedTransport>([](const Request &request, Response &response) {
+        REQUIRE((request.has_execute_unparameterized_statement_request()
+                 || request.has_prepare_indexed_statement_request()));
+        send_error(response, "23505", 0);
+        response.set_last(false);
+    });
+    Connection::Connection connection(properties, std::move(transport));
+    Connection::Cursor cursor(connection);
+
+    SECTION("Direct execution uses the callback queue") {
+        require_protocol_error([&] { cursor.execute("sql", "INSERT INTO items VALUES (1)"); },
+                               "Non-terminal Prism error response");
+        REQUIRE_THROWS_WITH(connection.rollback(), "Connection is closed");
+    }
+
+    SECTION("Preparation uses the synchronous response path") {
+        require_protocol_error([&] { cursor.prepare_indexed("sql", "INSERT INTO items VALUES (?)"); },
+                               "Non-terminal Prism error response");
+        REQUIRE_THROWS_WITH(connection.rollback(), "Connection is closed");
     }
 }

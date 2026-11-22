@@ -12,9 +12,12 @@ namespace Communication {
 
     org::polypheny::prism::Response CallbackQueue::take_next() {
         std::unique_lock<std::mutex> lock(queue_mutex);
-        has_next.wait(lock, [this] { return !message_queue.empty() || b_is_completed || propagated_exception != nullptr; });
-        throw_received_exception();
+        has_next.wait(lock, [this] { return !message_queue.empty() || b_is_completed; });
+        // A buffered acknowledgement can carry the statement ID needed for cleanup.
         if (message_queue.empty()) {
+            if (propagated_exception) {
+                std::rethrow_exception(propagated_exception);
+            }
             throw std::runtime_error("Prism response completed without the expected result");
         }
         org::polypheny::prism::Response message = message_queue.front();
@@ -47,13 +50,6 @@ namespace Communication {
         }
         is_completed.notify_all();
         has_next.notify_all();
-    }
-
-    void CallbackQueue::throw_received_exception() {
-        if (!propagated_exception) {
-            return;
-        }
-        std::rethrow_exception(propagated_exception);
     }
 
 } // namespace Communication

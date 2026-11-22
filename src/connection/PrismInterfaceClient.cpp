@@ -252,6 +252,9 @@ namespace Communication {
                 if (response.id() == 0) {
                     throw std::runtime_error("Invalid message id");
                 }
+                if (response.has_error_response() && !response.last()) {
+                    throw std::runtime_error("Non-terminal Prism error response");
+                }
                 { // start locked region
                     std::lock_guard<std::mutex> lock(mutex);
                     auto it = callbacks.find(response.id());
@@ -285,8 +288,8 @@ namespace Communication {
 
         auto callback_queue = it->second;
         if (response.has_error_response()) {
-            callback_queues.erase(response.id());
             callback_queue->on_error(std::make_exception_ptr(decode_server_error(response.error_response())));
+            callback_queues.erase(it);
             return;
         }
 

@@ -79,3 +79,17 @@ TEST_CASE("CallbackQueue on_error") {
     queue.on_error(std::make_exception_ptr(std::runtime_error("Test error")));
     REQUIRE_THROWS_AS(queue.await_completion(), std::runtime_error);
 }
+
+TEST_CASE("CallbackQueue delivers a buffered acknowledgement before a terminal error", "[cleanup]") {
+    Communication::CallbackQueue queue;
+    org::polypheny::prism::Response acknowledgement;
+    acknowledgement.mutable_statement_response()->set_statement_id(42);
+    queue.on_next(acknowledgement);
+    queue.on_error(std::make_exception_ptr(std::runtime_error("Statement failed")));
+
+    REQUIRE_THROWS_WITH(queue.await_completion(), "Statement failed");
+    const auto response = queue.take_next();
+    REQUIRE(response.has_statement_response());
+    CHECK(response.statement_response().statement_id() == 42);
+    REQUIRE_THROWS_WITH(queue.take_next(), "Statement failed");
+}
