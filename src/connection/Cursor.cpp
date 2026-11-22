@@ -90,10 +90,10 @@ namespace Connection {
 
             if (!is_statement_id_set) {
                 statement_id = statement_response.statement_id();
-                streaming_index->update(statement_id, true);
-                is_statement_id_set = true;
                 statement_state = std::make_shared<Communication::StatementState>(
                         connection.get_prism_interface_client(), statement_id);
+                streaming_index->update(statement_id, true);
+                is_statement_id_set = true;
             }
 
             if (!statement_response.has_result()) {
@@ -222,10 +222,10 @@ namespace Connection {
 
                 if (!is_statement_id_set) {
                     statement_id = statement_batch_response.batch_id();
-                    streaming_index->update(statement_id, true);
-                    is_statement_id_set = true;
                     statement_state = std::make_shared<Communication::StatementState>(
                             connection.get_prism_interface_client(), statement_id);
+                    streaming_index->update(statement_id, true);
+                    is_statement_id_set = true;
                 }
 
                 if (statement_batch_response.scalars_size() == 0 && !response.last()) {

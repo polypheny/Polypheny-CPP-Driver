@@ -72,6 +72,7 @@ namespace Communication {
         void handle_callback_queue_unsafe(const org::polypheny::prism::Response &response);
 
         void handle_connection_closure(const std::exception_ptr &exception);
+        void shutdown_transport() noexcept;
         void close_transport();
 
     public:

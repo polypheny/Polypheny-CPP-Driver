@@ -138,9 +138,14 @@ namespace Communication {
         close_transport();
     }
 
+    void PrismInterfaceClient::shutdown_transport() noexcept {
+        if (!is_closed.exchange(true)) {
+            transport->shutdown();
+        }
+    }
+
     void PrismInterfaceClient::close_transport() {
-        is_closed = true;
-        transport->shutdown();
+        shutdown_transport();
         if (response_reader.joinable()) {
             response_reader.join();
         }
@@ -301,8 +306,8 @@ namespace Communication {
     }
 
     void PrismInterfaceClient::handle_connection_closure(const std::exception_ptr &exception) {
+        shutdown_transport();
         std::lock_guard<std::mutex> lock(mutex);
-        is_closed = true;
         for (auto &[id, callback]: callbacks) {
             callback.set_exception(exception);
         }
