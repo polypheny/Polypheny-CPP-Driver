@@ -1,4 +1,4 @@
-project('Polypheny-CPP-Driver', 'cpp', version : '2.0.0', meson_version : '>=1.0',
+project('Polypheny-CPP-Driver', 'cpp', version : '2.1.0', meson_version : '>=1.0',
         default_options : ['cpp_std=c++17'])
 
 # ========================
@@ -104,6 +104,7 @@ test_src = files(
     'tests/ProtoUtilsTest.cpp',
     'tests/TypedValueTest.cpp',
     'tests/DocumentMetadataTest.cpp',
+    'tests/PrismServerErrorTest.cpp',
     'tests/GraphValueTest.cpp',
     'tests/GraphResultTest.cpp',
     'tests/GraphIntegrationTest.cpp',

@@ -1,6 +1,6 @@
 # Polypheny C++ Driver
 
-Connect to Polypheny from C++17 over the Prism Query Interface. The default build uses the released Prism 2.3 definitions. Run Cypher on a server with Prism graph support. Graph-only projections yield a stream of nodes and edges, and mixed projections expose typed node, edge, path, and graph values in rows. [Prism API 2.3](https://github.com/polypheny/Polypheny-Prism-API/releases/tag/2.3)
+Connect to Polypheny from C++17 over the Prism Query Interface. The default build uses the released Prism 2.4 definitions. Run Cypher on a server with Prism graph support. Graph-only projections yield a stream of nodes and edges, and mixed projections expose typed node, edge, path, and graph values in rows. [Prism API 2.4](https://github.com/polypheny/Polypheny-Prism-API/releases/tag/2.4)
 
 ## Build and test
 
@@ -27,6 +27,16 @@ meson test -C build --print-errorlogs
 ```
 
 For an application built with Meson, add this repository as a subproject and link the `polypheny_cpp_driver_dep` dependency. Include `PolyphenyCPPDriver.h` in your application. The examples cover SQL, MQL and graph queries. [Query examples](examples)
+
+## Handle server errors
+
+Catch `Errors::ServerError` from `PolyphenyCPPDriver.h` to inspect Prism error responses,
+including those from login, statement execution, preparation and result fetching.
+`what()` returns the original server message. `get_sql_state()` and `get_error_code()`
+expose the optional SQLSTATE and signed 32-bit error code. An explicitly reported
+code of zero is present. A message-only response, including in the experimental
+Prism 5.1 streaming build, leaves both optionals empty. SQLSTATE `XX000` indicates
+an internal server error.
 
 ## Read document collection metadata
 

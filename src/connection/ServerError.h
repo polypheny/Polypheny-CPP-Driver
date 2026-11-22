@@ -5,20 +5,29 @@
 #ifndef POLYPHENY_CPP_DRIVER_SERVERERROR_H
 #define POLYPHENY_CPP_DRIVER_SERVERERROR_H
 
-#include <exception>
+#include <cstdint>
+#include <optional>
+#include <stdexcept>
 #include <string>
 
 namespace Errors {
 
-    class ServerError : public std::exception {
+    class ServerError : public std::runtime_error {
     public:
         explicit ServerError(const std::string &message);
 
-        virtual const char *what() const noexcept override;
+        ServerError(const std::string &message, std::optional<std::string> sql_state,
+                    std::optional<std::int32_t> error_code);
+
+        const char *what() const noexcept override;
+
+        [[nodiscard]] const std::optional<std::string> &get_sql_state() const noexcept;
+
+        [[nodiscard]] std::optional<std::int32_t> get_error_code() const noexcept;
 
     private:
-        std::string message;
-
+        std::optional<std::string> sql_state;
+        std::optional<std::int32_t> error_code;
     };
 
 } // Errors

@@ -9,6 +9,7 @@
 #include "connection/Connection.h"
 #include "connection/ConnectionProperties.h"
 #include "connection/Cursor.h"
+#include "connection/ServerError.h"
 
 // results
 #include "results/Result.h"
