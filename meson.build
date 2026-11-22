@@ -105,6 +105,7 @@ test_src = files(
     'tests/TypedValueTest.cpp',
     'tests/DocumentMetadataTest.cpp',
     'tests/PrismServerErrorTest.cpp',
+    'tests/PrismStatementCleanupTest.cpp',
     'tests/GraphValueTest.cpp',
     'tests/GraphResultTest.cpp',
     'tests/GraphIntegrationTest.cpp',

@@ -44,7 +44,7 @@ namespace Connection {
     void Cursor::discard_failed_statement() noexcept {
         try {
             reset_statement();
-        } catch (const std::exception &) {
+        } catch (...) {
             is_statement_id_set = false;
             is_prepared = false;
             statement_state.reset();
@@ -212,31 +212,36 @@ namespace Connection {
         connection.get_prism_interface_client()->execute_unparameterized_statement_batch(nspace, language, statements,
                                                                                          callback);
 
-        while (true) {
-            org::polypheny::prism::Response response = callback->take_next();
-            if (!response.has_statement_batch_response()) {
-                throw std::runtime_error("Received illegal response type on statement batch execution");
-            }
-            const org::polypheny::prism::StatementBatchResponse &statement_batch_response = response.statement_batch_response();
+        try {
+            while (true) {
+                org::polypheny::prism::Response response = callback->take_next();
+                if (!response.has_statement_batch_response()) {
+                    throw std::runtime_error("Received illegal response type on statement batch execution");
+                }
+                const auto &statement_batch_response = response.statement_batch_response();
 
-            if (!is_statement_id_set) {
-                statement_id = statement_batch_response.batch_id();
-                streaming_index->update(statement_id, true);
-                is_statement_id_set = true;
-                statement_state = std::make_shared<Communication::StatementState>(
-                        connection.get_prism_interface_client(), statement_id);
-            }
+                if (!is_statement_id_set) {
+                    statement_id = statement_batch_response.batch_id();
+                    streaming_index->update(statement_id, true);
+                    is_statement_id_set = true;
+                    statement_state = std::make_shared<Communication::StatementState>(
+                            connection.get_prism_interface_client(), statement_id);
+                }
 
-            if (statement_batch_response.scalars_size() == 0 && !response.last()) {
-                continue;
-            }
+                if (statement_batch_response.scalars_size() == 0 && !response.last()) {
+                    continue;
+                }
 
-            callback->await_completion();
-            std::vector<uint64_t> update_counts;
-            for (auto count: statement_batch_response.scalars()) {
-                update_counts.push_back(count);
+                callback->await_completion();
+                std::vector<uint64_t> update_counts;
+                for (auto count: statement_batch_response.scalars()) {
+                    update_counts.push_back(count);
+                }
+                return update_counts;
             }
-            return update_counts;
+        } catch (...) {
+            discard_failed_statement();
+            throw;
         }
     }
 

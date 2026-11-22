@@ -24,8 +24,6 @@ namespace Communication {
         void on_completed();
 
     private:
-        void throw_received_exception();
-
         std::mutex queue_mutex;
         std::condition_variable has_next;
         std::condition_variable is_completed;
