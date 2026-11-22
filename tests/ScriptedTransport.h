@@ -90,6 +90,11 @@ namespace TestSupport {
             drained.notify_all();
         }
 
+        bool is_shutdown() {
+            std::lock_guard<std::mutex> lock(mutex);
+            return closed;
+        }
+
     private:
         void deliver_sequence(std::uint64_t request_id, ReplySequence replies) {
             std::unique_lock<std::mutex> lock(mutex);

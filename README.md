@@ -38,6 +38,9 @@ code of zero is present. A message-only response, including in the experimental
 Prism 5.1 streaming build, leaves both optionals empty. SQLSTATE `XX000` indicates
 an internal server error.
 
+`ServerError` derives from `std::runtime_error`. When handling both types, catch
+`ServerError` first to access its metadata.
+
 ## Read document collection metadata
 
 This example uses plain TCP on the default Prism port, 20590. Use credentials and a document namespace from your server.

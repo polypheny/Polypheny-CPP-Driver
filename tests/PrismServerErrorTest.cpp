@@ -210,18 +210,21 @@ TEST_CASE("A non-terminal Prism error response is a protocol error", "[prism][fr
         send_error(response, "23505", 0);
         response.set_last(false);
     });
+    const auto scripted_transport = transport.get();
     Connection::Connection connection(properties, std::move(transport));
     Connection::Cursor cursor(connection);
 
     SECTION("Direct execution uses the callback queue") {
         require_protocol_error([&] { cursor.execute("sql", "INSERT INTO items VALUES (1)"); },
                                "Non-terminal Prism error response");
+        CHECK(scripted_transport->is_shutdown());
         REQUIRE_THROWS_WITH(connection.rollback(), "Connection is closed");
     }
 
     SECTION("Preparation uses the synchronous response path") {
         require_protocol_error([&] { cursor.prepare_indexed("sql", "INSERT INTO items VALUES (?)"); },
                                "Non-terminal Prism error response");
+        CHECK(scripted_transport->is_shutdown());
         REQUIRE_THROWS_WITH(connection.rollback(), "Connection is closed");
     }
 }
