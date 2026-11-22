@@ -1,7 +1,7 @@
 [wrap-file]
-directory = polypheny_prism_api-2.3
-source_url = https://github.com/polypheny/Polypheny-Prism-API/releases/download/2.3/protobuf-files-2.3.zip
-source_filename = protobuf-files-2.3.zip
-source_hash = 51d2e1cb1ac7b2dcc4f8a554e1696360f5599892c7ed05fc58d9651cede0d654
+directory = polypheny_prism_api-2.4
+source_url = https://github.com/polypheny/Polypheny-Prism-API/releases/download/2.4/protobuf-files-2.4.zip
+source_filename = protobuf-files-2.4.zip
+source_hash = 4d27aa55a5482b56388994e74163fb23824a7ff504cd7a0c9f44efdf9624dd94
 lead_directory_missing = true
 patch_directory = prism-meson

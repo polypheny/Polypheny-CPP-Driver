@@ -51,7 +51,7 @@ namespace Communication {
         static const std::string CLIENT_STREAMING_FEATURE;
 #else
         static constexpr int MAJOR_API_VERSION = 2;
-        static constexpr int MINOR_API_VERSION = 3;
+        static constexpr int MINOR_API_VERSION = 4;
 #endif
 
         std::atomic<long> request_id{1};

@@ -1,90 +1,39 @@
 #include <catch2/catch_all.hpp>
 #include <PolyphenyCPPDriver.h>
 
-#include <condition_variable>
-#include <functional>
-#include <queue>
+#include "ScriptedTransport.h"
 
 namespace {
 
     using org::polypheny::prism::Request;
     using org::polypheny::prism::Response;
 
-    class ScriptedTransport final : public Transport::Transport {
-    public:
-        using Handler = std::function<void(const Request &, Response &)>;
+    using TestSupport::ScriptedTransport;
 
-        ScriptedTransport(int major, int minor, bool compatible, Handler handler)
-                : major(major), minor(minor), compatible(compatible), handler(std::move(handler)) {}
-
-        void connect() override {}
-
-        void send_message(const std::string &message) override {
-            Request request;
-            REQUIRE(request.ParseFromString(message));
-            Response response;
-            response.set_id(request.id());
-            response.set_last(true);
-            if (request.has_connection_request()) {
-                const auto &connection = request.connection_request();
+    std::unique_ptr<ScriptedTransport> metadata_transport(int major, int minor, bool compatible,
+                                                           ScriptedTransport::Handler handler = {}) {
+        return std::make_unique<ScriptedTransport>(std::move(handler),
+                [=](const Request &request, Response &response) {
+                    const auto &connection = request.connection_request();
 #if POLYPHENY_PRISM_STREAMING
-                REQUIRE(connection.major_api_version() == 5);
-                REQUIRE(connection.minor_api_version() == 1);
-                REQUIRE(connection.properties().at("namespace") == "inventory");
-                REQUIRE(connection.properties().at("autocommit") == "false");
-                REQUIRE(connection.features_size() == 2);
+                    REQUIRE(connection.major_api_version() == 5);
+                    REQUIRE(connection.minor_api_version() == 1);
+                    REQUIRE(connection.properties().at("namespace") == "inventory");
+                    REQUIRE(connection.properties().at("autocommit") == "false");
+                    REQUIRE(connection.features_size() == 2);
 #else
-                REQUIRE(connection.major_api_version() == 2);
-                REQUIRE(connection.minor_api_version() == 3);
-                REQUIRE(connection.connection_properties().namespace_name() == "inventory");
-                REQUIRE(connection.connection_properties().has_is_auto_commit());
-                REQUIRE_FALSE(connection.connection_properties().is_auto_commit());
+                    REQUIRE(connection.major_api_version() == 2);
+                    REQUIRE(connection.minor_api_version() == 4);
+                    REQUIRE(connection.connection_properties().namespace_name() == "inventory");
+                    REQUIRE(connection.connection_properties().has_is_auto_commit());
+                    REQUIRE_FALSE(connection.connection_properties().is_auto_commit());
 #endif
-                auto *reply = response.mutable_connection_response();
-                reply->set_major_api_version(major);
-                reply->set_minor_api_version(minor);
-                reply->set_is_compatible(compatible);
-            } else if (request.has_disconnect_request()) {
-                response.mutable_disconnect_response();
-            } else {
-                handler(request, response);
-            }
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                responses.push(response.SerializeAsString());
-            }
-            ready.notify_one();
-        }
-
-        std::string receive_message() override {
-            std::unique_lock<std::mutex> lock(mutex);
-            ready.wait(lock, [&] { return closed || !responses.empty(); });
-            if (responses.empty()) {
-                throw std::runtime_error("Test transport is closed");
-            }
-            auto response = std::move(responses.front());
-            responses.pop();
-            return response;
-        }
-
-        void shutdown() noexcept override {
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                closed = true;
-            }
-            ready.notify_one();
-        }
-
-    private:
-        int major;
-        int minor;
-        bool compatible;
-        Handler handler;
-        std::mutex mutex;
-        std::condition_variable ready;
-        std::queue<std::string> responses;
-        bool closed = false;
-    };
+                    auto *reply = response.mutable_connection_response();
+                    reply->set_major_api_version(major);
+                    reply->set_minor_api_version(minor);
+                    reply->set_is_compatible(compatible);
+                });
+    }
 
     Connection::ConnectionProperties properties() {
         Connection::ConnectionProperties settings;
@@ -100,14 +49,14 @@ namespace {
 
 TEST_CASE("An incompatible Prism server is reported as an exception") {
     auto settings = properties();
-    auto transport = std::make_unique<ScriptedTransport>(1, 9, false, nullptr);
+    auto transport = metadata_transport(1, 9, false);
     REQUIRE_THROWS_WITH(Connection::Connection(settings, std::move(transport)),
                         Catch::Matchers::ContainsSubstring("Incompatible API version"));
 }
 
 TEST_CASE("Entity search stays available on a compatible older minor version") {
     auto settings = properties();
-    auto transport = std::make_unique<ScriptedTransport>(server_major, server_minor, true,
+    auto transport = metadata_transport(server_major, server_minor, true,
         [](const Request &request, Response &response) {
             REQUIRE(request.has_entities_request());
             REQUIRE(request.entities_request().namespace_name() == "public");
@@ -126,7 +75,7 @@ TEST_CASE("Entity search stays available on a compatible older minor version") {
 #if !POLYPHENY_PRISM_STREAMING
 TEST_CASE("Document collection metadata preserves every field and filters other entities") {
     auto settings = properties();
-    auto transport = std::make_unique<ScriptedTransport>(2, 2, true, [](const Request &request, Response &response) {
+    auto transport = metadata_transport(2, 2, true, [](const Request &request, Response &response) {
         REQUIRE(request.has_entities_request());
         REQUIRE(request.entities_request().namespace_name() == "inventory");
         REQUIRE(request.entities_request().has_entity_pattern());

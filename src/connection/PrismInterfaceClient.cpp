@@ -8,6 +8,21 @@
 #include "transport/ConnectionClosedError.h"
 #include "types/Interval.h"
 
+namespace {
+
+    Errors::ServerError decode_server_error(const org::polypheny::prism::ErrorResponse &response) {
+#if POLYPHENY_PRISM_STREAMING
+        return Errors::ServerError(response.message());
+#else
+        const auto &details = response.details();
+        return Errors::ServerError(response.message(),
+                                   details.has_state() ? std::make_optional(details.state()) : std::nullopt,
+                                   details.has_error_code() ? std::make_optional(details.error_code()) : std::nullopt);
+#endif
+    }
+
+}
+
 namespace Communication {
 
 #if POLYPHENY_PRISM_STREAMING
@@ -271,8 +286,7 @@ namespace Communication {
         auto callback_queue = it->second;
         if (response.has_error_response()) {
             callback_queues.erase(response.id());
-            callback_queue->on_error(
-                    std::make_exception_ptr(std::runtime_error(response.error_response().message())));
+            callback_queue->on_error(std::make_exception_ptr(decode_server_error(response.error_response())));
             return;
         }
 
@@ -329,7 +343,7 @@ namespace Communication {
             throw;
         }
         if (response.has_error_response()) {
-            throw Errors::ServerError(response.error_response().message());
+            throw decode_server_error(response.error_response());
         }
         return response;
     }
