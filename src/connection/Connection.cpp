@@ -55,6 +55,10 @@ namespace Connection {
         prism_interface_client->rollback_transaction();
     }
 
+    void Connection::set_client_info_properties(const std::map<std::string, std::string> &properties) {
+        prism_interface_client->set_client_info_properties(properties);
+    }
+
     org::polypheny::prism::EntitiesResponse
     Connection::search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern) {
         return prism_interface_client->search_entities(namespace_name, pattern);

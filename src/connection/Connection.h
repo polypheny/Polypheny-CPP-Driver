@@ -2,6 +2,7 @@
 #define POLYPHENY_CPP_DRIVER_CONNECTION_H
 
 #include <list>
+#include <map>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -86,6 +87,9 @@ namespace Connection {
         /** Complete or discard the current user transaction when autocommit is disabled. */
         void commit();
         void rollback();
+
+        /** Set Prism client information properties for the current session. */
+        void set_client_info_properties(const std::map<std::string, std::string> &properties);
 
         /** Search entities in a namespace using the server's optional pattern filter. */
         [[nodiscard]] org::polypheny::prism::EntitiesResponse

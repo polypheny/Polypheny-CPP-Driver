@@ -103,6 +103,20 @@ namespace Communication {
         return server_api_version;
     }
 
+    void PrismInterfaceClient::set_client_info_properties(const std::map<std::string, std::string> &properties,
+                                                          uint32_t timeout_millis) {
+        org::polypheny::prism::Request request;
+        request.set_id(request_id.fetch_add(1));
+        auto *values = request.mutable_set_client_info_properties_request()->mutable_properties();
+        for (const auto &[name, value] : properties) {
+            (*values)[name] = value;
+        }
+        auto response = complete_synchronously(request, timeout_millis);
+        if (!response.has_set_client_info_properties_response()) {
+            throw std::runtime_error("Prism did not confirm client information properties");
+        }
+    }
+
     org::polypheny::prism::EntitiesResponse
     PrismInterfaceClient::search_entities(const std::string &namespace_name,
                                            const std::optional<std::string> &pattern, uint32_t timeout_millis) {
