@@ -3,12 +3,17 @@
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+#include <limits>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "types/TypedValue.h"
 #include "transport/ConnectionClosedError.h"
 #include "types/Interval.h"
 
 namespace {
+
+    // A nested Prism value spans multiple message levels per map or list level.
+    constexpr int response_recursion_limit = 256;
 
     Errors::ServerError decode_server_error(const org::polypheny::prism::ErrorResponse &response) {
 #if POLYPHENY_PRISM_STREAMING
@@ -101,6 +106,20 @@ namespace Communication {
 
     std::pair<int, int> PrismInterfaceClient::get_server_api_version() const noexcept {
         return server_api_version;
+    }
+
+    void PrismInterfaceClient::set_client_info_properties(const std::map<std::string, std::string> &properties,
+                                                          uint32_t timeout_millis) {
+        org::polypheny::prism::Request request;
+        request.set_id(request_id.fetch_add(1));
+        auto *values = request.mutable_set_client_info_properties_request()->mutable_properties();
+        for (const auto &[name, value] : properties) {
+            (*values)[name] = value;
+        }
+        auto response = complete_synchronously(request, timeout_millis);
+        if (!response.has_set_client_info_properties_response()) {
+            throw std::runtime_error("Prism did not confirm client information properties");
+        }
     }
 
     org::polypheny::prism::EntitiesResponse
@@ -243,8 +262,15 @@ namespace Communication {
     }
 
     org::polypheny::prism::Response PrismInterfaceClient::receive_message() {
+        auto message = transport->receive_message();
+        if (message.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
+            throw std::runtime_error("Prism response exceeds the protobuf size limit");
+        }
+        google::protobuf::io::CodedInputStream input(
+                reinterpret_cast<const uint8_t *>(message.data()), static_cast<int>(message.size()));
+        input.SetRecursionLimit(response_recursion_limit);
         org::polypheny::prism::Response response;
-        if (!response.ParseFromString(transport->receive_message())) {
+        if (!response.ParseFromCodedStream(&input) || !input.ConsumedEntireMessage()) {
             throw std::runtime_error("Failed to parse message");
         }
         return response;

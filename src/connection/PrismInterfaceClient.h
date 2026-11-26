@@ -89,6 +89,9 @@ namespace Communication {
 
         [[nodiscard]] std::pair<int, int> get_server_api_version() const noexcept;
 
+        void set_client_info_properties(const std::map<std::string, std::string> &properties,
+                                        uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);
+
         [[nodiscard]] org::polypheny::prism::EntitiesResponse
         search_entities(const std::string &namespace_name, const std::optional<std::string> &pattern,
                         uint32_t timeout_millis = DEFAULT_TIMEOUT_MILLIS);

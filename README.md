@@ -2,6 +2,8 @@
 
 Connect to Polypheny from C++17 over the Prism Query Interface. The default build uses the released Prism 2.4 definitions. Run Cypher on a server with Prism graph support. Graph-only projections yield a stream of nodes and edges, and mixed projections expose typed node, edge, path, and graph values in rows. [Prism API 2.4](https://github.com/polypheny/Polypheny-Prism-API/releases/tag/2.4)
 
+On supported servers, call `connection.set_client_info_properties({{"CypherResultFormat", "relational"}})` to keep columns and rows for graph-only projections. Use `prepare_named("cypher", query, graph_namespace)` and `execute_prepared(parameters)` on servers with prepared Cypher support.
+
 ## Build and test
 
 Install a C++17 compiler, Meson, Ninja, pkg-config, OpenSSL, GMP and the Protobuf compiler and C++ library from the same installation. The tests use Catch2 3. Meson can fetch the pinned Catch2 version if it cannot find one locally.

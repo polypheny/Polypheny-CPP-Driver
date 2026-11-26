@@ -295,7 +295,7 @@ TEST_CASE("Live Cypher early result disposal allows subsequent queries", "[.grap
     CHECK(fixture.names().size() == 4);
 }
 
-TEST_CASE("Live Cypher errors and rejected preparation leave the connection usable", "[.graph-integration]") {
+TEST_CASE("Live Cypher errors and rejected indexed preparation leave the connection usable", "[.graph-integration]") {
     GraphFixture fixture;
     CHECK_THROWS_AS(fixture.query("THIS IS NOT CYPHER"), std::exception);
     CHECK(fixture.names().size() == 4);
@@ -303,8 +303,20 @@ TEST_CASE("Live Cypher errors and rejected preparation leave the connection usab
     CHECK(fixture.names().size() == 4);
     CHECK_THROWS_AS(fixture.cursor.prepare_indexed("cypher", "MATCH (n:Person) RETURN n", fixture.name), std::exception);
     CHECK(fixture.names().size() == 4);
-    CHECK_THROWS_AS(fixture.cursor.prepare_named("cypher", "MATCH (n:Person) RETURN n", fixture.name), std::exception);
-    CHECK(fixture.names().size() == 4);
+}
+
+TEST_CASE("Live Cypher binds parameters and preserves relational graph results", "[.prepared-cypher]") {
+    GraphFixture fixture;
+    fixture.connection->set_client_info_properties({{"CypherResultFormat", "relational"}});
+    fixture.cursor.prepare_named("cypher", "MATCH (n:Person) WHERE n.id = $1 RETURN n", fixture.name);
+    std::unordered_map<std::string, Types::TypedValue> parameters{{"1", Types::TypedValue(int32_t{2})}};
+    auto result = fixture.cursor.execute_prepared(parameters);
+    auto rows = result->unwrap<Results::RelationalResult>();
+    REQUIRE(rows->get_metadata()->get_column_meta(0).get_column_label() == "n");
+    auto row = rows->begin();
+    REQUIRE(row != rows->end());
+    CHECK((*row)[size_t{0}].as_node().at("name").as_string() == "Bob");
+    CHECK(++row == rows->end());
 }
 
 TEST_CASE("Live Cypher batch writes and empty batches complete", "[.graph-integration]") {
