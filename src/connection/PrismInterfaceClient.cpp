@@ -3,12 +3,17 @@
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+#include <limits>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "types/TypedValue.h"
 #include "transport/ConnectionClosedError.h"
 #include "types/Interval.h"
 
 namespace {
+
+    // A nested Prism value spans multiple message levels per map or list level.
+    constexpr int response_recursion_limit = 256;
 
     Errors::ServerError decode_server_error(const org::polypheny::prism::ErrorResponse &response) {
 #if POLYPHENY_PRISM_STREAMING
@@ -257,8 +262,15 @@ namespace Communication {
     }
 
     org::polypheny::prism::Response PrismInterfaceClient::receive_message() {
+        auto message = transport->receive_message();
+        if (message.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
+            throw std::runtime_error("Prism response exceeds the protobuf size limit");
+        }
+        google::protobuf::io::CodedInputStream input(
+                reinterpret_cast<const uint8_t *>(message.data()), static_cast<int>(message.size()));
+        input.SetRecursionLimit(response_recursion_limit);
         org::polypheny::prism::Response response;
-        if (!response.ParseFromString(transport->receive_message())) {
+        if (!response.ParseFromCodedStream(&input) || !input.ConsumedEntireMessage()) {
             throw std::runtime_error("Failed to parse message");
         }
         return response;
